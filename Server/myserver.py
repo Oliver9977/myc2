@@ -20,7 +20,7 @@ class myconstant():
 
         self.CMD_BACK = "back"
         self.CMD_LISTENER_GETINFO = "getinfo"
-        self.CMD_LISTENER_SETHOSTNAME = "sethostname"
+        self.CMD_LISTENER_SETHOSTNAME = "sethost"
         self.CMD_LISTENER_SETPORT = "setport"
         self.CMD_LISTENER_START = "start"
         self.CMD_LISTENER_LIST = "list"

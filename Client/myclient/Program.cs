@@ -39,7 +39,7 @@ namespace myclient
 
             //init
             PsRun myPsRun = new PsRun();
-
+            myPsRun.init();
 
 
             //COMMAND_SUCCESS

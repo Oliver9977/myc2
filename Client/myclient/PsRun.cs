@@ -21,11 +21,16 @@ namespace myclient
             }
         }
 
+        public void init()
+        {
+            rs.ApartmentState = System.Threading.ApartmentState.STA;
+            rs.Open();
+        }
+
         public string doPsRun(string testInput)
         {
 
-            rs.ApartmentState = System.Threading.ApartmentState.STA;
-            rs.Open();
+            
 
             Pipeline ps = rs.CreatePipeline();
             ps.Commands.AddScript(testInput);

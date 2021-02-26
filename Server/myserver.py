@@ -14,12 +14,12 @@ class myconstant():
 
         self.CMD_USELISTENER = "uselistener"
         self.CMD_USESTAGER = "userstager"
-        self.CMD_INTERACTSTAGER = "interactstager"
+        self.CMD_INTERACTSTAGER = "stager"
         self.CMD_HELP = "help"
         self.CMD_EXIT = "exit"
 
         self.CMD_BACK = "back"
-        self.CMD_LISTENER_GETINFO = "getinfo"
+        self.CMD_LISTENER_GETINFO = "info"
         self.CMD_LISTENER_SETHOSTNAME = "sethost"
         self.CMD_LISTENER_SETPORT = "setport"
         self.CMD_LISTENER_START = "start"
@@ -49,12 +49,12 @@ class mysocket_handler():
         #less likely need this
         self.__enc_tag_st = "[MYENST]"
         self.__enc_tag_ed = "[MYENED]"
+        self.__mysocket.settimeout(5)
 
 
     def get_nextmsg(self):
 
-        try_get = True
-        while try_get:
+        while True:
             # if msg buf is enough
             if self.__msg_tag_st in self.__msg_buf and self.__msg_tag_ed in self.__msg_buf:
                 #get start tag
@@ -68,9 +68,13 @@ class mysocket_handler():
                 return r_msg
             else:
                 # get more message
-                t_indata = self.__mysocket.recv(1024)
-                self.__msg_buf = self.__msg_buf + t_indata.decode("ascii", "ignore")
+                try: 
+                    t_indata = self.__mysocket.recv(1024)
+                    self.__msg_buf = self.__msg_buf + t_indata.decode("ascii", "ignore")
+                except socket.timeout:
+                    pass
 
+                
 
 
 class myserver():

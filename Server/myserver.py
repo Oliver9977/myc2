@@ -59,7 +59,7 @@ class myconstant():
                                     self.CMD_LISTENER_SETPORT,self.CMD_LISTENER_START,self.CMD_LISTENER_LIST,self.CMD_LISTENER_STOP,self.CMD_HELP]
 
         self.CMD_STAGER_GET_LIST = "list"
-        #self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
+        self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
         self.CMD_STAGER_GET_INTO = "into"
         self.CMD_STAGER_GET_HISTORY = "history"
         self.CMD_STAGER_LOAD_PS = "psload"
@@ -77,9 +77,10 @@ class myconstant():
                                             self.CMD_PIPE_LISTENER_LIST,self.CMD_PIPE_LISTENER_STOP,self.CMD_BACK]
         
         self.CMD_PIPE_STAGER_GET_LIST = "list"
+        self.CMD_PIPE_STAGER_GET_RUNNING_LIST = "rlist"
         self.CMD_PIPE_STAGER_GET_INTO = "into"
         self.CMD_PIPE_STAGER_GET_HISTORY = "history"
-        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,self.CMD_BACK]
+        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST]
         #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
         #self.CMD_PIPE_STAGER_CON = "connect" 
 
@@ -139,6 +140,8 @@ class mypipe_handler():
             except Exception as e:
                 if e.args[0] == 232:
                     pass
+                else:
+                    raise e
         return resp[1].decode("ascii", "ignore")
 
 
@@ -273,6 +276,7 @@ class myserver():
                 self.__mydata_list.pop(myuuid, None)
                 self.__mysocket_list.pop(myuuid, None)
                 self.__myaddr_list.pop(myuuid, None)
+                self.__mystart_list[myuuid] = False
                 myhistory.append("[Stager] {} is stoped ...".format(myuuid))
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
@@ -327,6 +331,7 @@ class myserver():
                 #remove from worker list
                 self.__mypipe_mydata_list.pop(myuuid, None)
                 self.__mypipe_mypipename_list.pop(myuuid, None)
+                self.__mypipe_mystart_list[myuuid] = False
                 myhistory.append("[Stager] {} is stoped ...".format(myuuid))
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
@@ -512,11 +517,18 @@ class myserver():
     def get_pipe_stager(self):
         return self.__mypipe_myuuid_list
 
+    def get_running_stager(self):
+        return [a for a in self.__myuuid_list if self.__mystart_list[a]]
+    def get_running_pipe_stager(self):
+        return [a for a in self.__mypipe_myuuid_list if self.__mypipe_mystart_list[a]]
+
     def get_listener(self):
         return self.__mylistener_uuid_list
 
     def print_stager_running(self):
-        return [a for a in self.__myuuid_list if self.__mystart_list[a]]
+        print("List of running pipe stager: {}".format(self.get_running_stager()))
+    def print_pipe_stager_running(self):
+        print("List of running pipe stager: {}".format(self.get_running_pipe_stager()))
 
     def get_history(self):
         return self.__mymsg_list
@@ -563,7 +575,7 @@ class mymainclass():
 
     def __cmd_list_stager(self):
         print("\n+++++++++++++++++++++++++++++++++++")
-        #print(self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST + ": Get a list of running stager")
+        print(self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST + ": Get a list of running stager")
         print(self.__t_myconstant.CMD_STAGER_GET_LIST + ": Get full list of stager")
         print(self.__t_myconstant.CMD_STAGER_GET_HISTORY + ": Get history of stager message")
         print(self.__t_myconstant.CMD_STAGER_GET_INTO + ": Send cmd to stager")
@@ -686,9 +698,9 @@ class mymainclass():
                     self.__t_myserver.print_stager()
                     continue
                 
-                # if command_id == self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST:
-                #     self.__t_myserver.print_stager_running()
-                #     continue
+                if command_id == self.__t_myconstant.CMD_STAGER_GET_RUNNING_LIST:
+                    self.__t_myserver.print_stager_running()
+                    continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_HISTORY:
                     #set auto compete to stager uuid
@@ -766,10 +778,10 @@ class mymainclass():
                     continue
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_INTO:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_pipe_stager())
+                    setautocomplete(self.__t_myserver.get_running_pipe_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_pipe_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_pipe_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -789,6 +801,9 @@ class mymainclass():
                         continue
                     for each_msg in self.__t_myserver.get_pipe_history()[user_input_stager]:
                         print(each_msg)
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_RUNNING_LIST:
+                    self.__t_myserver.print_pipe_stager_running()
                     continue
 
 

@@ -471,9 +471,11 @@ class myserver():
                 time.sleep(5)
 
         #end of while loop
-        #dummy for now
-        win32file.CloseHandle(pipe)
-        
+        self.__mypipelistener_pipe_list.pop(mypipeuuid, None)
+        self.__mypipelistener_pipename_list.pop(mypipeuuid, None)
+        self.__mypipelistener_start_list.pop(mypipeuuid, None)
+        self.__mypipelistener_uuid_list.remove(mypipeuuid)
+        print("[Listener] {} is stoped ...".format(mypipeuuid))
 
 
     def create_command(self,stager,tag,command):
@@ -484,6 +486,9 @@ class myserver():
     
     def stop_listener(self,listener):
         self.__mylistener_start_list[listener] = False
+
+    def stop_pipe_listener(self,listener):
+        self.__mypipelistener_start_list[listener] = False
 
     def print_info(self):
         print("++++++++++++++++++++++++Listener Info++++++++++++++++++++++++")
@@ -506,6 +511,9 @@ class myserver():
     
     def print_listener(self):
         print("List of avaliable listener: {}".format(self.__mylistener_uuid_list))
+    
+    def print_pipe_listener(self):
+        print("List of avaliable pipe listener: {}".format(self.__mypipelistener_uuid_list))
 
     def get_stager(self):
         return self.__myuuid_list
@@ -520,6 +528,9 @@ class myserver():
 
     def get_listener(self):
         return self.__mylistener_uuid_list
+    
+    def get_pipe_listener(self):
+        return self.__mypipelistener_uuid_list
 
     def print_stager_running(self):
         print("List of running pipe stager: {}".format(self.get_running_stager()))
@@ -772,6 +783,19 @@ class mymainclass():
                     removecomplete()
                     user_input_pipename = input("Please enter the pipename: ")
                     self.__t_myserver.set_pipename(user_input_pipename)
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_STOP:
+                    #set auto compete to listener uuid
+                    setautocomplete(self.__t_myserver.get_pipe_listener())
+                    user_input_listener = input("Please enter the listener uuid: ")
+                    if user_input_listener not in self.__t_myserver.get_pipe_listener():
+                        print("Please input a valid listener uuid")
+                        continue
+                    self.__t_myserver.stop_pipe_listener(user_input_listener)
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_LIST:
+                    self.__t_myserver.print_pipe_listener()
+                    continue
 
             
             if cmd_tag == self.__t_myconstant.TAG_PIPE_INTE_STAGER:

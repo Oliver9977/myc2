@@ -332,6 +332,8 @@ class myserver():
                 self.__mypipe_mydata_list.pop(myuuid, None)
                 self.__mypipe_mypipename_list.pop(myuuid, None)
                 self.__mypipe_mystart_list[myuuid] = False
+                win32file.CloseHandle(self.__mypipe_myhandle_list[myuuid])
+                self.__mypipe_myhandle_list.pop(myuuid, None)
                 myhistory.append("[Stager] {} is stoped ...".format(myuuid))
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
@@ -442,36 +444,30 @@ class myserver():
                 self.__mypipe_mystart_list[myuuid] = True
                 #pipe name
                 self.__mypipe_mypipename_list[myuuid] = self.__pipename
+                #push pipe handle
+                self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
                 
                 
                 print("[Listener] myuuid is {}".format(myuuid))
                 threading.Thread(target=self.start_pipworker,args=(myuuid,)).start()
                 
-                #swap pipe
-                self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
+                while (self.__mypipe_mystart_list[myuuid]):
+                    time.sleep(5)
+                
+                #renew handle
                 newpipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__pipename, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
                 self.__mypipelistener_pipe_list[mypipeuuid] = newpipe
-
                 
             except Exception as e:
                 if (e.args[0] == 536): #notstarted or busy
                     pass
-                    #print("Wait a bit longer ... ")
+                    #print("e Error: {}".format(str(e)))
                 elif (e.args[0] == 231):
-                    while True:
-                        try:
-                            #swap pipe
-                            self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
-                            newpipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__pipename, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
-                            self.__mypipelistener_pipe_list[mypipeuuid] = newpipe
-                            break
-                        except Exception as inner_e:
-                            if (inner_e.args[0] == 231):
-                                #print("Wait a bit longer ... ")
-                                time.sleep(5)
-
+                    pass
+                    #print("e Error: {}".format(str(e)))
                 else:
-                    print("Error: {}".format(str(e)))
+                    pass
+                    #print("e Error: {}".format(str(e)))
                 time.sleep(5)
 
         #end of while loop

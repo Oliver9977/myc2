@@ -426,7 +426,7 @@ class myserver():
         self.__mypipelistener_uuid_list.append(mypipeuuid)
         self.__mypipelistener_start_list[mypipeuuid] = True
         
-        print("[Listener] waiting for client")
+        #print("[Listener] waiting for client")
         while self.__mypipelistener_start_list[mypipeuuid]:
             
             try:
@@ -443,7 +443,7 @@ class myserver():
                 #set start
                 self.__mypipe_mystart_list[myuuid] = True
                 #pipe name
-                self.__mypipe_mypipename_list[myuuid] = self.__pipename
+                self.__mypipe_mypipename_list[myuuid] =self.__mypipelistener_pipename_list[mypipeuuid]
                 #push pipe handle
                 self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
                 
@@ -455,19 +455,19 @@ class myserver():
                     time.sleep(5)
                 
                 #renew handle
-                newpipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__pipename, win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
+                newpipe = win32pipe.CreateNamedPipe(r'\\.\pipe\\' + self.__mypipelistener_pipename_list[mypipeuuid], win32pipe.PIPE_ACCESS_DUPLEX, win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_READMODE_MESSAGE | win32pipe.PIPE_NOWAIT, 1, 65536, 65536, 0, None)
                 self.__mypipelistener_pipe_list[mypipeuuid] = newpipe
                 
             except Exception as e:
                 if (e.args[0] == 536): #notstarted or busy
                     pass
-                    #print("e Error: {}".format(str(e)))
+                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 elif (e.args[0] == 231):
                     pass
-                    #print("e Error: {}".format(str(e)))
+                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 else:
                     pass
-                    #print("e Error: {}".format(str(e)))
+                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 time.sleep(5)
 
         #end of while loop
@@ -539,6 +539,10 @@ class myserver():
     def set_portnumber(self,port):
         assert(type(port) is int)
         self.__port = port
+    
+    def set_pipename(self,pipename):
+        assert(type(pipename) is str)
+        self.__pipename = pipename
 
 
 class mymainclass():
@@ -763,6 +767,12 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_START:
                     threading.Thread(target=self.__t_myserver.start_pipe_listener).start()
                     continue
+                
+                if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_SETPIPENAME:
+                    removecomplete()
+                    user_input_pipename = input("Please enter the pipename: ")
+                    self.__t_myserver.set_pipename(user_input_pipename)
+
             
             if cmd_tag == self.__t_myconstant.TAG_PIPE_INTE_STAGER:
                 #menu switch

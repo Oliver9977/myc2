@@ -445,10 +445,10 @@ namespace myclient
         }
     }
 
-    class Program
+    public class Program
     {
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             MyApp t_app = new MyApp();
             //t_app.StartClient();

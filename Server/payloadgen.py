@@ -11,9 +11,10 @@ class mypayloadgen():
         self.__to_payload = "Client\\payload\\"
         self.__outputname = "Invoke-myclient.ps1"
 
-    def gen_exe(self):
-        
+    def gen_ps1(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
+        #regen exe first
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd)
 
         output = subprocess.run(["psgen.bat"], capture_output=True, shell=True, cwd=mycwd)
         myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
@@ -25,10 +26,13 @@ class mypayloadgen():
         with open(os.path.join(self.__parentdir,self.__to_payload,self.__outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__payload_tag,myb64))
 
+    def gen_exe(self):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd)
 
 
 
 if __name__ == "__main__":
     t_mypayloadgen = mypayloadgen()
-    t_mypayloadgen.gen_exe()
+    t_mypayloadgen.gen_ps1()
 

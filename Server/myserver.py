@@ -31,6 +31,9 @@ def removecomplete():
 class myconstant():
     def __init__(self):
 
+        self.SOCKET_TIMEOUT = 5
+        self.PFW_ACK_SPEED = 2
+
         self.TAG_MYCS = "[MYCS]"
         self.TAG_LISTENER = "[Listener]"
         #self.TAG_STAGER = "[Stager]"
@@ -156,6 +159,8 @@ class mypipe_handler():
 # socket is assume connected
 class mysocket_handler():
     def __init__(self,in_socket):
+        
+        self.__t_myconstant = myconstant()
         self.__mysocket = in_socket
         self.__msg_buf = ""
         
@@ -164,7 +169,7 @@ class mysocket_handler():
         #less likely need this
         self.__enc_tag_st = "[MYENST]"
         self.__enc_tag_ed = "[MYENED]"
-        self.__mysocket.settimeout(5)
+        self.__mysocket.settimeout(self.__t_myconstant.SOCKET_TIMEOUT)
         self.__mysocket_alive = True
 
     def msf_encode(self,msg):
@@ -197,7 +202,7 @@ class mysocket_handler():
     def get_native_all(self):
         while True:
             try:
-                print("[DEBUG] get_native_all, trying to read something")
+                #print("[DEBUG] get_native_all, trying to read something")
                 t_indata = self.__mysocket.recv(1024)
                 new_msg = t_indata.decode("utf8", "ignore")
                 if len(new_msg) == 0: #got FIN
@@ -234,6 +239,8 @@ class myserver():
 
         self.__pipename = "namedpipeshell"
 
+        self.__t_myconstant = myconstant()
+
         self.__mypipelistener_start_list = dict() #bool
         self.__mypipelistener_pipename_list = dict()
         self.__mypipelistener_pipe_list = dict()
@@ -256,7 +263,7 @@ class myserver():
                 msg_item = local_item_que_fromrh.get(block=True, timeout=5)
                 break
             except queue.Empty:
-                print("[DEBUG] get_resource_handler_result Local Job Que for {} is empty".format(myuuid))
+                #print("[DEBUG] get_resource_handler_result Local Job Que for {} is empty".format(myuuid))
                 continue
         
         return msg_item
@@ -283,13 +290,13 @@ class myserver():
         while True:
             
             if need_reconnect:
-                print("[DEBUG] start_resource_handler, need reconnction")
+                #print("[DEBUG] start_resource_handler, need reconnction")
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
                     client.connect((conhost,conport))
                     #local_item_que_fromrh.put(t_net_constant.FW_LOCAL_SUCCESS)
                 except Exception as e:
-                    print("[Local] Error reconnecting to client: {}...".format(str(e)))
+                    #print("[Local] Error reconnecting to client: {}...".format(str(e)))
                     #local_item_que_fromrh.put(t_net_constant.FW_LOCAL_ERROR)
                     return #cannot continue ...
             
@@ -298,28 +305,26 @@ class myserver():
                     msg_item = local_item_que_torh.get(block=True, timeout=5)
                     break
                 except queue.Empty:
-                    print("[DEBUG] start_resource_handler, Local Job Que for {} is empty".format(myuuid))
+                    #print("[DEBUG] start_resource_handler, Local Job Que for {} is empty".format(myuuid))
                     continue
-            print("[DEBUG] start_resource_handler, " + msg_item)
+            #print("[DEBUG] start_resource_handler, " + msg_item)
             #encode write to
             encode_cmd = msg_item.encode("utf8", "ignore")
             send_result = client.send(encode_cmd)
-            print("[DEBUG] start_resource_handler, trying to get reponse from local server ...")
+            #print("[DEBUG] start_resource_handler, trying to get reponse from local server ...")
             #get response if any, better put a timeout here
             t_mysocket_handler = mysocket_handler(client)
             #to_send = client.recv(1024)
             #decode_msg = to_send.decode("utf8", "ignore")
             decode_msg = t_mysocket_handler.get_native_all()
-            print("[DEBUG] start_resource_handler, " + decode_msg)
+            #print("[DEBUG] start_resource_handler, " + decode_msg)
 
             local_item_que_fromrh.put(decode_msg)
-            print("[DEBUG] start_resource_handler, Put success ... ")
+            #print("[DEBUG] start_resource_handler, Put success ... ")
 
             #check if the connection is still alive, tag for reconnect if FINED
             if not t_mysocket_handler.ifalive():
                 need_reconnect = True
-
-
 
 
     def start_slave_worker(self,myuuid):
@@ -340,7 +345,7 @@ class myserver():
                     msg_item = local_item_que_toslave.get(block=True, timeout=5)
                     break
                 except queue.Empty:
-                    print("[DEBUG] start_slave_worker Local Job Que (toslave) for {} is empty".format(myuuid))
+                    #print("[DEBUG] start_slave_worker Local Job Que (toslave) for {} is empty".format(myuuid))
                     continue
             
             if msg_item != t_net_constant.FW_NOTREADY:
@@ -353,14 +358,14 @@ class myserver():
                         msg_item = local_item_que_fromrh.get(block=True, timeout=5)
                         break
                     except queue.Empty:
-                        print("[DEBUG] start_slave_worker Local Job Que (fromrh) for {} is empty".format(myuuid))
+                        #print("[DEBUG] start_slave_worker Local Job Que (fromrh) for {} is empty".format(myuuid))
                         continue
                 
-                print("[DEBUG] start_slave_worker" + msg_item)
+                #print("[DEBUG] start_slave_worker" + msg_item)
                 local_item_que_tomaster.put(msg_item)
             else:
                 local_item_que_tomaster.put(t_net_constant.FW_NOTREADY)
-            time.sleep(5)
+            time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
         
 
     def start_worker(self,myuuid):
@@ -380,7 +385,7 @@ class myserver():
             except queue.Empty:
                 #print("[DEBUG] Job Que for {} is empty".format(myuuid))
                 continue
-            print("[DEBUG] Job item {}".format(cmd_struct_to_send))
+            #print("[DEBUG] Job item {}".format(cmd_struct_to_send))
 
             
             try:
@@ -405,33 +410,35 @@ class myserver():
 
                 #if fwq
                 if cmd_struct_to_send[0] == "fwq":
-                    print("[DEBUG] start_worker, I am working for fwq")
+                    #print("[DEBUG] start_worker, I am working for fwq")
                     #get the next message check tag
                     recv_result = t_mysockethandler.get_nextmsg()
-                    print("[DEBUG] start_worker, get_nextmsg is {}".format(recv_result))
+                    #print("[DEBUG] start_worker, get_nextmsg is {}".format(recv_result))
                     #push command to local worker and wait for response
                     local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
                     local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
-                    print("[DEBUG] start_worker, Trying to put into que")
+                    #print("[DEBUG] start_worker, Trying to put into que")
                     local_item_que_toslave.put(recv_result)
-                    print("[DEBUG] start_worker, Puted into ..")
+                    #print("[DEBUG] start_worker, Puted into ..")
                     while True:
                         try:
                             msg_item = local_item_que_tomaster.get(block=True, timeout=5)
                             break
                         except queue.Empty:
-                            print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
+                            #print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
                             continue
                     
-                    print("[DEBUG] start_worker, Got item back")
+                    #print("[DEBUG] start_worker, Got item back")
                     if msg_item != t_net_constant.FW_NOTREADY: #send it back to ack the que get
                         #send it to client
                         encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
                         send_result = mysocket.send(encode_cmd)
-                        print("[DEBUG] start_worker, real data sent")
+                        #print("[DEBUG] start_worker, real data sent")
                     else:
-                        print("[DEBUG] start_worker, FW_NOTREADY")
+                        pass
+                        #print("[DEBUG] start_worker, FW_NOTREADY")
                     #else, no need to send back
+                    
                     continue
                 
                 if cmd_struct_to_send[0] == "fw": #fw init
@@ -585,8 +592,6 @@ class myserver():
             print("ACK failed ...")
 
 
-
-
     def start_listener(self):
         print("Starting listener on Hostname: {} and Port: {}".format(self.__hostname,self.__port))
         #get uuid
@@ -598,7 +603,7 @@ class myserver():
 
         self.__mylistener_socket_list[listeneruuid] = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.__mylistener_socket_list[listeneruuid].bind((self.__hostname, self.__port))
-        self.__mylistener_socket_list[listeneruuid].settimeout(5)
+        self.__mylistener_socket_list[listeneruuid].settimeout(self.__t_myconstant.SOCKET_TIMEOUT)
         self.__mylistener_socket_list[listeneruuid].listen()
         
         while self.__mylistener_start_list[listeneruuid]:

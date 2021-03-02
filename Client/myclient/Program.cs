@@ -104,8 +104,11 @@ namespace myclient
                 }
                 catch (SocketException se)
                 {
-                    //assume all received
-                    return ret_str;
+                    //assume all received in 5s
+                    if (se.SocketErrorCode == SocketError.TimedOut)
+                    {
+                        return ret_str;
+                    }
                 }
             }
         }//assume connected
@@ -298,7 +301,7 @@ namespace myclient
                             Console.WriteLine("DEBUG:: str_fwq_msg length: " + str_fwq_msg.Length.ToString());
                             Console.WriteLine("DEBUG:: fwq_msg length: " + fwq_msg.Length.ToString());
 
-                            if (str_fwq_msg.Length == 0 && !fwSocket_alive)
+                            if (str_fwq_msg.Length == 0) //cannot send empty msg
                             {
                                 Console.WriteLine("fwSocket FINED, trying to listen for another connection");
                                 fwSocket.Shutdown(SocketShutdown.Both);

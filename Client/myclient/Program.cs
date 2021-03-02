@@ -81,6 +81,26 @@ namespace myclient
                 }
             }
         }
+
+        public string doReciveNative(Socket socket) //assume connected
+        {
+            byte[] fwq_bytes_toresv = new byte[1024];
+            string ret_str = "";
+
+            while (true)
+            {
+                try
+                {
+                    int length_toresv = socket.Receive(fwq_bytes_toresv);
+                    ret_str = ret_str + Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv);
+                }
+                catch (SocketException se)
+                {
+                    //assume all received
+                    return ret_str;
+                }
+            }
+        }//assume connected
         
         private static byte[] ReadPipMessage(PipeStream pipe)
         {
@@ -114,6 +134,7 @@ namespace myclient
                     listener.Listen(1);
                     Console.WriteLine("Waiting for a connection...");
                     fwSocket = listener.Accept();
+                    fwSocket.ReceiveTimeout = 5;
 
                     //doMagic(handler, localEndPoint, listener);
 
@@ -249,9 +270,8 @@ namespace myclient
                         {
                             //do single read and write
                             Console.WriteLine("Doing read and write");
-                            byte[] fwq_bytes_toresv = new byte[1024];
-                            int length_toresv = fwSocket.Receive(fwq_bytes_toresv);
-                            byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv)));
+
+                            byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(doReciveNative(fwSocket)));
                             bytesSent = sender.Send(fwq_msg);
                             Console.WriteLine("Http Get success ...");
 

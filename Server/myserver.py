@@ -67,7 +67,7 @@ class myconstant():
         self.CMD_STAGER_PFW = "pfw"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
-                                    self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW]
+                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -82,7 +82,8 @@ class myconstant():
         self.CMD_PIPE_STAGER_GET_INTO = "into"
         self.CMD_PIPE_STAGER_GET_HISTORY = "history"
         self.CMD_PIPE_STAGER_CON = "connect"
-        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST,self.CMD_PIPE_STAGER_CON]
+        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,
+                                            self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST,self.CMD_PIPE_STAGER_CON]
         #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
         #self.CMD_PIPE_STAGER_CON = "connect" 
 
@@ -92,7 +93,9 @@ class myconstant_networking(): #applicaiton layer tag
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
         self.PIPE_CONNECTED = "PIPE_CONNECTED"
         self.FW_NOTREADY = "FW_NOTREADY"
-        self.FW_SUCCESS = "FW_SUCCESS" #for startup
+        self.FW_SUCCESS = "FW_SUCCESS" #for remote startup
+        self.FW_LOCAL_SUCCESS = "FW_LOCAL_SUCCESS" #for local startup
+        self.FW_LOCAL_ERROR = "FW_LOCAL_ERROR" #for local startup
 
 
 class mybuildin_cmd():
@@ -203,6 +206,9 @@ class myserver():
         self.__mystart_list = dict() #bool
         self.__myfwdata_list_tomaster = dict()
         self.__myfwdata_list_toslave = dict()
+        self.__myfwdata_list_torh = dict()
+        self.__myfwdata_list_fromrh = dict()
+
 
         self.__mylistener_start_list = dict() #bool
         self.__mylistener_hostname_list = dict()
@@ -227,12 +233,67 @@ class myserver():
         self.__mypipe_myuuid_list = list()
         self.__mypipe_mystart_list = dict() #bool
 
+    def get_resource_handler_result(self,myuuid):
+        t_net_constant = myconstant_networking()
+        local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
+        local_item_que_torh = self.__myfwdata_list_torh[myuuid]
+
+        while True:
+            try:
+                msg_item = local_item_que_fromrh.get(block=True, timeout=5)
+                break
+            except queue.Empty:
+                print("[DEBUG] get_resource_handler_result Local Job Que for {} is empty".format(myuuid))
+                continue
+        
+        return msg_item
+
+
+    def start_resource_handler(self,myuuid,conhost,conport): #its possible to have its own uuid
+        t_net_constant = myconstant_networking()
+        local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
+        local_item_que_torh = self.__myfwdata_list_torh[myuuid]
+
+        print("[Local] This is the resousce handler for my uuid: {}".format(myuuid))
+        # try connect to the addr send tag on success or fail
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            client.connect((conhost,conport))
+            local_item_que_fromrh.put(t_net_constant.FW_LOCAL_SUCCESS)
+        except Exception as e:
+            print("[Local] Error connecting to client: {}...".format(str(e)))
+            local_item_que_fromrh.put(t_net_constant.FW_LOCAL_ERROR)
+        
+        #try to get cmd first then send resouces
+        while True:
+            while True:
+                try:
+                    msg_item = local_item_que_torh.get(block=True, timeout=5)
+                    break
+                except queue.Empty:
+                    print("[DEBUG] start_resource_handler Local Job Que for {} is empty".format(myuuid))
+                    continue
+            print("[DEBUG] start_resource_handler" + msg_item)
+            #encode write to
+            encode_cmd = msg_item.encode("utf8", "ignore")
+            send_result = client.send(encode_cmd)
+            print("[DEBUG] trying to get reponse from local server ...")
+            #get response if any, better put a timeout here
+            to_send = client.recv(1024)
+            decode_msg = to_send.decode("utf8", "ignore")
+            print("[DEBUG] start_resource_handler" + decode_msg)
+
+            local_item_que_fromrh.put(decode_msg)
+            print("[DEBUG] start_resource_handler Put success ... ")
+
 
     def start_slave_worker(self,myuuid):
         #single target for now
         t_net_constant = myconstant_networking()
         local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
         local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
+        local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
+        local_item_que_torh = self.__myfwdata_list_torh[myuuid]
 
         print("[Stager] This is the local worker for my uuid: {}".format(myuuid))
         
@@ -244,12 +305,26 @@ class myserver():
                     msg_item = local_item_que_toslave.get(block=True, timeout=5)
                     break
                 except queue.Empty:
-                    print("[DEBUG] start_slave_worker Local Job Que for {} is empty".format(myuuid))
+                    print("[DEBUG] start_slave_worker Local Job Que (toslave) for {} is empty".format(myuuid))
                     continue
             
-            #if msg_item != t_net_constant.FW_NOTREADY:
-            #    print("[Stager] Real data")
-            local_item_que_tomaster.put(t_net_constant.FW_NOTREADY)
+            if msg_item != t_net_constant.FW_NOTREADY:
+                print("[Stager] Real data")
+                local_item_que_torh.put(msg_item)
+            
+                # assume there always reponse
+                while True:
+                    try:
+                        msg_item = local_item_que_fromrh.get(block=True, timeout=5)
+                        break
+                    except queue.Empty:
+                        print("[DEBUG] start_slave_worker Local Job Que (fromrh) for {} is empty".format(myuuid))
+                        continue
+                
+                print("[DEBUG] start_slave_worker" + msg_item)
+                local_item_que_tomaster.put(msg_item)
+            else:
+                local_item_que_tomaster.put(t_net_constant.FW_NOTREADY)
             time.sleep(5)
         
 
@@ -318,6 +393,7 @@ class myserver():
                         #send it to client
                         encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
                         send_result = mysocket.send(encode_cmd)
+                        print("[DEBUG] start_worker, real data sent")
                     else:
                         print("[DEBUG] start_worker, FW_NOTREADY")
                     #else, no need to send back
@@ -512,6 +588,8 @@ class myserver():
                 #init pfw
                 self.__myfwdata_list_toslave[myuuid] = queue.Queue()
                 self.__myfwdata_list_tomaster[myuuid] = queue.Queue()
+                self.__myfwdata_list_torh[myuuid] = queue.Queue()
+                self.__myfwdata_list_fromrh[myuuid] = queue.Queue()
 
                 print("[Listener] myuuid is {}".format(myuuid))
                 threading.Thread(target=self.start_worker,args=(myuuid,)).start()
@@ -673,6 +751,7 @@ class mymainclass():
     def __init__(self):
         self.__t_myconstant = myconstant()
         self.__t_myserver = myserver()
+        self.__t_net_constant = myconstant_networking()
 
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
@@ -895,10 +974,15 @@ class mymainclass():
                     user_input_con_host = input("Please enter connect ip: ")
                     user_input_con_port = input("Please enter connect port: ")
                     # wait local resource handler return true
-                    self.__t_myserver.create_command(user_input_stager,"fw","{}:{}".format(user_input_listener_host,user_input_listener_port))
-                    threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
-                    
-                
+                    threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,user_input_con_host,int(user_input_con_port),)).start()
+                    #pull the response
+                    t_response = self.__t_myserver.get_resource_handler_result(user_input_stager)
+                    if t_response == self.__t_net_constant.FW_LOCAL_SUCCESS:
+                        self.__t_myserver.create_command(user_input_stager,"fw","{}:{}".format(user_input_listener_host,user_input_listener_port))
+                        threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
+                    else:
+                        print("Cannot connect to local resource")
+
             #next cmd
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:

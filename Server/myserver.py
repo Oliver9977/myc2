@@ -191,8 +191,17 @@ class mysocket_handler():
                     self.__msg_buf = self.__msg_buf + t_indata.decode("utf8", "ignore")
                 except socket.timeout:
                     pass
-
-                
+    def get_native_all(self):
+        while True:
+            try:
+                print("[DEBUG] get_native_all, trying to read something")
+                t_indata = self.__mysocket.recv(1024)
+                new_msg = t_indata.decode("utf8", "ignore")
+                if len(new_msg) == 0: #got FIN
+                    return self.__msg_buf
+                self.__msg_buf = self.__msg_buf + new_msg
+            except socket.timeout: #assmue no connection error
+                return self.__msg_buf
 
 
 class myserver():
@@ -279,8 +288,10 @@ class myserver():
             send_result = client.send(encode_cmd)
             print("[DEBUG] trying to get reponse from local server ...")
             #get response if any, better put a timeout here
-            to_send = client.recv(1024)
-            decode_msg = to_send.decode("utf8", "ignore")
+            t_mysocket_handler = mysocket_handler(client)
+            #to_send = client.recv(1024)
+            #decode_msg = to_send.decode("utf8", "ignore")
+            decode_msg = t_mysocket_handler.get_native_all()
             print("[DEBUG] start_resource_handler" + decode_msg)
 
             local_item_que_fromrh.put(decode_msg)

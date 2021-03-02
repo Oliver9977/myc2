@@ -21,6 +21,8 @@ namespace myclient
     {
         private string t_message = "";
         private Socket fwSocket = null;
+        private bool fwSocket_alive = false;
+        private string fwEndPoint = "";
 
         public static IPEndPoint CreateIPEndPoint(string endPoint)
         {
@@ -92,6 +94,12 @@ namespace myclient
                 try
                 {
                     int length_toresv = socket.Receive(fwq_bytes_toresv);
+                    if (length_toresv == 0)
+                    {
+                        //FINED
+                        fwSocket_alive = false;
+                        return ret_str;
+                    }
                     ret_str = ret_str + Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv);
                 }
                 catch (SocketException se)
@@ -123,6 +131,18 @@ namespace myclient
         public void StartServerNative(Object endpoint)
         {
 
+            if (fwSocket_alive)
+            {
+                Console.WriteLine("fwSocket_alive is true");
+                return;
+            }
+
+            if (fwSocket != null)
+            {
+                Console.WriteLine("fwSocket is not null");
+                return;
+            }
+            
             try
             {
                 IPEndPoint localEndPoint = CreateIPEndPoint((string)endpoint);
@@ -135,6 +155,7 @@ namespace myclient
                     Console.WriteLine("Waiting for a connection...");
                     fwSocket = listener.Accept();
                     fwSocket.ReceiveTimeout = 5;
+                    fwSocket_alive = true;
 
                     //doMagic(handler, localEndPoint, listener);
 
@@ -251,6 +272,7 @@ namespace myclient
                         //assume command is ip:port string
                         Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
                         t.Start(command);
+                        fwEndPoint = command;
                         Console.WriteLine("[DEBUG] fw executed ...");
                         msg = Encoding.UTF8.GetBytes(MsgPack("FW_SUCCESS"));
                         bytesSent = sender.Send(msg);
@@ -270,16 +292,54 @@ namespace myclient
                         {
                             //do single read and write
                             Console.WriteLine("Doing read and write");
+                            string str_fwq_msg = doReciveNative(fwSocket);
+                            byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
+                            Console.WriteLine("DEBUG:: " + str_fwq_msg);
+                            Console.WriteLine("DEBUG:: str_fwq_msg length: " + str_fwq_msg.Length.ToString());
+                            Console.WriteLine("DEBUG:: fwq_msg length: " + fwq_msg.Length.ToString());
 
-                            byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(doReciveNative(fwSocket)));
+                            if (str_fwq_msg.Length == 0 && !fwSocket_alive)
+                            {
+                                Console.WriteLine("fwSocket FINED, trying to listen for another connection");
+                                fwSocket.Shutdown(SocketShutdown.Both);
+                                fwSocket.Close();
+                                fwSocket = null;
+
+                                Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
+                                t.Start(fwEndPoint);
+                                Console.WriteLine("[DEBUG] fw executed ...");
+                                
+                                //send back not ready
+                                byte[] fwq_nr_tag = Encoding.UTF8.GetBytes(MsgPack("FW_NOTREADY"));
+                                bytesSent = sender.Send(fwq_nr_tag);
+                                Console.WriteLine("FW_NOTREADY Sent");
+
+                                continue;
+                            }
+
                             bytesSent = sender.Send(fwq_msg);
                             Console.WriteLine("Http Get success ...");
 
                             string fwq_string_tosend = doRecive(sender);
                             Console.WriteLine("Got reponse" + fwq_string_tosend);
-                            int length_tosend = fwSocket.Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                            Console.WriteLine("Response sent");
-                            
+                            if (fwSocket_alive)
+                            {
+                                int length_tosend = fwSocket.Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                Console.WriteLine("Response sent");
+                            }
+                            else
+                            {
+                                Console.WriteLine("fwSocket doesn't want response ... ");
+                                fwSocket.Shutdown(SocketShutdown.Both);
+                                fwSocket.Close();
+                                fwSocket = null;
+
+                                Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
+                                t.Start(fwEndPoint);
+                                Console.WriteLine("[DEBUG] fw executed ...");
+
+                                continue;
+                            }
                         }
                         else
                         {
@@ -289,7 +349,6 @@ namespace myclient
                             Console.WriteLine("FW_NOTREADY Sent");
 
                         }
-                        
                     }
 
 
@@ -548,7 +607,6 @@ namespace myclient
 
         }
 
-        
 
     }
 

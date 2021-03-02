@@ -165,10 +165,13 @@ class mysocket_handler():
         self.__enc_tag_st = "[MYENST]"
         self.__enc_tag_ed = "[MYENED]"
         self.__mysocket.settimeout(5)
+        self.__mysocket_alive = True
 
     def msf_encode(self,msg):
         return self.__msg_tag_st + msg + self.__msg_tag_ed
 
+    def ifalive(self):
+        return self.__mysocket_alive
 
     def get_nextmsg(self):
 
@@ -198,6 +201,7 @@ class mysocket_handler():
                 t_indata = self.__mysocket.recv(1024)
                 new_msg = t_indata.decode("utf8", "ignore")
                 if len(new_msg) == 0: #got FIN
+                    self.__mysocket_alive = False
                     return self.__msg_buf
                 self.__msg_buf = self.__msg_buf + new_msg
             except socket.timeout: #assmue no connection error
@@ -272,30 +276,50 @@ class myserver():
         except Exception as e:
             print("[Local] Error connecting to client: {}...".format(str(e)))
             local_item_que_fromrh.put(t_net_constant.FW_LOCAL_ERROR)
-        
+            return
+
+        need_reconnect = False
         #try to get cmd first then send resouces
         while True:
+            
+            if need_reconnect:
+                print("[DEBUG] start_resource_handler, need reconnction")
+                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    client.connect((conhost,conport))
+                    #local_item_que_fromrh.put(t_net_constant.FW_LOCAL_SUCCESS)
+                except Exception as e:
+                    print("[Local] Error reconnecting to client: {}...".format(str(e)))
+                    #local_item_que_fromrh.put(t_net_constant.FW_LOCAL_ERROR)
+                    return #cannot continue ...
+            
             while True:
                 try:
                     msg_item = local_item_que_torh.get(block=True, timeout=5)
                     break
                 except queue.Empty:
-                    print("[DEBUG] start_resource_handler Local Job Que for {} is empty".format(myuuid))
+                    print("[DEBUG] start_resource_handler, Local Job Que for {} is empty".format(myuuid))
                     continue
-            print("[DEBUG] start_resource_handler" + msg_item)
+            print("[DEBUG] start_resource_handler, " + msg_item)
             #encode write to
             encode_cmd = msg_item.encode("utf8", "ignore")
             send_result = client.send(encode_cmd)
-            print("[DEBUG] trying to get reponse from local server ...")
+            print("[DEBUG] start_resource_handler, trying to get reponse from local server ...")
             #get response if any, better put a timeout here
             t_mysocket_handler = mysocket_handler(client)
             #to_send = client.recv(1024)
             #decode_msg = to_send.decode("utf8", "ignore")
             decode_msg = t_mysocket_handler.get_native_all()
-            print("[DEBUG] start_resource_handler" + decode_msg)
+            print("[DEBUG] start_resource_handler, " + decode_msg)
 
             local_item_que_fromrh.put(decode_msg)
-            print("[DEBUG] start_resource_handler Put success ... ")
+            print("[DEBUG] start_resource_handler, Put success ... ")
+
+            #check if the connection is still alive, tag for reconnect if FINED
+            if not t_mysocket_handler.ifalive():
+                need_reconnect = True
+
+
 
 
     def start_slave_worker(self,myuuid):

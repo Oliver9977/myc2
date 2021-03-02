@@ -253,10 +253,12 @@ namespace myclient
                             int length_toresv = fwSocket.Receive(fwq_bytes_toresv);
                             byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv)));
                             bytesSent = sender.Send(fwq_msg);
+                            Console.WriteLine("Http Get success ...");
 
                             string fwq_string_tosend = doRecive(sender);
+                            Console.WriteLine("Got reponse" + fwq_string_tosend);
                             int length_tosend = fwSocket.Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-
+                            Console.WriteLine("Response sent");
                             
                         }
                         else

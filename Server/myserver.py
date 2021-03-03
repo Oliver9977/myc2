@@ -5,6 +5,7 @@ import queue
 import uuid 
 import os
 import time
+import payloadgen
 
 import win32pipe, win32file, pywintypes
 
@@ -40,6 +41,7 @@ class myconstant():
         self.TAG_INTE_STAGER = "[Interact]"
         self.TAG_PIPE_LISTENER = "[Pipe Listener]"
         self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
+        self.TAG_PAYLOAD = "[Payload]"
 
 
         self.CMD_USELISTENER = "uselistener"
@@ -47,6 +49,7 @@ class myconstant():
         self.CMD_INTERACTSTAGER = "stager"
         self.CMD_PIPE_INTERACTSTAGER = "pstager"
         self.CMD_USEPIPELISTENER = "usepipelistener"
+        self.CMD_PAYLOAD = "payload"
         self.CMD_HELP = "help"
         self.CMD_EXIT = "exit"
         self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER]
@@ -89,6 +92,10 @@ class myconstant():
                                             self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST,self.CMD_PIPE_STAGER_CON]
         #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
         #self.CMD_PIPE_STAGER_CON = "connect" 
+
+        self.CMD_PAYLOAD_SETCONFIG = "setconfig"
+        self.CMD_PAYLOAD_GEN = "start"
+
 
 
 class myconstant_networking(): #applicaiton layer tag
@@ -240,6 +247,7 @@ class myserver():
         self.__pipename = "namedpipeshell"
 
         self.__t_myconstant = myconstant()
+        self.__t_myconstant_networking = myconstant_networking()
 
         self.__mypipelistener_start_list = dict() #bool
         self.__mypipelistener_pipename_list = dict()
@@ -254,9 +262,7 @@ class myserver():
         self.__mypipe_mystart_list = dict() #bool
 
     def get_resource_handler_result(self,myuuid):
-        t_net_constant = myconstant_networking()
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
-        local_item_que_torh = self.__myfwdata_list_torh[myuuid]
 
         while True:
             try:
@@ -270,7 +276,6 @@ class myserver():
 
 
     def start_resource_handler(self,myuuid,conhost,conport): #its possible to have its own uuid
-        t_net_constant = myconstant_networking()
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
         local_item_que_torh = self.__myfwdata_list_torh[myuuid]
 
@@ -279,10 +284,10 @@ class myserver():
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             client.connect((conhost,conport))
-            local_item_que_fromrh.put(t_net_constant.FW_LOCAL_SUCCESS)
+            local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
         except Exception as e:
             print("[Local] Error connecting to client: {}...".format(str(e)))
-            local_item_que_fromrh.put(t_net_constant.FW_LOCAL_ERROR)
+            local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
             return
 
         need_reconnect = False
@@ -294,10 +299,10 @@ class myserver():
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
                     client.connect((conhost,conport))
-                    #local_item_que_fromrh.put(t_net_constant.FW_LOCAL_SUCCESS)
+                    #local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
                 except Exception as e:
                     #print("[Local] Error reconnecting to client: {}...".format(str(e)))
-                    #local_item_que_fromrh.put(t_net_constant.FW_LOCAL_ERROR)
+                    #local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
                     return #cannot continue ...
             
             while True:
@@ -329,7 +334,6 @@ class myserver():
 
     def start_slave_worker(self,myuuid):
         #single target for now
-        t_net_constant = myconstant_networking()
         local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
         local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
@@ -348,7 +352,7 @@ class myserver():
                     #print("[DEBUG] start_slave_worker Local Job Que (toslave) for {} is empty".format(myuuid))
                     continue
             
-            if msg_item != t_net_constant.FW_NOTREADY:
+            if msg_item != self.__t_myconstant_networking.FW_NOTREADY:
                 print("[Stager] Real data")
                 local_item_que_torh.put(msg_item)
             
@@ -364,12 +368,12 @@ class myserver():
                 #print("[DEBUG] start_slave_worker" + msg_item)
                 local_item_que_tomaster.put(msg_item)
             else:
-                local_item_que_tomaster.put(t_net_constant.FW_NOTREADY)
+                local_item_que_tomaster.put(self.__t_myconstant_networking.FW_NOTREADY)
             time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
         
 
     def start_worker(self,myuuid):
-        t_net_constant = myconstant_networking()
+
         print("[Stager] This is the worker for myuuid: {}".format(myuuid))
         while True:
             # This will be the main runner
@@ -429,7 +433,7 @@ class myserver():
                             continue
                     
                     #print("[DEBUG] start_worker, Got item back")
-                    if msg_item != t_net_constant.FW_NOTREADY: #send it back to ack the que get
+                    if msg_item != self.__t_myconstant_networking.FW_NOTREADY: #send it back to ack the que get
                         #send it to client
                         encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
                         send_result = mysocket.send(encode_cmd)
@@ -452,7 +456,7 @@ class myserver():
                 recv_result = t_mysockethandler.get_nextmsg()
                 myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                 # ack for success
-                encode_cmd = t_mysockethandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("utf8", "ignore")
+                encode_cmd = t_mysockethandler.msf_encode(self.__t_myconstant_networking.PSRUN_SUCCESS).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_cmd)
                 #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -471,7 +475,6 @@ class myserver():
                 break
 
     def start_pipworker(self,myuuid):
-        t_net_constant = myconstant_networking()
         print("[Stager] This is the pipe worker for myuuid: {}".format(myuuid))
         while True:
             # This will be the main runner
@@ -557,7 +560,6 @@ class myserver():
         threading.Thread(target=self.start_worker,args=(myuuid,)).start()
 
     def start_pipe_client(self,conhost,pipename):
-        t_net_constant = myconstant_networking()
         print("Trying to connect to {}".format(r'\\'+ conhost + r'\pipe\\' + pipename))
 
         try:
@@ -568,7 +570,7 @@ class myserver():
             print("Error connecting to client: {}...".format(str(e)))
             return
         
-        if resp[1].decode("utf8", "ignore") == t_net_constant.PIPE_CONNECTED:
+        if resp[1].decode("utf8", "ignore") == self.__t_myconstant_networking.PIPE_CONNECTED:
             print("[Client] Connected to", conhost)
             
             #have everything normally 

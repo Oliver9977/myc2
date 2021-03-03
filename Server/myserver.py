@@ -52,7 +52,7 @@ class myconstant():
         self.CMD_PAYLOAD = "payload"
         self.CMD_HELP = "help"
         self.CMD_EXIT = "exit"
-        self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER]
+        self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER,self.CMD_PAYLOAD]
 
         self.CMD_BACK = "back"
         self.CMD_LISTENER_GETINFO = "info"
@@ -95,6 +95,9 @@ class myconstant():
 
         self.CMD_PAYLOAD_SETCONFIG = "setconfig"
         self.CMD_PAYLOAD_GEN = "start"
+        self.CMD_PAYLOAD_INFO = "info"
+        self.CMD_PAYLOAD_AUTOLIST = [self.CMD_PAYLOAD_SETCONFIG,self.CMD_PAYLOAD_GEN,self.CMD_PAYLOAD_INFO,self.CMD_BACK]
+
 
 
 
@@ -787,6 +790,25 @@ class myserver():
         assert(type(pipename) is str)
         self.__pipename = pipename
 
+#to hold some config for payloadgen
+class mypayload():
+    def __init__(self):
+        self.ifreverse = True
+        self.namepipe = "thisisthenamepipename"
+        self.namepipehost = "."
+        self.host = "127.0.0.1"
+        self.port = 4444
+        self.payloadtype = "socket"
+    
+    def printinfo(self):
+        print("+++++++++++++++++++++Payload Info++++++++++++++++++++++")
+        print("payloadtype: {}".format(self.payloadtype))
+        print("ifreverse: {}".format(self.ifreverse))
+        print("host: {}".format(self.host))
+        print("port: {}".format(self.port))
+        print("namepipehost: {}".format(self.namepipehost))
+        print("namepipe: {}".format(self.namepipe))
+        
 
 class mymainclass():
 
@@ -794,11 +816,13 @@ class mymainclass():
         self.__t_myconstant = myconstant()
         self.__t_myserver = myserver()
         self.__t_net_constant = myconstant_networking()
+        self.__t_mypayload = mypayload()
 
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
         print(self.__t_myconstant.CMD_USELISTENER + ": Go to listener settings")
         print(self.__t_myconstant.CMD_USEPIPELISTENER + ": Go to pipe listener setting")
+        print(self.__t_myconstant.CMD_PAYLOAD + ": Go to payload setting")
         print(self.__t_myconstant.CMD_PIPE_INTERACTSTAGER + ": Interact with pipe stager")
         print(self.__t_myconstant.CMD_INTERACTSTAGER + ": Interact with live stager")
         print(self.__t_myconstant.CMD_HELP + ": Print cmd list and help message")
@@ -823,6 +847,13 @@ class mymainclass():
         print(self.__t_myconstant.CMD_STAGER_GET_LIST + ": Get full list of stager")
         print(self.__t_myconstant.CMD_STAGER_GET_HISTORY + ": Get history of stager message")
         print(self.__t_myconstant.CMD_STAGER_GET_INTO + ": Send cmd to stager")
+        print("+++++++++++++++++++++++++++++++++++\n")
+    
+    def __cmd_list_payload(self):
+        print("\n+++++++++++++++++++++++++++++++++++")
+        print(self.__t_myconstant.CMD_PAYLOAD_GEN + ": Start payload generation")
+        print(self.__t_myconstant.CMD_PAYLOAD_SETCONFIG + ": Set payload config")
+        print(self.__t_myconstant.CMD_PAYLOAD_INFO + ": Show current info")
         print("+++++++++++++++++++++++++++++++++++\n")
 
 
@@ -849,6 +880,8 @@ class mymainclass():
                 setautocomplete(self.__t_myconstant.CMD_PIPE_LISTENER_AUTOLIST)
             if cmd_tag == self.__t_myconstant.TAG_PIPE_INTE_STAGER:
                 setautocomplete(self.__t_myconstant.CMD_PIPE_SAGER_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_PAYLOAD:
+                setautocomplete(self.__t_myconstant.CMD_PAYLOAD_AUTOLIST)
             
 
             user_input = input(cmd_tag + "> ")
@@ -871,6 +904,10 @@ class mymainclass():
                 
                 if command_id == self.__t_myconstant.CMD_INTERACTSTAGER:
                     cmd_tag = self.__t_myconstant.TAG_INTE_STAGER
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_PAYLOAD:
+                    cmd_tag = self.__t_myconstant.TAG_PAYLOAD
                     continue
                 
                 # main menu
@@ -1025,8 +1062,6 @@ class mymainclass():
                     else:
                         print("Cannot connect to local resource")
 
-            #next cmd
-
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch
                 if command_id == self.__t_myconstant.CMD_BACK:
@@ -1057,7 +1092,6 @@ class mymainclass():
                     self.__t_myserver.print_pipe_listener()
                     continue
 
-            
             if cmd_tag == self.__t_myconstant.TAG_PIPE_INTE_STAGER:
                 #menu switch
                 if command_id == self.__t_myconstant.CMD_BACK:
@@ -1104,7 +1138,62 @@ class mymainclass():
                     user_input_pipename = input("Please enter pipename: ")
                     self.__t_myserver.start_pipe_client(user_input_host,user_input_pipename)
 
+            if cmd_tag == self.__t_myconstant.TAG_PAYLOAD:
 
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_MYCS
+                    continue
+                if command_id == self.__t_myconstant.CMD_PAYLOAD_INFO:
+                    self.__t_mypayload.printinfo()
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_PAYLOAD_SETCONFIG:
+                    removecomplete()
+
+                    print("============Empty inputs will be ignored=============")
+                    user_input = input("Please enter ifreverse: ")
+                    if (len(user_input) != 0):
+                        if (user_input == "True" or user_input == "true"):
+                            self.__t_mypayload.ifreverse = True
+                        elif(user_input == "False" or user_input == "false"):
+                            self.__t_mypayload.ifreverse = False
+                        else:
+                            pass
+                    
+                    user_input = input("Please enter payload type: ")
+                    if (len(user_input) != 0):
+                        if (user_input == "socket" or user_input == "namepipe"):
+                            self.__t_mypayload.payloadtype = user_input
+                        else:
+                            print("Unknown type, value unchanged")
+
+                    if self.__t_mypayload.payloadtype == "namepipe":
+                        user_input = input("Please enter namepipe: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.namepipe = user_input
+                        
+                        user_input = input("Please enter namepipehost: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.namepipehost = user_input
+                    
+                    else:                        
+                        user_input = input("Please enter host: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.host = user_input
+                        
+                        user_input = input("Please enter port: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.port = int(user_input)
+                    
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_PAYLOAD_GEN:
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
 
 
 if __name__ == "__main__":

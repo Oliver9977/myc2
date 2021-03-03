@@ -50,8 +50,8 @@ class mypayloadgen():
         with open(os.path.join(self.__parentdir,self.__to_template,self.__filenameCS),mode='r') as f:
             all_of_it = f.read()
 
-        print(os.path.join(self.__parentdir,self.__to_template,self.__filenameCS))
-        print(all_of_it)
+        #print(os.path.join(self.__parentdir,self.__to_template,self.__filenameCS))
+        #print(all_of_it)
 
 
         if typestr == "socket":
@@ -73,8 +73,8 @@ class mypayloadgen():
                 all_of_it = all_of_it.replace(self.__startpayload_tag,self.__initstartpipserver)
 
 
-        print(os.path.join(self.__parentdir,self.__toCS,self.__filenameCS))
-        print(all_of_it)
+        #print(os.path.join(self.__parentdir,self.__toCS,self.__filenameCS))
+        #print(all_of_it)
 
         #write cs
         with open(os.path.join(self.__parentdir,self.__toCS,self.__filenameCS),mode='w') as f:

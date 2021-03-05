@@ -135,7 +135,7 @@ class mybuildin_cmd():
 
         #overpassthehash
         self.OPH_INIT = "$token = [SharPsplOit.Credentials.Tokens]::new()"
-        self.OPH_NEWTOKEN = "$token.MakeToken({},{},{})"
+        self.OPH_NEWTOKEN = "$token.MakeToken(\"{}\",\"{}\",\"{}\")"
 
 
 

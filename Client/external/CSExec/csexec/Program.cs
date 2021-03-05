@@ -74,6 +74,7 @@ namespace csexec
                 StopServiceExe(hostname);
                 UninstallService(hostname);
                 DeleteServiceExe(hostname);
+                DeletePayloadExe(hostname);
             }
             else
             {
@@ -195,20 +196,18 @@ namespace csexec
             }
         }
 
-
-        private static void DeleteServiceExe(string hostname)
+        private static void DeletePayloadExe(string hostname)
         {
-            var path = hostname + @"\admin$\system32\csexecsvc.exe";
-            var max = 5;
-            for (int i = 0; i < max; i++)
+            var path = hostname + @"\c$\windows\temp\test.exe";
+
+            while (File.Exists(path))
             {
                 try
                 {
                     Thread.Sleep(1000);
                     File.Delete(path);
-                    i = max;
 #if DEBUG
-                    Console.WriteLine("[*] Deleted service executable from {0}", hostname);
+                    Console.WriteLine("[*] Delating payload executable from {0}", hostname);
 #endif
                 }
                 catch (Exception ex)
@@ -217,6 +216,39 @@ namespace csexec
                     return;
                 }
             }
+
+#if DEBUG
+            Console.WriteLine("[*] Delated payload executable from {0}", hostname);
+#endif
+
+        }
+
+
+        private static void DeleteServiceExe(string hostname)
+        {
+            var path = hostname + @"\admin$\system32\csexecsvc.exe";
+            
+            while (File.Exists(path))
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+                    File.Delete(path);
+#if DEBUG
+                    Console.WriteLine("[*] Delating service executable from {0}", hostname);
+#endif
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return;
+                }
+            }
+
+#if DEBUG
+            Console.WriteLine("[*] Delated service executable from {0}", hostname);
+#endif
+
         }
 
         static void InstallService(string hostname, DotNetVersion version)

@@ -78,8 +78,15 @@ class myconstant():
                                         self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN]
 
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
-        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC]
-
+        self.CMD_STAGER_TOOLS_IF64BIT = "if64"
+        self.CMD_STAGER_TOOLS_GETNETVERSION = "getnet"
+        self.CMD_STAGER_TOOLS_GETAV = "getav"
+        self.CMD_STAGER_TOOLS_GETAL = "getal"
+        self.CMD_STAGER_TOOLS_GETCLM = "getclm"
+        
+        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
+                                            self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
+                                            self.CMD_STAGER_TOOLS_GETCLM]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -823,6 +830,7 @@ class mymainclass():
         self.__t_myserver = myserver()
         self.__t_net_constant = myconstant_networking()
         self.__t_mypayload = mypayload()
+        self.__t_mybuildin = mybuildin_cmd()
 
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
@@ -1105,7 +1113,69 @@ class mymainclass():
                     user_input_target = input("Please enter hostname to jump to: ")
                     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"stop \\\\{}\"".format(user_input_target))
                     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"start \\\\{}\"".format(user_input_target))
-                    
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_IF64BIT:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.IF64BIT)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETNETVERSION:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETCLM:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETLANGMODE)
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETAV:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETDEFENDER)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETAL:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETAPPLOCKER)
+                    continue
+
+                
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

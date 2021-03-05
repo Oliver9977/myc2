@@ -45,7 +45,7 @@ class mypayloadgen():
         with open(os.path.join(self.__parentdir,self.__to_template,self.__compress_template),mode='r') as f:
             all_of_it = f.read()
         
-        with open(os.path.join(self.__parentdir,self.__to_template,self.__compress_template),mode='w') as f:
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__compress_template),mode='w') as f:
             f.write(all_of_it.replace(self.__compress_file_tag,self.__compress_topayload))
 
         output = subprocess.run(["psgen.bat"], capture_output=True, shell=True, cwd=mycwd)

@@ -36,12 +36,19 @@ class mypayloadgen():
         self.__compress_topsexec = "tools\\csexec.exe"
         self.__compress_outputname = "Invoke-Compression.ps1"
 
+        self.__mystd = subprocess.DEVNULL
+
+    def debug_mode(self,inbool):
+        if inbool:
+            self.__mystd = subprocess.STDOUT
+        else:
+            self.__mystd = subprocess.DEVNULL
 
 
     def gen_ps1(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
         #regen exe first
-        subprocess.run(["build.bat"], shell=True, cwd=mycwd)
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 
         with open(os.path.join(self.__parentdir,self.__to_template,self.__compress_template),mode='r') as f:
             all_of_it = f.read()
@@ -61,17 +68,17 @@ class mypayloadgen():
 
     def gen_exe(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
-        subprocess.run(["build.bat"], shell=True, cwd=mycwd)
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
 
     def gen_psexec(self): #this will jump using current payload config, windows\temp need to be accessable
         
         mycwd = os.path.join(self.__parentdir,self.__to_client)
         #regen exe first
-        subprocess.run(["build.bat"], shell=True, cwd=mycwd)
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
 
         #pre-compile config
-        subprocess.run(["conf-psexec.bat"], shell=True, cwd=mycwd)
-        subprocess.run(["psexec.bat"], shell=True, cwd=mycwd) #buid
+        subprocess.run(["conf-psexec.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+        subprocess.run(["psexec.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #buid
 
         with open(os.path.join(self.__parentdir,self.__to_template,self.__compress_template),mode='r') as f:
             all_of_it = f.read()

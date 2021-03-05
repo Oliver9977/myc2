@@ -26,6 +26,7 @@ class mypayloadgen():
         self.__payload_tag = r"%%PAYLOAD%%"
         self.__to_payload = "Client\\payload\\"
         self.__to_tools = "Client\\tools\\"
+        self.__to_psdb = "Server\\PSDB\\"
         self.__payload_outputname = "Invoke-myclient.ps1"
         self.__psexec_outputname = "Invoke-psexec.ps1"
 
@@ -86,6 +87,10 @@ class mypayloadgen():
         
         with open(os.path.join(self.__parentdir,self.__to_tools,self.__psexec_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__payload_tag,myb64))
+        
+        with open(os.path.join(self.__parentdir,self.__to_psdb,self.__psexec_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__payload_tag,myb64))
+
         
 
 

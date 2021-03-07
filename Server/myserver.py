@@ -79,7 +79,7 @@ class myconstant():
         self.CMD_STAGER_PFW = "pfw"
         self.CMD_STAGER_BUILDIN = "tools"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
-        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
+        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_RUNNING_LIST,self.CMD_STAGER_GET_INTO,
                                         self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN]
 
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"

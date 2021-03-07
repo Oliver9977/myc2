@@ -1044,10 +1044,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_INTO:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1060,10 +1060,10 @@ class mymainclass():
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_LOAD_PS:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1096,10 +1096,10 @@ class mymainclass():
 
                 if command_id ==  self.__t_myconstant.CMD_STAGER_PFW:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1135,10 +1135,10 @@ class mymainclass():
                     t_mypayloadgen.gen_psexec()
 
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1154,10 +1154,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_IF64BIT:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1166,10 +1166,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETNETVERSION:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1178,10 +1178,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETCLM:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1190,10 +1190,10 @@ class mymainclass():
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETAV:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1202,10 +1202,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETAL:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1214,10 +1214,10 @@ class mymainclass():
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MAKETOKEN:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
                     

@@ -253,49 +253,61 @@ namespace csexec
 
         static void InstallService(string hostname, DotNetVersion version)
         {
-            //try
-            //{
-            //    UninstallService(hostname);
-            //}
-            //catch (Exception) { }
 
-            using (var scmHandle = NativeMethods.OpenSCManager(hostname, null, NativeMethods.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE))
-            {
-                if (scmHandle.IsInvalid)
+           while (true) {
+                try
                 {
-                    throw new Win32Exception();
-                }
-
-                using (
-                    var serviceHandle = NativeMethods.CreateService(
-                        scmHandle,
-                        GlobalVars.ServiceName,
-                        GlobalVars.ServiceDisplayName,
-                        NativeMethods.SERVICE_ACCESS.SERVICE_ALL_ACCESS,
-                        NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS,
-                        NativeMethods.SERVICE_START_TYPES.SERVICE_AUTO_START,
-                        NativeMethods.SERVICE_ERROR_CONTROL.SERVICE_ERROR_NORMAL,
-                        GlobalVars.ServiceEXE,
-                        null,
-                        IntPtr.Zero,
-                        null,
-                        null,
-                        null))
-                {
-                    if (serviceHandle.IsInvalid)
+                    using (var scmHandle = NativeMethods.OpenSCManager(hostname, null, NativeMethods.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE))
                     {
-                        throw new Win32Exception();
+                        if (scmHandle.IsInvalid)
+                        {
+                            throw new Win32Exception();
+                        }
+
+                        using (
+                            var serviceHandle = NativeMethods.CreateService(
+                                scmHandle,
+                                GlobalVars.ServiceName,
+                                GlobalVars.ServiceDisplayName,
+                                NativeMethods.SERVICE_ACCESS.SERVICE_ALL_ACCESS,
+                                NativeMethods.SERVICE_TYPES.SERVICE_WIN32_OWN_PROCESS,
+                                NativeMethods.SERVICE_START_TYPES.SERVICE_AUTO_START,
+                                NativeMethods.SERVICE_ERROR_CONTROL.SERVICE_ERROR_NORMAL,
+                                GlobalVars.ServiceEXE,
+                                null,
+                                IntPtr.Zero,
+                                null,
+                                null,
+                                null))
+                        {
+                            if (serviceHandle.IsInvalid)
+                            {
+                                throw new Win32Exception();
+                            }
+#if DEBUG
+                            Console.WriteLine("[*] Installed {0} Service on {1}", version, hostname);
+#endif
+                            NativeMethods.StartService(serviceHandle, 0, null);
+#if DEBUG
+                            Console.WriteLine("[*] Service Started on {0}", hostname);
+#endif
+                            break;
+                        }
                     }
-#if DEBUG
-                    Console.WriteLine("[*] Installed {0} Service on {1}", version, hostname);
-#endif
-                    NativeMethods.StartService(serviceHandle, 0, null);
-#if DEBUG
-                    Console.WriteLine("[*] Service Started on {0}", hostname);
-#endif
+                }//end of try
+                catch (Exception e)
+                {
+                    Console.WriteLine("[*] InstallService Exception" + e.ToString());
+                    Console.WriteLine("[*] Retry with cleanup ... ");
+                    try
+                    {
+                        UninstallService(hostname);
+                    }
+                    catch (Exception) { }
                 }
             }
         }
+
         static void UninstallService(string hostname)
         {
             try

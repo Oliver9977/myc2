@@ -17,7 +17,7 @@ function Get-CompressedByteArray {
     }
 }
 
-$filename = "%%filename%%"
+$filename = "tools\csexec.exe"
 $old_bytes = [IO.File]::ReadAllBytes($filename)
 $new_bytes = Get-CompressedByteArray -byteArray $old_bytes
 [system.Convert]::toBase64string($new_bytes) | Clip

@@ -23,7 +23,8 @@ namespace myclient
 
         public void init()
         {
-            rs.ApartmentState = System.Threading.ApartmentState.STA;
+            rs.ApartmentState = System.Threading.ApartmentState.MTA;
+            rs.ThreadOptions = PSThreadOptions.UseCurrentThread;
             rs.Open();
         }
 

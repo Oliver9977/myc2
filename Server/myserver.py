@@ -29,6 +29,11 @@ def setautocomplete(words):
 def removecomplete():
     readline.set_completer()
 
+class SocketShutdown(Exception):
+    pass
+
+
+
 class myconstant():
     def __init__(self):
 
@@ -226,6 +231,8 @@ class mysocket_handler():
                 try: 
                     t_indata = self.__mysocket.recv(1024)
                     self.__msg_buf = self.__msg_buf + t_indata.decode("utf8", "ignore")
+                    if len(t_indata) == 0:
+                        raise SocketShutdown("Client side shutdown ...")
                 except socket.timeout:
                     pass
     def get_native_all(self):

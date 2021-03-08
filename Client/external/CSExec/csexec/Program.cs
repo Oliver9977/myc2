@@ -10,7 +10,12 @@ namespace csexec
 {
     public class Program
     {
-        public static void Main(string[] args)
+        
+        public static void test(string[] args){ //for AMSI
+            Main(args);
+        }
+        
+        static void Main(string[] args)
         {
             if (args.Length < 1)
             {

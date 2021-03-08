@@ -1,4 +1,4 @@
-function Invoke-psexec
+function Invoke-inject
 {
 
     [CmdletBinding()]

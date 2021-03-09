@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Inject
 {
-    class Program
+    public class Program
     {
 
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]

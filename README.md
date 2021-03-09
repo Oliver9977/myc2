@@ -1,5 +1,5 @@
 # myc2
-This is my version of c2, indented for penetration testing, but also useful for validation automation. 
+This is my version of c2, intended for penetration testing, but also useful for validation automation. 
 
 * reverse/bind socket/pipe shell
 * exe/ps1 payload

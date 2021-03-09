@@ -19,7 +19,7 @@ function Invoke-inject
     $StringWriter = New-Object IO.StringWriter
     [Console]::SetOut($StringWriter)
 
-    [csexec.Program]::test($Command.Split(" "))
+    [Inject.Program]::test($Command.Split(" "))
 
     [Console]::SetOut($OldConsoleOut)
     $Results = $StringWriter.ToString()

@@ -13,3 +13,7 @@ This is my version of c2
 
 ![alt text](img/psexec2.png)
 ![alt text](img/psexec3.png)
+
+# process injection
+
+![alt text](img/inject.png)

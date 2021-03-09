@@ -272,6 +272,21 @@ namespace myclient
 
                     }
 
+                    if (command_tag.ToLower() == "psreset")
+                    {
+                        myPsRun.cleanPsRun = RunspaceFactory.CreateRunspace(); //close it?
+                        myPsRun.init();
+                        Console.WriteLine("[DEBUG] psreset executed ...");
+                        msg = Encoding.UTF8.GetBytes(MsgPack("PSRESET_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send");
+                        }
+                        Console.WriteLine("Send result finished");
+
+                    }
+
                     if (command_tag.ToLower() == "fw")
                     {
                         //assume command is ip:port string

@@ -24,3 +24,15 @@ This is my version of c2, indented for penetration testing, but also useful for 
 # process injection
 
 ![alt text](img/inject.png)
+
+# disclaimer
+* for education and reseach only
+* some of the imbedded tools are from online repo and training course, and improved/av-bypessed by me. let me know if licensing issue, will remove immediately.
+
+# reference
+* https://www.offensive-security.com/pen300-osep/
+* https://www.pentesteracademy.com/redlabs
+* https://github.com/xpn
+* https://github.com/S3cur3Th1sSh1t
+* https://github.com/0x00-0x00/NamedPipes
+

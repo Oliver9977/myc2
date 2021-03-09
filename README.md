@@ -8,6 +8,10 @@ This is my version of c2, intended for penetration testing, but also useful for 
 * tab completion
 * AMSI/AV bypass
 
+# dependence
+* python3 + pywin32
+* Microsoft Visual Studio 2019
+
 
 # psload + maketoken
 * psload can be used to load any ps script in the database to the stager runspace

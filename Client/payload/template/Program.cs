@@ -26,6 +26,7 @@ namespace myclient
         public string ipstring = "127.0.0.1:4444";
         public string namepipestring = "namedpipeshell";
         public string namepipehost = ".";
+        public int localSocketTimeout = 5;
 
 
         public static IPEndPoint CreateIPEndPoint(string endPoint)
@@ -161,7 +162,7 @@ namespace myclient
                     listener.Listen(1);
                     Console.WriteLine("Waiting for a connection...");
                     fwSocket = listener.Accept();
-                    fwSocket.ReceiveTimeout = 5;
+                    fwSocket.ReceiveTimeout = localSocketTimeout;
                     fwSocket_alive = true;
 
                     //doMagic(handler, localEndPoint, listener);

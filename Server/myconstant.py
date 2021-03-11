@@ -11,7 +11,6 @@ class myconstant():
 
         self.TAG_MYCS = "[MYCS]"
         self.TAG_LISTENER = "[Listener]"
-        #self.TAG_STAGER = "[Stager]"
         self.TAG_INTE_STAGER = "[Interact]"
         self.TAG_PIPE_LISTENER = "[Pipe Listener]"
         self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
@@ -20,16 +19,24 @@ class myconstant():
 
 
         self.CMD_USELISTENER = "uselistener"
-        #self.CMD_USESTAGER = "userstager"
         self.CMD_INTERACTSTAGER = "stager"
         self.CMD_PIPE_INTERACTSTAGER = "pstager"
         self.CMD_USEPIPELISTENER = "usepipelistener"
         self.CMD_PAYLOAD = "payload"
+        self.CND_LOCALSERVER = "localserver"
         self.CMD_HELP = "help"
         self.CMD_EXIT = "exit"
-        self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER,self.CMD_PAYLOAD]
+        self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER,self.CMD_PAYLOAD,self.CND_LOCALSERVER]
 
         self.CMD_BACK = "back"
+        self.CMD_LOCALSERVER_GETINTO = "info"
+        self.CMD_LOCALSERVER_SETCONFIG = "set"
+        self.CMD_LOCALSERVER_START = "start"
+        self.CMD_LOCALSERVER_STOP = "stop"
+        self.CMD_LOCALSERVER_LIST = "list"
+        self.CMD_LOCALSERVER_AUTOLIST = [self.CMD_LOCALSERVER_GETINTO,self.CMD_LOCALSERVER_SETCONFIG,self.CMD_LOCALSERVER_START,self.CMD_LOCALSERVER_STOP,self.CMD_LOCALSERVER_LIST,self.CMD_BACK]
+
+        
         self.CMD_LISTENER_GETINFO = "info"
         self.CMD_LISTENER_SETHOSTNAME = "sethost"
         self.CMD_LISTENER_SETPORT = "setport"
@@ -83,7 +90,7 @@ class myconstant():
         #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
         #self.CMD_PIPE_STAGER_CON = "connect" 
 
-        self.CMD_PAYLOAD_SETCONFIG = "setconfig"
+        self.CMD_PAYLOAD_SETCONFIG = "set"
         self.CMD_PAYLOAD_GEN = "start"
         self.CMD_PAYLOAD_INFO = "info"
         self.CMD_PAYLOAD_AUTOLIST = [self.CMD_PAYLOAD_SETCONFIG,self.CMD_PAYLOAD_GEN,self.CMD_PAYLOAD_INFO,self.CMD_BACK]

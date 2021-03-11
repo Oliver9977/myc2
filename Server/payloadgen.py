@@ -51,11 +51,11 @@ class mypayloadgen():
 
 
 
-        self.__mystd = subprocess.DEVNULL
+        self.__mystd = None
 
     def debug_mode(self,inbool):
         if inbool:
-            self.__mystd = subprocess.STDOUT
+            self.__mystd = None
         else:
             self.__mystd = subprocess.DEVNULL
 

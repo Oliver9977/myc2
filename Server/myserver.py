@@ -10,9 +10,6 @@ from myconstant import myconstant_networking,myconstant,mybuildin_cmd
 
 import win32pipe, win32file, pywintypes
 
-import http.server
-import socketserver
-
 #from os.path import isfile, join
 
 import readline
@@ -199,7 +196,7 @@ class myserver():
         self.__mypipe_myuuid_list = list()
         self.__mypipe_mystart_list = dict() #bool
 
-    def get_resource_handler_result(self,myuuid):
+    def get_resource_handler_result(self,myuuid): #for pfw
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
 
         while True:
@@ -213,7 +210,7 @@ class myserver():
         return msg_item
 
 
-    def start_resource_handler(self,myuuid,conhost,conport): #its possible to have its own uuid
+    def start_resource_handler(self,myuuid,conhost,conport): # fow pfw #its possible to have its own uuid
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
         local_item_que_torh = self.__myfwdata_list_torh[myuuid]
 

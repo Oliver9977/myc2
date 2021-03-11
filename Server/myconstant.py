@@ -16,6 +16,7 @@ class myconstant():
         self.TAG_PIPE_INTE_STAGER = "[Pipe Interact]"
         self.TAG_PAYLOAD = "[Payload]"
         self.TAG_STAGER_TOOLS = "[Tools]"
+        self.TAG_LOCALSERVER = "[Local]"
 
 
         self.CMD_USELISTENER = "uselistener"
@@ -29,12 +30,12 @@ class myconstant():
         self.CMD_AUTOLIST = [self.CMD_USEPIPELISTENER,self.CMD_USELISTENER,self.CMD_INTERACTSTAGER,self.CMD_HELP,self.CMD_EXIT,self.CMD_PIPE_INTERACTSTAGER,self.CMD_PAYLOAD,self.CND_LOCALSERVER]
 
         self.CMD_BACK = "back"
-        self.CMD_LOCALSERVER_GETINTO = "info"
+        self.CMD_LOCALSERVER_GETINFO = "info"
         self.CMD_LOCALSERVER_SETCONFIG = "set"
         self.CMD_LOCALSERVER_START = "start"
         self.CMD_LOCALSERVER_STOP = "stop"
         self.CMD_LOCALSERVER_LIST = "list"
-        self.CMD_LOCALSERVER_AUTOLIST = [self.CMD_LOCALSERVER_GETINTO,self.CMD_LOCALSERVER_SETCONFIG,self.CMD_LOCALSERVER_START,self.CMD_LOCALSERVER_STOP,self.CMD_LOCALSERVER_LIST,self.CMD_BACK]
+        self.CMD_LOCALSERVER_AUTOLIST = [self.CMD_LOCALSERVER_GETINFO,self.CMD_LOCALSERVER_SETCONFIG,self.CMD_LOCALSERVER_START,self.CMD_LOCALSERVER_STOP,self.CMD_LOCALSERVER_LIST,self.CMD_BACK]
 
         
         self.CMD_LISTENER_GETINFO = "info"

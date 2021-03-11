@@ -7,6 +7,7 @@ import os
 import time
 import payloadgen
 from myconstant import myconstant_networking,myconstant,mybuildin_cmd
+from localhttpserver import localhttpserver
 
 import win32pipe, win32file, pywintypes
 
@@ -759,6 +760,7 @@ class mymainclass():
         self.__t_net_constant = myconstant_networking()
         self.__t_mypayload = mypayload()
         self.__t_mybuildin = mybuildin_cmd()
+        self.__t_localhttpserver = localhttpserver()
 
     def __cmd_list_main(self):
         print("\n+++++++++++++++++++++++++++++++++++")
@@ -827,6 +829,8 @@ class mymainclass():
                 setautocomplete(self.__t_myconstant.CMD_PAYLOAD_AUTOLIST)
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
                 setautocomplete(self.__t_myconstant.CMD_STAGER_TOOLS_AUTOLIST)
+            if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:
+                setautocomplete(self.__t_myconstant.CMD_LOCALSERVER_AUTOLIST)
             
 
             user_input = input(cmd_tag + "> ")
@@ -854,7 +858,11 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_PAYLOAD:
                     cmd_tag = self.__t_myconstant.TAG_PAYLOAD
                     continue
-                
+
+                if command_id == self.__t_myconstant.CND_LOCALSERVER:
+                    cmd_tag = self.__t_myconstant.TAG_LOCALSERVER
+                    continue
+
                 # main menu
                 if command_id == self.__t_myconstant.CMD_EXIT:
                     print("Thanks for using MyCS..")
@@ -1319,6 +1327,38 @@ class mymainclass():
                     else:
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
                     t_mypayloadgen.gen_ps1()
+
+            if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:
+                if command_id == self.__t_myconstant.CMD_BACK:
+                    cmd_tag = self.__t_myconstant.TAG_MYCS
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_LIST:
+                    self.__t_localhttpserver.print_running_list()
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_GETINFO:
+                    self.__t_localhttpserver.print_server_config()
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_SETCONFIG:
+                    user_input_ip = input("Please enter the listener ip: ")
+                    user_input_port = input("Please enter the listener port: ")
+                    user_input_path = input("Please enter the server path: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    self.__t_localhttpserver.set_server_config(user_input_ip,user_input_port,user_input_path)
+                    continue
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_START:
+                    self.__t_localhttpserver.start_resource_handler_http_server()
+                if command_id == self.__t_myconstant.CMD_LOCALSERVER_STOP:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_localhttpserver.get_running_list())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_localhttpserver.get_running_list():
+                        print("Please input a valid stager uuid")
+                        continue
+                    self.__t_localhttpserver.stop_resource_handler_http_server(user_input_stager)
+                    continue
 
 
 if __name__ == "__main__":

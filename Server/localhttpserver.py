@@ -9,13 +9,19 @@ import threading
 import uuid
 
 
+def hack_httpd(directory):
+    def _init(self, *args, **kwargs):
+        return http.server.SimpleHTTPRequestHandler.__init__(self, *args, directory=self.directory, **kwargs)
+    return type(f'HandlerFrom<{directory}>',
+                (http.server.SimpleHTTPRequestHandler,),
+                {'__init__': _init, 'directory': directory})
 
 class localhttpserver():
 
     def __init__(self):
         self.__local_http_server_ip = "192.168.182.131"
         self.__local_http_server_port = 80
-        self.__local_http_server_path = "HSDB\\"
+        self.__local_http_server_path = "HSDB"
 
         self.__local_http_server_uuid_list = list()
         self.__local_http_server_info_list = dict()
@@ -23,8 +29,8 @@ class localhttpserver():
 
 
     def __t_start_resource_handler_http_server(self,myuuid):
-        t_handler = http.server.SimpleHTTPRequestHandler
-        httpd = socketserver.TCPServer((self.__local_http_server_ip, self.__local_http_server_port), t_handler)
+
+        httpd = socketserver.TCPServer((self.__local_http_server_ip, self.__local_http_server_port), hack_httpd(self.__local_http_server_path))
         self.__local_http_server_httpd_list[myuuid] = httpd
 
         print("serving at port {} ..." .format(self.__local_http_server_port))
@@ -60,8 +66,11 @@ class localhttpserver():
     def get_running_list(self):
         return self.__local_http_server_uuid_list
     
+    def print_running_list(self):
+        print("List of running local server: {}".format(self.__local_http_server_uuid_list))
+    
     def stop_resource_handler_http_server(self,myuuid):
-        if uuid in self.__local_http_server_uuid_list:
+        if myuuid in self.__local_http_server_uuid_list:
             self.__local_http_server_httpd_list[myuuid].shutdown()
             self.__local_http_server_httpd_list[myuuid].socket.close()
             self.__local_http_server_httpd_list.pop(myuuid, None)

@@ -41,7 +41,7 @@ class mypayloadgen():
 
         self.__base64_template = "Invoke-Base64.ps1"
         self.__base64_file_tag = r"%%filename%%"
-        self.__base64_topayload = "payload\\myclient.exe"
+        self.__base64_topayload = "payload\\loader.bin"
 
         self.__gtojs_template = "GadgetToJScript.cs"
         self.__gtojs_toCS = "Client\\external\\GadgetToJScript\\"
@@ -64,6 +64,10 @@ class mypayloadgen():
         mycwd = os.path.join(self.__parentdir,self.__to_client)
         #regen exe first
         subprocess.run(["build.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        #pre-compile config
+        subprocess.run(["conf-gtojs.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
         with open(os.path.join(self.__parentdir,self.__to_template,self.__base64_template),mode='r') as f:
             all_of_it = f.read()
         

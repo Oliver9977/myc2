@@ -3,13 +3,14 @@ This is my version of c2, intended for penetration testing, but also useful for 
 
 * reverse/bind socket/pipe shell
 * exe/ps1 payload
+* hta/js/vba/vbs payload using GadgetToJScript
 * buildin ps command lists to get av,clm,al
 * command history for each stager
 * tab completion
 * AMSI/AV bypass
 
 # dependence
-* python3 + pywin32
+* python3.7 + pywin32
 * Microsoft Visual Studio 2019
 
 
@@ -33,6 +34,9 @@ This is my version of c2, intended for penetration testing, but also useful for 
 ![alt text](img/localserver.png)
 ![alt text](img/localserver2.png)
 
+# extra payload types
+![alt text](img/gtojs.png)
+
 # disclaimer
 * for education and reseach only
 * some of the imbedded tools are from online repo and training course, and improved/av-bypessed by me. let me know if licensing issue, will remove immediately.
@@ -43,4 +47,5 @@ This is my version of c2, intended for penetration testing, but also useful for 
 * https://github.com/xpn
 * https://github.com/S3cur3Th1sSh1t
 * https://github.com/0x00-0x00/NamedPipes
+* https://github.com/med0x2e/GadgetToJScript 
 

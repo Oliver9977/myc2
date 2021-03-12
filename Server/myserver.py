@@ -799,6 +799,7 @@ class mymainclass():
         print(self.__t_myconstant.CMD_PAYLOAD_GEN + ": Start payload generation")
         print(self.__t_myconstant.CMD_PAYLOAD_SETCONFIG + ": Set payload config")
         print(self.__t_myconstant.CMD_PAYLOAD_INFO + ": Show current info")
+        print(self.__t_myconstant.CMD_PAYLOAD_GTOJS + ": Use gtojs to generate special payloads (hta/vbs/vba/js)")
         print("+++++++++++++++++++++++++++++++++++\n")
 
 
@@ -1327,6 +1328,15 @@ class mymainclass():
                     else:
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
                     t_mypayloadgen.gen_ps1()
+                
+                if command_id == self.__t_myconstant.CMD_PAYLOAD_GTOJS:
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_gtojs()
+
 
             if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:
                 if command_id == self.__t_myconstant.CMD_BACK:

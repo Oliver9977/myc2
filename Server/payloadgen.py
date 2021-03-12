@@ -51,7 +51,7 @@ class mypayloadgen():
 
 
 
-        self.__mystd = None
+        self.__mystd = subprocess.DEVNULL
 
     def debug_mode(self,inbool):
         if inbool:

@@ -1339,6 +1339,7 @@ class mymainclass():
 
                     t_mypayloadgen.set_injection_target(user_input)
 
+                    #config default payload
                     if self.__t_mypayload.payloadtype == "socket":
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
                     else:
@@ -1355,6 +1356,13 @@ class mymainclass():
                         continue
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     t_mypayloadgen.set_pexec_config(user_input_filename,user_input_ip,user_input_port)
+                    
+                    #config default payload
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+
                     t_mypayloadgen.gen_pexec_hta()
 
 

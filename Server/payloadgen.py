@@ -87,8 +87,8 @@ class mypayloadgen():
 
     def gen_pexec_hta(self): #hta using powershell loader
         mycwd = os.path.join(self.__parentdir,self.__to_client)
-        #regen exe first
-        subprocess.run(["build.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+        #regen ps1 first
+        self.gen_ps1()
 
         #pre-compile config
         subprocess.run(["conf-pexec-hta.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)

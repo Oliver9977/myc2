@@ -1344,6 +1344,19 @@ class mymainclass():
                     else:
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
                     t_mypayloadgen.gen_gtojs()
+                
+                if command_id == self.__t_myconstant.CMD_PAYLOAD_PHTA:
+                    print("============Empty inputs will be ignored=============")
+                    user_input_ip = input("Please enter loader ip: ")
+                    user_input_port = input("Please enter loader port: ")
+                    user_input_filename = input("Please enter loader filename: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    t_mypayloadgen.set_pexec_config(user_input_filename,user_input_ip,user_input_port)
+                    t_mypayloadgen.gen_pexec_hta()
+
 
 
             if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:

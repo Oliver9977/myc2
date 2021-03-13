@@ -1331,6 +1331,14 @@ class mymainclass():
                 
                 if command_id == self.__t_myconstant.CMD_PAYLOAD_GTOJS:
                     t_mypayloadgen = payloadgen.mypayloadgen()
+                    #target of injection
+                    user_input = input("Please enter injection target: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    t_mypayloadgen.set_injection_target(user_input)
+
                     if self.__t_mypayload.payloadtype == "socket":
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
                     else:

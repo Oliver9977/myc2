@@ -1,5 +1,4 @@
 @echo off
-@echo off
 copy payload\myclient.exe external\donut\target.exe
 cd external\donut
 call toshellcode.bat

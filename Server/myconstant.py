@@ -95,7 +95,8 @@ class myconstant():
         self.CMD_PAYLOAD_GEN = "start"
         self.CMD_PAYLOAD_INFO = "info"
         self.CMD_PAYLOAD_GTOJS = "gtojs"
-        self.CMD_PAYLOAD_AUTOLIST = [self.CMD_PAYLOAD_GTOJS,self.CMD_PAYLOAD_SETCONFIG,self.CMD_PAYLOAD_GEN,self.CMD_PAYLOAD_INFO,self.CMD_BACK]
+        self.CMD_PAYLOAD_PHTA = "pexechta"
+        self.CMD_PAYLOAD_AUTOLIST = [self.CMD_PAYLOAD_PHTA,self.CMD_PAYLOAD_GTOJS,self.CMD_PAYLOAD_SETCONFIG,self.CMD_PAYLOAD_GEN,self.CMD_PAYLOAD_INFO,self.CMD_BACK]
 
 
 

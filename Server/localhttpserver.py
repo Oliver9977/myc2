@@ -46,7 +46,7 @@ class localhttpserver():
 
     def set_server_config(self,ip,port,path):
         self.__local_http_server_ip = ip
-        self.__local_http_server_port = port
+        self.__local_http_server_port = int(port)
         self.__local_http_server_path = path
 
     def print_server_config(self):

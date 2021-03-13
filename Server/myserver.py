@@ -169,6 +169,7 @@ class myserver():
         self.__port = 4444
 
         self.__pipename = "namedpipeshell"
+        self.__ifverbose = False
 
         self.__t_myconstant = myconstant()
         self.__t_myconstant_networking = myconstant_networking()
@@ -318,6 +319,9 @@ class myserver():
             
             try:
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
+                    cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
+
                 if (cmd_struct_to_send[0] == "psload"):
                     cmd_struct_to_send[0] = "ps"
                     myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0]))
@@ -731,6 +735,12 @@ class myserver():
 
     def clean_psloadlist(self,myuuid):
         self.__mypsloader_list[myuuid] = list()
+    
+    def set_verbose(self,uinput):
+        self.__ifverbose = uinput
+
+    def get_verbose(self):
+        return self.__ifverbose
 
 #to hold some config for payloadgen
 class mypayload():
@@ -994,7 +1004,14 @@ class mymainclass():
                         print("{} is already loaded".format(user_input_psfile))
                 
                     continue
-
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_VERBOSE:
+                    print("Current verbose setting is {}".format(self.__t_myserver.get_verbose()))
+                    user_input_confirm = input("y to toggle: ")
+                    if user_input_confirm != "y":
+                        continue
+                    self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
+                    
 
                 if command_id == self.__t_myconstant.CMD_STAGER_CON:
                     #unset auto complete

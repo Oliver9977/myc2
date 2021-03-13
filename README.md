@@ -12,6 +12,14 @@ This is my version of c2, intended for penetration testing, but also useful for 
 # dependence
 * python3.7 + pywin32
 * Microsoft Visual Studio 2019
+* If you prefer kali, use networking trick
+  ```
+  sudo sysctl -w net.ipv4.ip_forward=1
+  sudo iptables -t nat -A POSTROUTING -o [VPN INTERFACE] -j MASQUERADE
+  [Add Kali ip to Windows route table]
+  sudo iptables -t nat -A  PREROUTING -d [VPN IP] -j DNAT --to-destination [LOCAL WINDOWS]
+  sudo iptables -t nat -A POSTROUTING -s [LOCAL WINDOWS] -j SNAT --to-source [VPN IP]
+  ```
 
 
 # psload + maketoken

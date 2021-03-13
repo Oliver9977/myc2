@@ -62,6 +62,7 @@ class myconstant():
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
         self.CMD_STAGER_TOOLS_IF64BIT = "if64"
         self.CMD_STAGER_TOOLS_GETNETVERSION = "getnet"
+        self.CMD_STAGER_TOOLS_GETNETVERSION2 = "getnet2"
         self.CMD_STAGER_TOOLS_GETAV = "getav"
         self.CMD_STAGER_TOOLS_GETAL = "getal"
         self.CMD_STAGER_TOOLS_GETCLM = "getclm"
@@ -71,7 +72,7 @@ class myconstant():
         
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
-                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT]
+                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,self.CMD_STAGER_TOOLS_GETNETVERSION2]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -116,6 +117,7 @@ class mybuildin_cmd():
     def __init__(self):
         self.IF64BIT = "[Environment]::Is64BitProcess"
         self.GETNETVERSION = "get-childitem -path \"HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\""
+        self.GETNETVERSION2 = "gci 'HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP' -recurse | gp -name Version,Release -EA 0 | ?{ $_.PSChildName -match '^(?!S)\p{L}'} | select PSChildName, Version, Release"
         self.GETDEFENDER = "Get-MpComputerStatus"
         self.GETAPPLOCKER = "Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections"
         self.GETLANGMODE = "$ExecutionContext.SessionState.LanguageMode"
@@ -125,3 +127,6 @@ class mybuildin_cmd():
         self.OPH_NEWTOKEN = "$token.MakeToken(\"{}\",\"{}\",\"{}\")"
 
 
+if __name__ == "__main__":
+    __t_mybuildin = mybuildin_cmd()
+    print(__t_mybuildin.GETNETVERSION2)

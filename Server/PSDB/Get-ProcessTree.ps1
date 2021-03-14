@@ -37,6 +37,7 @@ function Get-ProcessTree
         $id = $process.ProcessId
         $processCommandLine = $process.CommandLine
 		$parentProcessId = $process.ParentProcessId
+        $user = $process.getowner().user
         $process = Get-Process -Id $id -ComputerName $computerName
 		$hash	= ($process | gi -ea SilentlyContinue|filehash -ea 0).hash
 		$signingstatus	= ($process | gi -ea SilentlyContinue|authenticodesignature -ea 0).status
@@ -47,7 +48,8 @@ function Get-ProcessTree
         | Add-Member NoteProperty Level $level -PassThru `
 		| Add-Member NoteProperty Hash $hash -PassThru `
 		| Add-Member NoteProperty signature $signingstatus -PassThru `
-        | Add-Member NoteProperty IndentedName "$indent$($process.Name)" -PassThru 
+        | Add-Member NoteProperty IndentedName "$indent$($process.Name)" -PassThru `
+        | Add-Member NoteProperty Owner $user -PassThru
         $processByParent.Item($id) `
         | ? { $_ } `
         | % { Write-ProcessTree $_ ($level + 1) }
@@ -68,4 +70,5 @@ OR for more verbose output:
 Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Path,Hash,CommandLine -AutoSize
 Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Hash,CommandLine -AutoSize
 Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Hash,signature,CommandLine -AutoSize
+Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,CommandLine,Owner -AutoSize
 #>

@@ -1306,7 +1306,18 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.SHARPHOUND3.format(user_input_domain))
                     continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_GET_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_stager())
 
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    for each_msg in self.__t_myserver.get_history()[user_input_stager]:
+                        print(each_msg)
+                    continue
 
 
 

@@ -78,7 +78,7 @@ class myconstant():
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
                                             self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2,
-                                            self.CMD_STAGER_TOOLS_SHARPHOUND3]
+                                            self.CMD_STAGER_TOOLS_SHARPHOUND3,self.CMD_STAGER_GET_HISTORY]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"

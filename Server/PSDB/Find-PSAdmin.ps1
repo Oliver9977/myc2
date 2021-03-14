@@ -1,28 +1,6 @@
-﻿function Find-PSRemotingLocalAdminAccess 
+function Find-PSAdmin
 {
-<#
-.SYNOPSIS
-Use this script to search for local admin access on machines in a domain or local network.
 
-.DESCRIPTION
-This function simply runs a PowerShell Remoting command against the sepcified list of computers. Since, by-default, 
-we need local administrative access on a computer to run WMI commands, a success for this fucntions 
-means local administrative access.
-
-.PARAMETER ComputerFile
-File containing list of target computers.
-
-.PARAMETER StopOnSuccess
-Stop on first success. 
-
-.EXAMPLE
-Find-PSRemotingLocalAdminAccess -ComputerFile C:\test\computers.txt -Verbose
-
-.LINK
-https://github.com/samratashok/nishang
-http://www.labofapenetrationtester.com/
-
-#>
 
     [CmdletBinding()] Param(
 

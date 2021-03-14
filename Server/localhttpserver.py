@@ -45,9 +45,12 @@ class localhttpserver():
         threading.Thread(target=self.__t_start_resource_handler_http_server,args=(myuuid,)).start()
 
     def set_server_config(self,ip,port,path):
-        self.__local_http_server_ip = ip
-        self.__local_http_server_port = int(port)
-        self.__local_http_server_path = path
+        if len(ip) != 0:
+            self.__local_http_server_ip = ip
+        if len(port) != 0:
+            self.__local_http_server_port = int(port)
+        if len(path) != 0:
+            self.__local_http_server_path = path
 
     def print_server_config(self):
         print("+++++++++++++++++++++Local Http Server Info++++++++++++++++++++++")

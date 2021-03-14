@@ -70,5 +70,5 @@ OR for more verbose output:
 Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Path,Hash,CommandLine -AutoSize
 Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Hash,CommandLine -AutoSize
 Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Hash,signature,CommandLine -AutoSize
-Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,CommandLine,Owner -AutoSize
+Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Path,CommandLine,Owner -AutoSize
 #>

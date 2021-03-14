@@ -69,10 +69,14 @@ class myconstant():
         self.CMD_STAGER_TOOLS_MAKETOKEN = "maketoken"
         self.CMD_STAGER_TOOLS_PSRESET = "psreset"
         self.CMD_STAGER_TOOLS_INJECT = "inject"
+        self.CMD_STAGER_TOOLS_GETPID = "getpid"
+        self.CMD_STAGER_TOOLS_GETPSTREE = "getps"
+        self.CMD_STAGER_TOOLS_GETPSTREE2 = "getps2"
         
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
-                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,self.CMD_STAGER_TOOLS_GETNETVERSION2]
+                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,
+                                            self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -125,6 +129,11 @@ class mybuildin_cmd():
         #overpassthehash
         self.OPH_INIT = "$token = [SharPsplOit.Credentials.Tokens]::new()"
         self.OPH_NEWTOKEN = "$token.MakeToken(\"{}\",\"{}\",\"{}\")"
+        
+        self.GETPSTREE = "Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Owner -AutoSize"
+        self.GETPSTREE2 = "Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Path,CommandLine,Owner -AutoSize"
+
+        self.GETPID = "$pid"
 
 
 if __name__ == "__main__":

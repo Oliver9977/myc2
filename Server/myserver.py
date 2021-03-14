@@ -10,6 +10,7 @@ from myconstant import myconstant_networking,myconstant,mybuildin_cmd
 from localhttpserver import localhttpserver
 
 import win32pipe, win32file, pywintypes
+import codecs
 
 #from os.path import isfile, join
 
@@ -49,7 +50,11 @@ class ps_loader():
 
         with open(self.DBPATH + filename,mode='r') as f:
             all_of_it = f.read()
-            return all_of_it
+        
+        #fix BOM
+        if all_of_it.startswith(codecs.BOM_UTF8):
+            all_of_it = all_of_it[len(codecs.BOM_UTF8):]
+        return all_of_it
 
 
 

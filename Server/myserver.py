@@ -48,13 +48,9 @@ class ps_loader():
             print("No available ...")
             return
 
-        with open(self.DBPATH + filename,mode='r') as f:
+        with codecs.open(self.DBPATH + filename,"r",encoding="utf-8-sig") as f:
             all_of_it = f.read()
-        
-        #fix BOM
-        if all_of_it.startswith(codecs.BOM_UTF8):
-            all_of_it = all_of_it[len(codecs.BOM_UTF8):]
-        return all_of_it
+            return all_of_it
 
 
 

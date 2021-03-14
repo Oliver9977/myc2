@@ -72,11 +72,13 @@ class myconstant():
         self.CMD_STAGER_TOOLS_GETPID = "getpid"
         self.CMD_STAGER_TOOLS_GETPSTREE = "getps"
         self.CMD_STAGER_TOOLS_GETPSTREE2 = "getps2"
+        self.CMD_STAGER_TOOLS_SHARPHOUND3 = "sharph"
         
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
                                             self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,
-                                            self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2]
+                                            self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2,
+                                            self.CMD_STAGER_TOOLS_SHARPHOUND3]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -134,6 +136,7 @@ class mybuildin_cmd():
         self.GETPSTREE2 = "Get-ProcessTree -Verbose | FT Id, Level, IndentedName,ParentId,Path,CommandLine,Owner -AutoSize"
 
         self.GETPID = "$pid"
+        self.SHARPHOUND3 = "Invoke-Sharphound3 \"-c All GPOLocalGroup -D {}\""
 
 
 if __name__ == "__main__":

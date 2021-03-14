@@ -976,6 +976,9 @@ class mymainclass():
                     removecomplete()
                     user_input_command_tag = input("Please enter the command tag: ")
                     user_input_command = input("Please enter the command: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
                     self.__t_myserver.create_command(user_input_stager,user_input_command_tag,user_input_command)
                     continue
                 

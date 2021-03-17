@@ -74,12 +74,17 @@ class myconstant():
         self.CMD_STAGER_TOOLS_GETPSTREE2 = "getps2"
         self.CMD_STAGER_TOOLS_SHARPHOUND3 = "sharph"
         self.CMD_STAGER_TOOLS_GETDOMAIN = "getdomain"
+        self.CMD_STAGER_TOOLS_CD = "cd"
+        self.CMD_STAGER_TOOLS_LS = "ls"
+        self.CMD_STAGER_TOOLS_DOWNLOAD = "download"
+
         
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
                                             self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2,
-                                            self.CMD_STAGER_TOOLS_SHARPHOUND3,self.CMD_STAGER_GET_HISTORY,self.CMD_STAGER_TOOLS_GETDOMAIN]
+                                            self.CMD_STAGER_TOOLS_SHARPHOUND3,self.CMD_STAGER_GET_HISTORY,self.CMD_STAGER_TOOLS_GETDOMAIN,self.CMD_STAGER_TOOLS_CD,self.CMD_STAGER_TOOLS_LS,
+                                            self.CMD_STAGER_TOOLS_DOWNLOAD]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -118,6 +123,7 @@ class myconstant_networking(): #applicaiton layer tag
         self.FW_SUCCESS = "FW_SUCCESS" #for remote startup
         self.FW_LOCAL_SUCCESS = "FW_LOCAL_SUCCESS" #for local startup
         self.FW_LOCAL_ERROR = "FW_LOCAL_ERROR" #for local startup
+        self.DL_SUCCESS = "DL_SUCCESS"
 
 
 class mybuildin_cmd():
@@ -139,7 +145,9 @@ class mybuildin_cmd():
         self.GETPID = "$pid"
         self.SHARPHOUND3 = "Invoke-Sharphound3 \"-c All GPOLocalGroup -D {}\""
         self.GETDOMAIN = "Get-Domain"
-        
+
+        self.NET_CD = "[Environment]::CurrentDirectory = (Get-Location -PSProvider FileSystem).ProviderPath"
+
 
 
 if __name__ == "__main__":

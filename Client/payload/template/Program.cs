@@ -253,7 +253,7 @@ namespace myclient
                         bytesSent = sender.Send(msg);
                         if (bytesSent != msg.Length)
                         {
-                            Console.WriteLine("[DEBUG] Something wrong with send");
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
                         Console.WriteLine("Send result finished");
 
@@ -282,9 +282,42 @@ namespace myclient
                         bytesSent = sender.Send(msg);
                         if (bytesSent != msg.Length)
                         {
-                            Console.WriteLine("[DEBUG] Something wrong with send");
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
                         Console.WriteLine("Send result finished");
+
+                    }
+
+                    if (command_tag.ToLower() == "download")
+                    {
+                        byte[] t_file;
+                        try
+                        {
+                            t_file = Encoding.UTF8.GetBytes(MsgPack(Convert.ToBase64String(File.ReadAllBytes(command))));
+                        }catch(Exception e)
+                        {
+                            t_file = Encoding.UTF8.GetBytes(MsgPack(e.Message)); //maybe need to ensure its not a "single word"
+                        }
+                        
+                        //send bytes
+                        bytesSent = sender.Send(t_file);
+                        if (bytesSent != t_file.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+                        
+
+                        //ack
+                        string psAck = doRecive(sender);
+                        Console.WriteLine("[DEBUG] ACK msg: " + psAck);
+                        if (psAck == "DL_SUCCESS")
+                        {
+                            Console.WriteLine("[Down] Success");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[Down] Failed ...");
+                        }
 
                     }
 
@@ -299,7 +332,7 @@ namespace myclient
                         bytesSent = sender.Send(msg);
                         if (bytesSent != msg.Length)
                         {
-                            Console.WriteLine("[DEBUG] Something wrong with send");
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
                         Console.WriteLine("Send result finished");
 

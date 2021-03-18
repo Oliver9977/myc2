@@ -60,6 +60,12 @@ This is my version of c2, intended for penetration testing, but also useful for 
 
 ![alt text](img/cd.png)
 
+# psremote
+* enter remote ps session, use `psreset` to reset back to local session. 
+
+![alt text](img/psremote1.png)
+![alt text](img/psremote2.png)
+
 # Interesting findings
 * With .Net 4.8 on 17763 (ie. KB4486153), process injection using the technique available in GadgetToJSscript template will fail to load `System.Management.Automation.dll` on the targeted process. It only happens with 32bit and possible workaround with inject to `powershell.exe` instead. 
 

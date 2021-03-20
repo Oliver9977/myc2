@@ -123,10 +123,15 @@ class myserver():
         self.__mypsloader_list = dict() #loaded ps module
         self.__myuuid_list = list()
         self.__mystart_list = dict() #bool
-        self.__myfwdata_list_tomaster = dict()
-        self.__myfwdata_list_toslave = dict()
-        self.__myfwdata_list_torh = dict()
-        self.__myfwdata_list_fromrh = dict()
+
+
+
+        self.__myfwdata_list_toch = dict()
+        self.__myfwdata_list_fromch = dict()
+        self.__myfw_rh_list = list() #uuid for rh
+        self.__myfw_rhinfo_list = dict() #connection string for rh
+        self.__myfw_rh_ch_mapping_list = dict() #channel uuid for each rh
+
 
 
         self.__mylistener_start_list = dict() #bool
@@ -156,116 +161,74 @@ class myserver():
         self.__mypipe_myuuid_list = list()
         self.__mypipe_mystart_list = dict() #bool
 
-    def get_resource_handler_result(self,myuuid): #for pfw
-        local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
+    def __start_resource_channel(self,myuuid,chuuid,rhuuid): # ch
 
-        while True:
-            try:
-                msg_item = local_item_que_fromrh.get(block=True, timeout=5)
-                break
-            except queue.Empty:
-                #print("[DEBUG] get_resource_handler_result Local Job Que for {} is empty".format(myuuid))
-                continue
-        
-        return msg_item
+        local_item_que_fromch = self.__myfwdata_list_fromch[chuuid]
+        local_item_que_toch = self.__myfwdata_list_toch[chuuid]
 
+        conhost = self.__myfw_rhinfo_list[rhuuid][0]
+        conport = int(self.__myfw_rhinfo_list[rhuuid][1])
 
-    def start_resource_handler(self,myuuid,conhost,conport): # fow pfw #its possible to have its own uuid
-        local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
-        local_item_que_torh = self.__myfwdata_list_torh[myuuid]
-
-        print("[Local] This is the resousce handler for my uuid: {}".format(myuuid))
+        print("[Local] This is the resousce channel for ch uuid: {}".format(chuuid))
         # try connect to the addr send tag on success or fail
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             client.connect((conhost,conport))
-            local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
+            local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
         except Exception as e:
             print("[Local] Error connecting to client: {}...".format(str(e)))
-            local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
+            local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
             return
 
-        need_reconnect = False
         #try to get cmd first then send resouces
-        while True:
-            
-            if need_reconnect:
-                #print("[DEBUG] start_resource_handler, need reconnction")
-                client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                try:
-                    client.connect((conhost,conport))
-                    #local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
-                except Exception as e:
-                    #print("[Local] Error reconnecting to client: {}...".format(str(e)))
-                    #local_item_que_fromrh.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
-                    return #cannot continue ...
-            
-            while True:
-                try:
-                    msg_item = local_item_que_torh.get(block=True, timeout=5)
-                    break
-                except queue.Empty:
-                    #print("[DEBUG] start_resource_handler, Local Job Que for {} is empty".format(myuuid))
-                    continue
-            #print("[DEBUG] start_resource_handler, " + msg_item)
-            #encode write to
-            encode_cmd = msg_item.encode("utf8", "ignore")
-            send_result = client.send(encode_cmd)
-            #print("[DEBUG] start_resource_handler, trying to get reponse from local server ...")
-            #get response if any, better put a timeout here
+        while True: #for socket
             t_mysocket_handler = mysocket_handler(client)
-            #to_send = client.recv(1024)
-            #decode_msg = to_send.decode("utf8", "ignore")
-            decode_msg = t_mysocket_handler.get_native_all()
-            #print("[DEBUG] start_resource_handler, " + decode_msg)
-
-            local_item_que_fromrh.put(decode_msg)
-            #print("[DEBUG] start_resource_handler, Put success ... ")
-
-            #check if the connection is still alive, tag for reconnect if FINED
-            if not t_mysocket_handler.ifalive():
-                need_reconnect = True
-
-
-    def start_slave_worker(self,myuuid):
-        #single target for now
-        local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
-        local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
-        local_item_que_fromrh = self.__myfwdata_list_fromrh[myuuid]
-        local_item_que_torh = self.__myfwdata_list_torh[myuuid]
-
-        print("[Stager] This is the local worker for my uuid: {}".format(myuuid))
-        
-        while True:
-            #put command on main que and wait for response
-            self.create_command(myuuid,"fwq","dummy")
-            while True:
-                try:
-                    msg_item = local_item_que_toslave.get(block=True, timeout=5)
-                    break
-                except queue.Empty:
-                    #print("[DEBUG] start_slave_worker Local Job Que (toslave) for {} is empty".format(myuuid))
-                    continue
-            
-            if msg_item != self.__t_myconstant_networking.FW_NOTREADY:
-                print("[Stager] Real data")
-                local_item_que_torh.put(msg_item)
-            
-                # assume there always reponse
-                while True:
+            if t_mysocket_handler.ifalive():
+                # triger update for chuuid
+                self.create_command(myuuid,"fwq",chuuid)
+                while True: #for queue
                     try:
-                        msg_item = local_item_que_fromrh.get(block=True, timeout=5)
+                        msg_item = local_item_que_toch.get(block=True, timeout=5)
                         break
                     except queue.Empty:
-                        #print("[DEBUG] start_slave_worker Local Job Que (fromrh) for {} is empty".format(myuuid))
+                        #print("[DEBUG] __start_resource_channel, Local Job Que for {} is empty".format(chuuid))
                         continue
                 
-                #print("[DEBUG] start_slave_worker" + msg_item)
-                local_item_que_tomaster.put(msg_item)
+                #encode write to
+                if encode_cmd == self.__t_myconstant_networking.FW_CH_FINED: #no need to send back if FINed
+                    print("[Local] Client FINed Channel {} ... ".format(chuuid))
+                    try:
+                        client.shutdown(socket.SHUT_RDWR)
+                    except Exception:
+                        pass
+                    client.close()
+                    self.__myfwdata_list_fromch.pop(chuuid, None)
+                    self.__myfwdata_list_toch.pop(chuuid, None)
+                    self.__myfw_rh_ch_mapping_list[rhuuid].remove(chuuid)
+                    break
+
+                encode_cmd = msg_item.encode("utf8", "ignore")
+                send_result = client.send(encode_cmd)
+                print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
+                #get response if any, better put a timeout here
+                decode_msg = t_mysocket_handler.get_native_all()
+                
+                local_item_que_fromch.put(decode_msg)
             else:
-                local_item_que_tomaster.put(self.__t_myconstant_networking.FW_NOTREADY)
+                print("[Local] Server FINed Channle {} ... ".format(chuuid))
+                client.close()
+                self.__myfwdata_list_fromch.pop(chuuid, None)
+                self.__myfwdata_list_toch.pop(chuuid, None)
+                self.__myfw_rh_ch_mapping_list[rhuuid].remove(chuuid)
+                break
+            
             time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
-        
+
+    def start_resource_handler(self,myuuid,rhuuid):
+        while (True): #keep running for now ...
+            #this is to task for channel info update
+            time.sleep(self.__t_myconstant.PFW_UPDATE_SPEED)
+            self.create_command(myuuid,"pfw-update",rhuuid)
 
     def start_worker(self,myuuid):
 
@@ -311,35 +274,46 @@ class myserver():
                 myhistory.append("[Stager] Send command result: {}".format(recv_result))
 
                 #if fwq
-                if cmd_struct_to_send[0] == "fwq":
+                if cmd_struct_to_send[0] == "fwq" or cmd_struct_to_send[0] == "pfw-update": #same for now ..
                     #print("[DEBUG] start_worker, I am working for fwq")
                     #get the next message check tag
+                    rhtag_result = t_mysockethandler.get_nextmsg()
+                    chtag_result = t_mysockethandler.get_nextmsg()
                     recv_result = t_mysockethandler.get_nextmsg()
-                    #print("[DEBUG] start_worker, get_nextmsg is {}".format(recv_result))
-                    #push command to local worker and wait for response
-                    local_item_que_tomaster =  self.__myfwdata_list_tomaster[myuuid]
-                    local_item_que_toslave =  self.__myfwdata_list_toslave[myuuid]
-                    #print("[DEBUG] start_worker, Trying to put into que")
-                    local_item_que_toslave.put(recv_result)
-                    #print("[DEBUG] start_worker, Puted into ..")
-                    while True:
-                        try:
-                            msg_item = local_item_que_tomaster.get(block=True, timeout=5)
-                            break
-                        except queue.Empty:
-                            #print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
-                            continue
+                    if rhtag_result not in self.__myfw_rh_list:
+                        myhistory.append("[PFW] Error rh not in list")
+                        continue
+                    if chtag_result == self.__t_myconstant_networking.FW_NOTREADY:
+                        continue
+                    if chtag_result not in self.__myfw_rh_ch_mapping_list[rhtag_result]:
+                        myhistory.append("[PFW] new channel ... ")
+                        #init 
+                        self.__myfwdata_list_fromch[chtag_result] = queue.Queue()
+                        self.__myfwdata_list_toch[chtag_result] = queue.Queue()
+                        #start ch
+                        threading.Thread(target=self.__start_resource_channel,args=(myuuid,chtag_result,rhtag_result,)).start()
+                        #push ch uuid
+                        self.__myfw_rh_ch_mapping_list[rhtag_result].append(chtag_result)
+
                     
-                    #print("[DEBUG] start_worker, Got item back")
-                    if msg_item != self.__t_myconstant_networking.FW_NOTREADY: #send it back to ack the que get
+                    #push command to local worker and wait for response
+                    local_item_que_fromch = self.__myfwdata_list_fromch[chtag_result]
+                    local_item_que_toch = self.__myfwdata_list_toch[chtag_result]
+                    local_item_que_toch.put(recv_result)
+                    
+                    if recv_result != self.__t_myconstant_networking.FW_CH_FINED:
+                        #assume always send back unless FINED
+                        while True:
+                            try:
+                                msg_item = local_item_que_fromch.get(block=True, timeout=5)
+                                break
+                            except queue.Empty:
+                                #print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
+                                continue
+                        
                         #send it to client
                         encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
                         send_result = mysocket.send(encode_cmd)
-                        #print("[DEBUG] start_worker, real data sent")
-                    else:
-                        pass
-                        #print("[DEBUG] start_worker, FW_NOTREADY")
-                    #else, no need to send back
                     
                     continue
                 
@@ -558,12 +532,6 @@ class myserver():
                 self.__myuuid_list.append(myuuid)
                 #set start
                 self.__mystart_list[myuuid] = True
-                #init pfw
-                self.__myfwdata_list_toslave[myuuid] = queue.Queue()
-                self.__myfwdata_list_tomaster[myuuid] = queue.Queue()
-                self.__myfwdata_list_torh[myuuid] = queue.Queue()
-                self.__myfwdata_list_fromrh[myuuid] = queue.Queue()
-
                 #init psloader
                 self.__mypsloader_list[myuuid] = list()
 
@@ -739,6 +707,16 @@ class myserver():
 
     def get_verbose(self):
         return self.__ifverbose
+
+    ##pfw
+    def add_rh_info(self,conhost,conport):
+        myuuid = uuid.uuid4().hex[:6].upper()
+        self.__myfw_rhinfo_list[myuuid] = (conhost,conport)
+        self.__myfw_rh_list.append(myuuid)
+        self.__myfw_rh_ch_mapping_list[myuuid] = list()
+        return myuuid
+
+
 
 #to hold some config for payloadgen
 class mypayload():

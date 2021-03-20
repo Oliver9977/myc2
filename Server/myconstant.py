@@ -8,6 +8,7 @@ class myconstant():
 
         self.SOCKET_TIMEOUT = 5
         self.PFW_ACK_SPEED = 2
+        self.PFW_UPDATE_SPEED = 5
 
         self.TAG_MYCS = "[MYCS]"
         self.TAG_LISTENER = "[Listener]"
@@ -124,6 +125,7 @@ class myconstant_networking(): #applicaiton layer tag
         self.FW_SUCCESS = "FW_SUCCESS" #for remote startup
         self.FW_LOCAL_SUCCESS = "FW_LOCAL_SUCCESS" #for local startup
         self.FW_LOCAL_ERROR = "FW_LOCAL_ERROR" #for local startup
+        self.FW_CH_FINED = "FW_CH_FINED"
         self.DL_SUCCESS = "DL_SUCCESS"
         self.PSREMOTE_SUCCESS = "PSREMOTE_SUCCESS"
 

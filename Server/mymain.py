@@ -336,14 +336,17 @@ class mymainclass():
                     user_input_con_host = input("Please enter connect ip: ")
                     user_input_con_port = input("Please enter connect port: ")
                     # wait local resource handler return true
-                    threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,user_input_con_host,int(user_input_con_port),)).start()
+                    #threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,user_input_con_host,int(user_input_con_port),)).start()
                     #pull the response
-                    t_response = self.__t_myserver.get_resource_handler_result(user_input_stager)
-                    if t_response == self.__t_net_constant.FW_LOCAL_SUCCESS:
-                        self.__t_myserver.create_command(user_input_stager,"fw","{}:{}".format(user_input_listener_host,user_input_listener_port))
-                        threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
-                    else:
-                        print("Cannot connect to local resource")
+                    #t_response = self.__t_myserver.get_resource_handler_result(user_input_stager)
+                    #if t_response == self.__t_net_constant.FW_LOCAL_SUCCESS:
+                    rhuuid = self.__t_myserver.add_rh_info(user_input_con_host,user_input_con_port)
+
+                    self.__t_myserver.create_command(user_input_stager,"fw","{}:{}:{}".format(rhuuid,user_input_listener_host,user_input_listener_port))
+                    threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
+                    #threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
+                    #else:
+                    #    print("Cannot connect to local resource")
 
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
                 if command_id == self.__t_myconstant.CMD_BACK:

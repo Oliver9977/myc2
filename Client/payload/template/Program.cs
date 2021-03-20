@@ -101,6 +101,8 @@ namespace myclient
             //var socket_alive = fwSocket_alive[myuuid];
             byte[] fwq_bytes_toresv = new byte[1024];
             string ret_str = "";
+            Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
+            Console.WriteLine("blocking: " + socket.Blocking.ToString());
 
             while (true)
             {
@@ -122,6 +124,7 @@ namespace myclient
                     {
                         return ret_str;
                     }
+                    Console.WriteLine("SocketException: " + se.ToString());
                 }
             }
         }
@@ -169,7 +172,7 @@ namespace myclient
                         Console.WriteLine("Waiting for a connection...");
                         var t_fwSocket = listener.Accept();
                         Guid myuuid = Guid.NewGuid();
-                        
+                        t_fwSocket.Blocking = true;
                         t_fwSocket.ReceiveTimeout = localSocketTimeout;
                         fwSocket.Add(myuuid,t_fwSocket);
                         fwSocket_alive.Add(myuuid, true);
@@ -402,7 +405,7 @@ namespace myclient
                                     //send rh
                                     byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(rhuuid));
                                     bytesSent = sender.Send(rh_msg);
-                                    if (bytesSent != msg.Length)
+                                    if (bytesSent != rh_msg.Length)
                                     {
                                         Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                                     }
@@ -410,7 +413,7 @@ namespace myclient
                                     //send ch
                                     byte[] ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
                                     bytesSent = sender.Send(ch_msg);
-                                    if (bytesSent != msg.Length)
+                                    if (bytesSent != ch_msg.Length)
                                     {
                                         Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                                     }
@@ -422,12 +425,13 @@ namespace myclient
                                     {
                                         str_fwq_msg = "FW_CH_FINED";
                                     }
+                                    Console.WriteLine("read and writed Finished ...");
 
                                     byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
 
                                     //send data
                                     bytesSent = sender.Send(fwq_msg);
-                                    if (bytesSent != msg.Length)
+                                    if (bytesSent != fwq_msg.Length)
                                     {
                                         Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                                     }
@@ -512,7 +516,7 @@ namespace myclient
                         //send rh
                         byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(fwMapping_revs[chuuid]));
                         bytesSent = sender.Send(rh_msg);
-                        if (bytesSent != msg.Length)
+                        if (bytesSent != rh_msg.Length)
                         {
                             Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
@@ -520,7 +524,7 @@ namespace myclient
                         //send ch
                         byte[] ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
                         bytesSent = sender.Send(ch_msg);
-                        if (bytesSent != msg.Length)
+                        if (bytesSent != ch_msg.Length)
                         {
                             Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
@@ -537,7 +541,7 @@ namespace myclient
 
                         //send data
                         bytesSent = sender.Send(fwq_msg);
-                        if (bytesSent != msg.Length)
+                        if (bytesSent != fwq_msg.Length)
                         {
                             Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }

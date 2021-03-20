@@ -195,7 +195,7 @@ class myserver():
                         continue
                 
                 #encode write to
-                if encode_cmd == self.__t_myconstant_networking.FW_CH_FINED: #no need to send back if FINed
+                if msg_item == self.__t_myconstant_networking.FW_CH_FINED: #no need to send back if FINed
                     print("[Local] Client FINed Channel {} ... ".format(chuuid))
                     try:
                         client.shutdown(socket.SHUT_RDWR)

@@ -128,6 +128,7 @@ class myconstant_networking(): #applicaiton layer tag
         self.FW_CH_FINED = "FW_CH_FINED"
         self.DL_SUCCESS = "DL_SUCCESS"
         self.PSREMOTE_SUCCESS = "PSREMOTE_SUCCESS"
+        self.FW_CH_NODATA = "FW_CH_NODATA"
 
 
 class mybuildin_cmd():

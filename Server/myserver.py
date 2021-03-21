@@ -206,6 +206,14 @@ class myserver():
                     self.__myfw_rh_ch_mapping_list[rhuuid].remove(chuuid)
                     break
 
+                if msg_item == self.__t_myconstant_networking.FW_CH_NODATA: #no need to send back if no data
+                    print("[Local] Client no data channel {}... ".format(chuuid))
+                    # triger update for chuuid
+                    print("[Local] trigering fwq ... ")
+                    self.create_command(myuuid,"fwq",chuuid)
+                    time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
+                    continue
+
                 encode_cmd = msg_item.encode("utf8", "ignore")
                 send_result = client.send(encode_cmd)
                 print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
@@ -217,7 +225,7 @@ class myserver():
                 # triger update for chuuid
                 print("[Local] trigering fwq ... ")
                 self.create_command(myuuid,"fwq",chuuid)
-                
+
             else:
                 print("[Local] Server FINed Channle {} ... ".format(chuuid))
                 client.close()
@@ -311,6 +319,10 @@ class myserver():
                     local_item_que_toch = self.__myfwdata_list_toch[chtag_result]
                     local_item_que_toch.put(recv_result)
                     
+                    if recv_result == self.__t_myconstant_networking.FW_CH_NODATA:
+                        print("[DEBUG] client no data ...")
+                        continue
+
                     if recv_result != self.__t_myconstant_networking.FW_CH_FINED:
                         #assume always send back unless FINED
                         while True:

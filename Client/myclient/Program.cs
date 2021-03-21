@@ -35,6 +35,19 @@ namespace myclient
         public int localSocketTimeout = 5;
 
 
+        bool SocketConnected(Socket s)
+        {
+            bool part1 = s.Poll(1000, SelectMode.SelectRead);
+            bool part2 = (s.Available == 0);
+            Console.WriteLine("Poll: " + part1.ToString());
+            Console.WriteLine("Available: " + part2.ToString());
+
+            if (part1 && part2)
+                return false;
+            else
+                return true;
+        }
+
         public static IPEndPoint CreateIPEndPoint(string endPoint)
         {
             string[] ep = endPoint.Split(':');
@@ -109,7 +122,7 @@ namespace myclient
                 try
                 {
                     int length_toresv = socket.Receive(fwq_bytes_toresv);
-                    if (length_toresv == 0)
+                    if (length_toresv == 0 && !SocketConnected(socket))
                     {
                         //FINED
                         fwSocket_alive[myuuid] = false;
@@ -119,12 +132,13 @@ namespace myclient
                 }
                 catch (SocketException se)
                 {
+                    Console.WriteLine("SocketException: " + se.ToString());
                     //assume all received in 5s
                     if (se.SocketErrorCode == SocketError.TimedOut)
                     {
                         return ret_str;
                     }
-                    Console.WriteLine("SocketException: " + se.ToString());
+                    
                 }
             }
         }
@@ -422,10 +436,15 @@ namespace myclient
                                     //do single read and write
                                     Console.WriteLine("Doing read and write");
                                     string str_fwq_msg = doReciveNative(chuuid);
-                                    if (str_fwq_msg.Length == 0)
+                                    if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
                                     {
                                         str_fwq_msg = "FW_CH_FINED";
                                     }
+                                    if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                                    {
+                                        str_fwq_msg = "FW_CH_NODATA";
+                                    }
+
                                     Console.WriteLine("read and writed Finished ...");
 
                                     byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
@@ -439,29 +458,34 @@ namespace myclient
 
                                     Console.WriteLine("Send success ...");
 
-                                    if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+
+                                    if (str_fwq_msg != "FW_CH_NODATA") //do nothing for nodata
                                     {
-                                        string fwq_string_tosend = doRecive(sender);
-                                        Console.WriteLine("Got reponse" + fwq_string_tosend);
-                                        if (fwSocket_alive[chuuid])
+                                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
                                         {
-                                            int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                                            Console.WriteLine("Response sent");
+                                            string fwq_string_tosend = doRecive(sender);
+                                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                                            if (fwSocket_alive[chuuid])
+                                            {
+                                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                                Console.WriteLine("Response sent");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("fwSocket doesn't want response ... ");
+                                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                                fwSocket[chuuid].Close();
+                                            }
+
                                         }
                                         else
                                         {
-                                            Console.WriteLine("fwSocket doesn't want response ... ");
+                                            Console.WriteLine("Clean up ...");
                                             fwSocket[chuuid].Shutdown(SocketShutdown.Both);
                                             fwSocket[chuuid].Close();
                                         }
-
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine("Clean up ...");
-                                        fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                        fwSocket[chuuid].Close();
-                                    }
+                                    
 
                                     break;
 
@@ -555,9 +579,13 @@ namespace myclient
                         //do single read and write
                         Console.WriteLine("Doing read and write");
                         string str_fwq_msg = doReciveNative(chuuid);
-                        if (str_fwq_msg.Length == 0)
+                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
                         {
                             str_fwq_msg = "FW_CH_FINED";
+                        }
+                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                        {
+                            str_fwq_msg = "FW_CH_NODATA";
                         }
 
                         byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
@@ -571,28 +599,31 @@ namespace myclient
 
                         Console.WriteLine("Send success ...");
 
-                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                        if (str_fwq_msg != "FW_CH_NODATA") //do nothing for nodata
                         {
-                            string fwq_string_tosend = doRecive(sender);
-                            Console.WriteLine("Got reponse" + fwq_string_tosend);
-                            if (fwSocket_alive[chuuid])
+                            if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
                             {
-                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                                Console.WriteLine("Response sent");
+                                string fwq_string_tosend = doRecive(sender);
+                                Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                                if (fwSocket_alive[chuuid])
+                                {
+                                    int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                    Console.WriteLine("Response sent");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("fwSocket doesn't want response ... ");
+                                    fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                    fwSocket[chuuid].Close();
+                                }
+
                             }
                             else
                             {
-                                Console.WriteLine("fwSocket doesn't want response ... ");
+                                Console.WriteLine("Clean up ...");
                                 fwSocket[chuuid].Shutdown(SocketShutdown.Both);
                                 fwSocket[chuuid].Close();
                             }
-
-                        }
-                        else
-                        {
-                            Console.WriteLine("Clean up ...");
-                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                            fwSocket[chuuid].Close();
                         }
 
                     }
@@ -862,7 +893,7 @@ namespace myclient
         {
             MyApp t_app = new MyApp();
             
-            t_app.ipstring = "192.168.182.131:80";
+            t_app.ipstring = "192.168.182.131:443";
             
             t_app.StartClient();
             //t_app.ipstring = "";

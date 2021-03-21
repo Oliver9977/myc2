@@ -70,7 +70,7 @@ class mysocket_handler():
         self.__mysocket_alive = True
 
     def msf_encode(self,msg):
-        return self.__msg_tag_st + msg + self.__msg_tag_ed
+        return self.__msg_tag_st + decoder.b64_encode(msg) + self.__msg_tag_ed
 
     def ifalive(self):
         return self.__mysocket_alive
@@ -88,7 +88,7 @@ class mysocket_handler():
                 #print("[DEBUG] r_msg: {}".format(r_msg))
                 # remove sub string from buf + return
                 self.__msg_buf = self.__msg_buf[(t_endmsg + len(self.__msg_tag_ed)):]
-                return r_msg
+                return decoder.b64_decode(r_msg).decode("utf-8","ignore")
             else:
                 # get more message
                 try: 

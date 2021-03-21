@@ -71,7 +71,7 @@ namespace myclient
             string MsgTag_St = "[MYMSST]";
             string MsgTag_Ed = "[MYMSED]";
 
-            return MsgTag_St + Msg_In + MsgTag_Ed;
+            return MsgTag_St + Convert.ToBase64String(Encoding.UTF8.GetBytes(Msg_In)) + MsgTag_Ed;
         }
 
         public string doRecive(Socket socket) //assume connected
@@ -104,7 +104,7 @@ namespace myclient
                     t_message = t_message.Substring(ed_tag + MsgTag_Ed.Length);
                     //Console.WriteLine("[DEBUG] t_message: " + t_message);
                     //Console.WriteLine("[DEBUG] r_msg: " + r_msg);
-                    return r_msg;
+                    return Encoding.UTF8.GetString(Convert.FromBase64String(r_msg));
                 }
                 else
                 {

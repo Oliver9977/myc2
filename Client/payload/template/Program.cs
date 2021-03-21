@@ -401,6 +401,7 @@ namespace myclient
                                 {
                                     //send ack
                                     found = true;
+                                    ifAcked[chuuid] = true;
 
                                     //send rh
                                     byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(rhuuid));

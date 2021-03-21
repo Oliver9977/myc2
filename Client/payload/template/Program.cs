@@ -161,7 +161,7 @@ namespace myclient
                 IPEndPoint localEndPoint = CreateIPEndPoint(endpoint);
                 Socket listener = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(localEndPoint);
-                listener.Listen(1);
+                listener.Listen(5);
                 listener.Blocking = false;
 
                 while (true)

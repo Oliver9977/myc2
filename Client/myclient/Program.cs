@@ -32,7 +32,7 @@ namespace myclient
         public string ipstring = "127.0.0.1:4444";
         public string namepipestring = "namedpipeshell";
         public string namepipehost = ".";
-        public int localSocketTimeout = 5;
+        public int localSocketTimeout = 500;
 
 
         bool SocketConnected(Socket s)
@@ -215,7 +215,7 @@ namespace myclient
                             listener.Close();
                             break;
                         }
-                        Thread.Sleep(10000);
+                        Thread.Sleep(1000);
                     }
                     catch (Exception e)
                     {

@@ -174,7 +174,7 @@ class myserver():
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             client.connect((conhost,conport))
-            local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
+            #local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_SUCCESS)
         except Exception as e:
             print("[Local] Error connecting to client: {}...".format(str(e)))
             local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
@@ -184,8 +184,6 @@ class myserver():
         while True: #for socket
             t_mysocket_handler = mysocket_handler(client)
             if t_mysocket_handler.ifalive():
-                # triger update for chuuid
-                self.create_command(myuuid,"fwq",chuuid)
                 while True: #for queue
                     try:
                         msg_item = local_item_que_toch.get(block=True, timeout=5)
@@ -195,6 +193,7 @@ class myserver():
                         continue
                 
                 #encode write to
+                print("[Local] msg_item: {}".format(msg_item))
                 if msg_item == self.__t_myconstant_networking.FW_CH_FINED: #no need to send back if FINed
                     print("[Local] Client FINed Channel {} ... ".format(chuuid))
                     try:
@@ -214,6 +213,11 @@ class myserver():
                 decode_msg = t_mysocket_handler.get_native_all()
                 
                 local_item_que_fromch.put(decode_msg)
+
+                # triger update for chuuid
+                print("[Local] trigering fwq ... ")
+                self.create_command(myuuid,"fwq",chuuid)
+                
             else:
                 print("[Local] Server FINed Channle {} ... ".format(chuuid))
                 client.close()
@@ -223,6 +227,7 @@ class myserver():
                 break
             
             time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
+        print("[Local] Channel ch uuid {} exit ... ".format(chuuid))
 
     def start_resource_handler(self,myuuid,rhuuid):
         while (True): #keep running for now ...
@@ -280,6 +285,11 @@ class myserver():
                     rhtag_result = t_mysockethandler.get_nextmsg()
                     chtag_result = t_mysockethandler.get_nextmsg()
                     recv_result = t_mysockethandler.get_nextmsg()
+
+                    print("[DEBUG] rhtag_result: {}".format(rhtag_result))
+                    print("[DEBUG] chtag_result: {}".format(chtag_result))
+                    print("[DEBUG] recv_result: {}".format(recv_result))
+
                     if rhtag_result not in self.__myfw_rh_list:
                         myhistory.append("[PFW] Error rh not in list")
                         continue
@@ -310,7 +320,7 @@ class myserver():
                             except queue.Empty:
                                 #print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
                                 continue
-                        
+                        print("[DEBUG] msg_item: {}".format(msg_item))
                         #send it to client
                         encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
                         send_result = mysocket.send(encode_cmd)

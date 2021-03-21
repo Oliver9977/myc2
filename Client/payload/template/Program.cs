@@ -512,13 +512,35 @@ namespace myclient
 
                         //convert string to uuid
                         Guid chuuid = new Guid(command);
-
+                        
                         //send rh
                         byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(fwMapping_revs[chuuid]));
                         bytesSent = sender.Send(rh_msg);
                         if (bytesSent != rh_msg.Length)
                         {
                             Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+
+                        if (fwSocket_alive[chuuid] == false)
+                        {
+                            //already FINed
+                            //send ch
+                            byte[] fin_ch_msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_FINED"));
+                            bytesSent = sender.Send(fin_ch_msg);
+                            if (bytesSent != fin_ch_msg.Length)
+                            {
+                                Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                            }
+                            //semd dummy
+                            byte[] fin_data_msg = Encoding.UTF8.GetBytes(MsgPack("dummy"));
+                            bytesSent = sender.Send(fin_data_msg);
+                            if (bytesSent != fin_data_msg.Length)
+                            {
+                                Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                            }
+
+                            continue;
+
                         }
 
                         //send ch

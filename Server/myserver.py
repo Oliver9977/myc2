@@ -55,7 +55,7 @@ class mypipe_handler():
 
 # socket is assume connected
 class mysocket_handler():
-    def __init__(self,in_socket):
+    def __init__(self,in_socket,if_native):
         
         self.__t_myconstant = myconstant()
         self.__mysocket = in_socket
@@ -66,7 +66,7 @@ class mysocket_handler():
         #less likely need this
         self.__enc_tag_st = "[MYENST]"
         self.__enc_tag_ed = "[MYENED]"
-        self.__mysocket.settimeout(self.__t_myconstant.SOCKET_TIMEOUT)
+        self.__mysocket.settimeout(self.__t_myconstant.SOCKET_TIMEOUT) if not if_native else self.__mysocket.settimeout(self.__t_myconstant.PFW_NATIVE_SOCKET_TIMEOUT)
         self.__mysocket_alive = True
 
     def msf_encode(self,msg):
@@ -182,7 +182,7 @@ class myserver():
 
         #try to get cmd first then send resouces
         while True: #for socket
-            t_mysocket_handler = mysocket_handler(client)
+            t_mysocket_handler = mysocket_handler(client,True)
             if t_mysocket_handler.ifalive():
                 while True: #for queue
                     try:
@@ -246,7 +246,7 @@ class myserver():
             mysocket = self.__mysocket_list[myuuid]
             myhistory = self.__mymsg_list[myuuid]
             # make a handler class
-            t_mysockethandler = mysocket_handler(mysocket)
+            t_mysockethandler = mysocket_handler(mysocket,False)
             
 
             try:
@@ -731,6 +731,15 @@ class myserver():
         self.__myfw_rh_list.append(myuuid)
         self.__myfw_rh_ch_mapping_list[myuuid] = list()
         return myuuid
+    
+    def set_pfw_sp(self,updatesp,acksp,socketsp):
+        if len(updatesp) != 0:
+            self.__t_myconstant.PFW_UPDATE_SPEED = int(updatesp)
+        if len(acksp) != 0:
+            self.__t_myconstant.PFW_ACK_SPEED = int(acksp)
+        
+        if len(socketsp) !=0:
+            self.__t_myconstant.PFW_NATIVE_SOCKET_TIMEOUT = int(socketsp)
 
 
 

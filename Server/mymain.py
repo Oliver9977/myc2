@@ -348,6 +348,29 @@ class mymainclass():
                     #else:
                     #    print("Cannot connect to local resource")
 
+                if command_id == self.__t_myconstant.CMD_STAGER_PFW_SP:
+                    
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    removecomplete()
+                    print("============Empty inputs will be ignored=============")
+                    user_input_updatesp = input("Please enter update speed: ")
+                    user_input_acksp = input("Please enter ack speed: ")
+                    user_input_socksp = input("Please enter native socket timeout: ")
+                    user_input_confirm = input("y to toggle: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    self.__t_myserver.set_pfw_sp(user_input_updatesp,user_input_acksp,user_input_socksp)
+                    continue
+
+
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
                 if command_id == self.__t_myconstant.CMD_BACK:
                     cmd_tag = self.__t_myconstant.TAG_INTE_STAGER

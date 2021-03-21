@@ -83,16 +83,24 @@ namespace myclient
 
             while (true)
             {
-                //Console.WriteLine("[DEBUG] " + t_message);
-                //Console.WriteLine("[DEBUG] " + t_message.IndexOf(MsgTag_St));
-                //Console.WriteLine("[DEBUG] " + t_message.IndexOf(MsgTag_Ed));
-
+                
                 if (t_message.IndexOf(MsgTag_St) >= 0 && t_message.IndexOf(MsgTag_Ed) >= 0)
                 {
+
+                    Console.WriteLine("[DEBUG] t_message: " + t_message);
+                    Console.WriteLine("[DEBUG] Index of MsgTag_St: " + t_message.IndexOf(MsgTag_St));
+                    Console.WriteLine("[DEBUG] Index of MsgTag_Ed: " + t_message.IndexOf(MsgTag_Ed));
+                    Console.WriteLine("[DEBUG] MsgTag_St.Length: " + MsgTag_St.Length.ToString());
+                    
+
                     int st_tag = t_message.IndexOf(MsgTag_St);
                     int ed_tag = t_message.IndexOf(MsgTag_Ed);
+
+                    var temp_var = ed_tag - (st_tag + MsgTag_St.Length);
+                    Console.WriteLine("[DEBUG] Length: " + temp_var.ToString());
+
+
                     string r_msg = t_message.Substring(st_tag + MsgTag_St.Length, ed_tag - (st_tag + MsgTag_St.Length));
-                    //Console.WriteLine("[DEBUG] r_msg: " + r_msg);
                     t_message = t_message.Substring(ed_tag + MsgTag_Ed.Length);
                     //Console.WriteLine("[DEBUG] t_message: " + t_message);
                     //Console.WriteLine("[DEBUG] r_msg: " + r_msg);
@@ -459,32 +467,34 @@ namespace myclient
                                     Console.WriteLine("Send success ...");
 
 
-                                    if (str_fwq_msg != "FW_CH_NODATA") //do nothing for nodata
+                                    if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
                                     {
-                                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                                        string fwq_string_tosend = doRecive(sender);
+                                        Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                                        if (fwSocket_alive[chuuid] && fwq_string_tosend.Length !=0)
                                         {
-                                            string fwq_string_tosend = doRecive(sender);
-                                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
-                                            if (fwSocket_alive[chuuid])
-                                            {
-                                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                                                Console.WriteLine("Response sent");
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine("fwSocket doesn't want response ... ");
-                                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                                fwSocket[chuuid].Close();
-                                            }
-
+                                            int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                            Console.WriteLine("Response sent");
+                                        }
+                                        else if(fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
+                                        {
+                                            Console.WriteLine("Dummy Response ...");
                                         }
                                         else
                                         {
-                                            Console.WriteLine("Clean up ...");
+                                            Console.WriteLine("fwSocket doesn't want response ... ");
                                             fwSocket[chuuid].Shutdown(SocketShutdown.Both);
                                             fwSocket[chuuid].Close();
                                         }
+
                                     }
+                                    else
+                                    {
+                                        Console.WriteLine("Clean up ...");
+                                        fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                        fwSocket[chuuid].Close();
+                                    }
+                                    
                                     
 
                                     break;
@@ -599,31 +609,32 @@ namespace myclient
 
                         Console.WriteLine("Send success ...");
 
-                        if (str_fwq_msg != "FW_CH_NODATA") //do nothing for nodata
+                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
                         {
-                            if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                            string fwq_string_tosend = doRecive(sender);
+                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                            if (fwSocket_alive[chuuid] && fwq_string_tosend.Length != 0)
                             {
-                                string fwq_string_tosend = doRecive(sender);
-                                Console.WriteLine("Got reponse: " + fwq_string_tosend);
-                                if (fwSocket_alive[chuuid])
-                                {
-                                    int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                                    Console.WriteLine("Response sent");
-                                }
-                                else
-                                {
-                                    Console.WriteLine("fwSocket doesn't want response ... ");
-                                    fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                    fwSocket[chuuid].Close();
-                                }
-
+                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                Console.WriteLine("Response sent");
+                            }
+                            else if (fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
+                            {
+                                Console.WriteLine("Dummy Response ...");
                             }
                             else
                             {
-                                Console.WriteLine("Clean up ...");
+                                Console.WriteLine("fwSocket doesn't want response ... ");
                                 fwSocket[chuuid].Shutdown(SocketShutdown.Both);
                                 fwSocket[chuuid].Close();
                             }
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Clean up ...");
+                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                            fwSocket[chuuid].Close();
                         }
 
                     }

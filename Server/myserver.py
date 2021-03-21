@@ -193,9 +193,9 @@ class myserver():
                         continue
                 
                 #encode write to
-                print("[Local] msg_item: {}".format(msg_item))
+                #print("[Local] msg_item: {}".format(msg_item))
                 if msg_item == self.__t_myconstant_networking.FW_CH_FINED: #no need to send back if FINed
-                    print("[Local] Client FINed Channel {} ... ".format(chuuid))
+                    #print("[Local] Client FINed Channel {} ... ".format(chuuid))
                     try:
                         client.shutdown(socket.SHUT_RDWR)
                     except Exception:
@@ -209,7 +209,7 @@ class myserver():
                 if msg_item != self.__t_myconstant_networking.FW_CH_NODATA: #no need to send back if no data
                     encode_cmd = msg_item.encode("utf8", "ignore")
                     send_result = client.send(encode_cmd)
-                    print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
+                    #print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
                 
                 #get response if any, better put a timeout here
                 decode_msg = t_mysocket_handler.get_native_all()
@@ -217,7 +217,7 @@ class myserver():
                 local_item_que_fromch.put(decode_msg)
 
                 # triger update for chuuid
-                print("[Local] trigering fwq ... ")
+                #print("[Local] trigering fwq ... ")
                 self.create_command(myuuid,"fwq",chuuid)
 
             else:
@@ -288,17 +288,17 @@ class myserver():
                     chtag_result = t_mysockethandler.get_nextmsg()
                     recv_result = t_mysockethandler.get_nextmsg()
 
-                    print("[DEBUG] rhtag_result: {}".format(rhtag_result))
-                    print("[DEBUG] chtag_result: {}".format(chtag_result))
-                    print("[DEBUG] recv_result: {}".format(recv_result))
+                    #print("[DEBUG] rhtag_result: {}".format(rhtag_result))
+                    #print("[DEBUG] chtag_result: {}".format(chtag_result))
+                    #print("[DEBUG] recv_result: {}".format(recv_result))
 
                     if rhtag_result not in self.__myfw_rh_list:
-                        myhistory.append("[PFW] Error rh not in list")
+                        #myhistory.append("[PFW] Error rh not in list")
                         continue
                     if chtag_result == self.__t_myconstant_networking.FW_NOTREADY:
                         continue
                     if chtag_result not in self.__myfw_rh_ch_mapping_list[rhtag_result]:
-                        myhistory.append("[PFW] new channel ... ")
+                        #myhistory.append("[PFW] new channel ... ")
                         #init 
                         self.__myfwdata_list_fromch[chtag_result] = queue.Queue()
                         self.__myfwdata_list_toch[chtag_result] = queue.Queue()
@@ -326,7 +326,7 @@ class myserver():
                             except queue.Empty:
                                 #print("[DEBUG] start_worker, Local Job Que for {} is empty".format(myuuid))
                                 continue
-                        print("[DEBUG] msg_item: {}".format(msg_item))
+                        #print("[DEBUG] msg_item: {}".format(msg_item))
                         #send it to client
                         encode_cmd = t_mysockethandler.msf_encode(msg_item).encode("utf8", "ignore")
                         send_result = mysocket.send(encode_cmd)

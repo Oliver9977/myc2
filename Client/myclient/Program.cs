@@ -560,14 +560,14 @@ namespace myclient
                         {
                             //already FINed
                             //send ch
-                            byte[] fin_ch_msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_FINED"));
+                            byte[] fin_ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
                             bytesSent = sender.Send(fin_ch_msg);
                             if (bytesSent != fin_ch_msg.Length)
                             {
                                 Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                             }
-                            //semd dummy
-                            byte[] fin_data_msg = Encoding.UTF8.GetBytes(MsgPack("dummy"));
+                            //send FW_CH_FINED
+                            byte[] fin_data_msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_FINED"));
                             bytesSent = sender.Send(fin_data_msg);
                             if (bytesSent != fin_data_msg.Length)
                             {
@@ -904,7 +904,7 @@ namespace myclient
         {
             MyApp t_app = new MyApp();
             
-            t_app.ipstring = "192.168.182.131:80";
+            t_app.ipstring = "192.168.182.131:443";
             
             t_app.StartClient();
             //t_app.ipstring = "";

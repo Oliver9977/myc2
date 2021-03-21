@@ -8,6 +8,8 @@ class myconstant():
 
         self.SOCKET_TIMEOUT = 5
         self.PFW_ACK_SPEED = 2
+        self.PFW_UPDATE_SPEED = 5
+        self.PFW_NATIVE_SOCKET_TIMEOUT = 2
 
         self.TAG_MYCS = "[MYCS]"
         self.TAG_LISTENER = "[Listener]"
@@ -54,10 +56,12 @@ class myconstant():
         self.CMD_STAGER_LOAD_PS = "psload"
         self.CMD_STAGER_CON = "connect"
         self.CMD_STAGER_PFW = "pfw"
+        self.CMD_STAGER_PFW_SP = "pfw-speed"
         self.CMD_STAGER_BUILDIN = "tools"
         self.CMD_STAGER_VERBOSE = "setverbose"
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_RUNNING_LIST,self.CMD_STAGER_GET_INTO,
-                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN,self.CMD_STAGER_VERBOSE]
+                                        self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN,
+                                        self.CMD_STAGER_VERBOSE,self.CMD_STAGER_PFW_SP]
 
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
         self.CMD_STAGER_TOOLS_IF64BIT = "if64"
@@ -124,8 +128,10 @@ class myconstant_networking(): #applicaiton layer tag
         self.FW_SUCCESS = "FW_SUCCESS" #for remote startup
         self.FW_LOCAL_SUCCESS = "FW_LOCAL_SUCCESS" #for local startup
         self.FW_LOCAL_ERROR = "FW_LOCAL_ERROR" #for local startup
+        self.FW_CH_FINED = "FW_CH_FINED"
         self.DL_SUCCESS = "DL_SUCCESS"
         self.PSREMOTE_SUCCESS = "PSREMOTE_SUCCESS"
+        self.FW_CH_NODATA = "FW_CH_NODATA"
 
 
 class mybuildin_cmd():

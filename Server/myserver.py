@@ -258,27 +258,27 @@ class myserver():
 
             
             try:
-                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++") if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
                 if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
                     cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
 
                 if (cmd_struct_to_send[0] == "psload"):
                     cmd_struct_to_send[0] = "ps"
-                    myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0]))
+                    myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0])) if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
                 else:
-                    myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1]))
+                    myhistory.append("[Stager] Command_tag: {}  Command: {}".format(cmd_struct_to_send[0],cmd_struct_to_send[1])) if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
                 
                 encode_tag = t_mysockethandler.msf_encode(cmd_struct_to_send[0]).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_tag)
-                myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_tag), send_result))
+                myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_tag), send_result)) if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
                 recv_result = t_mysockethandler.get_nextmsg()
-                myhistory.append("[Stager] Send command_tag result: {}".format(recv_result))
+                myhistory.append("[Stager] Send command_tag result: {}".format(recv_result)) if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
 
                 encode_cmd = t_mysockethandler.msf_encode(cmd_struct_to_send[1]).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_cmd)
-                myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_cmd), send_result))
+                myhistory.append("[Stager] Total of number of bytes to send: {}, Sent: {}".format(len(encode_cmd), send_result)) if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
                 recv_result = t_mysockethandler.get_nextmsg()
-                myhistory.append("[Stager] Send command result: {}".format(recv_result))
+                myhistory.append("[Stager] Send command result: {}".format(recv_result)) if cmd_struct_to_send[0] != "pfw" and cmd_struct_to_send[0] != "pfw-update" else None
 
                 #if fwq
                 if cmd_struct_to_send[0] == "fwq" or cmd_struct_to_send[0] == "pfw-update": #same for now ..

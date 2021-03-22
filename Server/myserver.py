@@ -131,6 +131,7 @@ class myserver():
         self.__myfw_rh_list = list() #uuid for rh
         self.__myfw_rhinfo_list = dict() #connection string for rh
         self.__myfw_rh_ch_mapping_list = dict() #channel uuid for each rh
+        self.__myfw_rh_running = dict() #tag for "pfw-update"
 
 
 
@@ -232,10 +233,13 @@ class myserver():
         print("[Local] Channel ch uuid {} exit ... ".format(chuuid))
 
     def start_resource_handler(self,myuuid,rhuuid):
-        while (True): #keep running for now ...
+        while (self.__myfw_rh_running[rhuuid]): 
             #this is to task for channel info update
             time.sleep(self.__t_myconstant.PFW_UPDATE_SPEED)
             self.create_command(myuuid,"pfw-update",rhuuid)
+    
+    def stop_resource_handler(self,rhuuid): #stop update
+        self.__myfw_rh_running[rhuuid] = False
 
     def start_worker(self,myuuid):
 
@@ -333,7 +337,7 @@ class myserver():
                     
                     continue
                 
-                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "psreset": #fw init and psreset
+                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset": #fw init and psreset
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
                     myhistory.append("[Stager] Run Command result: {}".format(recv_result))
@@ -726,11 +730,15 @@ class myserver():
 
     ##pfw
     def add_rh_info(self,conhost,conport):
-        myuuid = uuid.uuid4().hex[:6].upper()
-        self.__myfw_rhinfo_list[myuuid] = (conhost,conport)
-        self.__myfw_rh_list.append(myuuid)
-        self.__myfw_rh_ch_mapping_list[myuuid] = list()
-        return myuuid
+        rhuuid = uuid.uuid4().hex[:6].upper()
+        self.__myfw_rhinfo_list[rhuuid] = (conhost,conport)
+        self.__myfw_rh_list.append(rhuuid)
+        self.__myfw_rh_ch_mapping_list[rhuuid] = list()
+        self.__myfw_rh_running[rhuuid] = True
+        return rhuuid
+    
+    def get_running_rh_list(self):
+        return [a for a in self.__myfw_rh_list if self.__myfw_rh_running[a]]
     
     def set_pfw_sp(self,updatesp,acksp,socketsp):
         if len(updatesp) != 0:

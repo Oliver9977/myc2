@@ -308,8 +308,7 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
                     self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
-                    
-
+                
                 if command_id == self.__t_myconstant.CMD_STAGER_CON:
                     #unset auto complete
                     removecomplete()
@@ -331,10 +330,10 @@ class mymainclass():
                     #unset auto complete
                     removecomplete()
                     #get host and port
-                    user_input_listener_host = input("Please enter listener ip: ")
-                    user_input_listener_port = input("Please enter listener port: ")
-                    user_input_con_host = input("Please enter connect ip: ")
-                    user_input_con_port = input("Please enter connect port: ")
+                    user_input_listener_host = input("Please enter remote listener ip: ")
+                    user_input_listener_port = input("Please enter remote listener port: ")
+                    user_input_con_host = input("Please enter local connect ip: ")
+                    user_input_con_port = input("Please enter local connect port: ")
                     # wait local resource handler return true
                     #threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,user_input_con_host,int(user_input_con_port),)).start()
                     #pull the response
@@ -344,9 +343,17 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"fw","{}:{}:{}".format(rhuuid,user_input_listener_host,user_input_listener_port))
                     threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
-                    #threading.Thread(target=self.__t_myserver.start_slave_worker,args=(user_input_stager,)).start()
-                    #else:
-                    #    print("Cannot connect to local resource")
+                    
+                    continue
+                
+                if command_id == self.__t_myconstant.CMD_STAGER_PFW_STOP:
+                    setautocomplete(self.__t_myserver.get_running_rh_list())
+                    user_input_rh = input("Please enter the rh uuid: ")
+                    if user_input_rh not in self.__t_myserver.get_running_rh_list():
+                        print("Please input a valid rh uuid")
+                        continue
+                    self.__t_myserver.stop_resource_handler(user_input_rh)
+                    continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_PFW_SP:
                     
@@ -363,12 +370,35 @@ class mymainclass():
                     user_input_updatesp = input("Please enter update speed: ")
                     user_input_acksp = input("Please enter ack speed: ")
                     user_input_socksp = input("Please enter native socket timeout: ")
-                    user_input_confirm = input("y to toggle: ")
+                    user_input_confirm = input("y to confirm: ")
                     if user_input_confirm != "y":
                         continue
 
                     self.__t_myserver.set_pfw_sp(user_input_updatesp,user_input_acksp,user_input_socksp)
                     continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_FWC:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+                    print("============Empty inputs will be ignored=============")
+                    user_input_listener_host = input("Please enter local listener ip: ")
+                    user_input_listener_port = input("Please enter local listener port: ")
+                    user_input_con_host = input("Please enter remote connect ip: ")
+                    user_input_con_port = input("Please enter remote connect port: ")
+                    user_input_confirm = input("y to confirm: ")
+                    if user_input_confirm != "y":
+                        continue
+                    rhuuid = self.__t_myserver.add_rh_info(user_input_listener_host,user_input_listener_port)
+
+                    self.__t_myserver.create_command(user_input_stager,"fwc","{}:{}:{}".format(rhuuid,user_input_con_host,user_input_con_port))
+                    threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
+
 
 
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
@@ -728,8 +758,6 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
                     continue
 
-                    
-
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch
                 if command_id == self.__t_myconstant.CMD_BACK:
@@ -898,8 +926,6 @@ class mymainclass():
                         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
 
                     t_mypayloadgen.gen_pexec_hta()
-
-
 
             if cmd_tag == self.__t_myconstant.TAG_LOCALSERVER:
                 if command_id == self.__t_myconstant.CMD_BACK:

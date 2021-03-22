@@ -22,7 +22,7 @@ namespace myclient
         private string t_message = "";
         private Dictionary <Guid,Socket> fwSocket = new Dictionary<Guid, Socket>();
         private Dictionary <Guid,bool> fwSocket_alive = new Dictionary<Guid, bool>();
-        private Dictionary <string, bool> listener_running = new Dictionary<string, bool>();
+        private Dictionary <string, bool> rh_running = new Dictionary<string, bool>();
         private Dictionary <string, List<Guid>> fwMapping = new Dictionary<string, List<Guid>>();
         private Dictionary <Guid, string> fwMapping_revs = new Dictionary<Guid, string>();
         private Dictionary <Guid, bool> ifAcked = new Dictionary<Guid, bool>();
@@ -169,6 +169,56 @@ namespace myclient
             }
         }
 
+        public void StartClientNative(Object uuid)
+        {
+            string rhuuid = (string)uuid;
+            string endpoint = fwEndPoint[rhuuid];
+            try
+            {
+                //Guid mylisteneruuid = Guid.NewGuid();
+                rh_running.Add(rhuuid, true);
+                fwMapping.Add(rhuuid, new List<Guid>());
+
+                IPEndPoint remoteEP = CreateIPEndPoint(endpoint);
+                Socket target = new Socket(remoteEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+                try
+                {
+
+                    Console.WriteLine("Waiting for a connection...");
+                    target.Connect(remoteEP);
+                    Guid myuuid = Guid.NewGuid();
+                    target.Blocking = true;
+                    target.ReceiveTimeout = localSocketTimeout;
+                    fwSocket.Add(myuuid, target);
+                    fwSocket_alive.Add(myuuid, true);
+
+                    fwMapping[rhuuid].Add(myuuid);
+                    fwMapping_revs.Add(myuuid, rhuuid);
+
+                    ifAcked.Add(myuuid, false);
+
+
+
+                }//inner try
+                catch (SocketException e)
+                {
+                    Console.WriteLine("SocketException : {0}", e.ToString());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                }
+                
+
+
+            }//init try
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
         public void StartServerNative(Object uuid)
         {
 
@@ -177,7 +227,7 @@ namespace myclient
             try
             {
                 //Guid mylisteneruuid = Guid.NewGuid();
-                listener_running.Add(rhuuid, true);
+                rh_running.Add(rhuuid, true);
                 fwMapping.Add(rhuuid, new List<Guid>());
 
                 IPEndPoint localEndPoint = CreateIPEndPoint(endpoint);
@@ -210,7 +260,7 @@ namespace myclient
                     catch (SocketException e)
                     {
                         //Console.WriteLine("SocketException : {0}", e.ToString());
-                        if (!listener_running[rhuuid])
+                        if (!rh_running[rhuuid])
                         {
                             listener.Close();
                             break;
@@ -379,14 +429,36 @@ namespace myclient
 
                     }
 
+                    if (command_tag.ToLower() == "fwc")
+                    {
+                        //assume command is rhuuid:ip:port string
+                        string[] subs = command.Split(':');
+                        fwEndPoint.Add(subs[0], subs[1] + ':' + subs[2]);
+                        //Console.WriteLine("subs[0]: " + subs[0]);
+                        //Console.WriteLine("subs[1]: " + subs[1]);
+                        //Console.WriteLine("subs[2]: " + subs[2]);
+
+                        Thread t = new Thread(new ParameterizedThreadStart(StartClientNative));
+                        t.Start(subs[0]);
+                        Console.WriteLine("[DEBUG] fw executed ...");
+                        msg = Encoding.UTF8.GetBytes(MsgPack("FW_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+                        Console.WriteLine("Send result finished");
+
+                    }
+
                     if (command_tag.ToLower() == "fw")
                     {
                         //assume command is rhuuid:ip:port string
                         string[] subs = command.Split(':');
                         fwEndPoint.Add(subs[0], subs[1] + ':' + subs[2]);
-                        Console.WriteLine("subs[0]: " + subs[0]);
-                        Console.WriteLine("subs[1]: " + subs[1]);
-                        Console.WriteLine("subs[2]: " + subs[2]);
+                        //Console.WriteLine("subs[0]: " + subs[0]);
+                        //Console.WriteLine("subs[1]: " + subs[1]);
+                        //Console.WriteLine("subs[2]: " + subs[2]);
 
                         Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
                         t.Start(subs[0]);
@@ -413,7 +485,7 @@ namespace myclient
                         //}
                         //Console.WriteLine("=========print the listener_running =========");
 
-                        if (listener_running.ContainsKey(rhuuid))
+                        if (rh_running.ContainsKey(rhuuid))
                         {
                             Console.WriteLine("rhuuid found ...");
                             Console.WriteLine("Socket mode: " + sender.Blocking.ToString());

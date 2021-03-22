@@ -56,12 +56,14 @@ class myconstant():
         self.CMD_STAGER_LOAD_PS = "psload"
         self.CMD_STAGER_CON = "connect"
         self.CMD_STAGER_PFW = "pfw"
+        self.CMD_STAGER_PFW_STOP = "pfw-stop"
         self.CMD_STAGER_PFW_SP = "pfw-speed"
+        self.CMD_STAGER_FWC = "fwc"
         self.CMD_STAGER_BUILDIN = "tools"
         self.CMD_STAGER_VERBOSE = "setverbose"
         self.CMD_STAGER_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_GET_LIST,self.CMD_STAGER_GET_RUNNING_LIST,self.CMD_STAGER_GET_INTO,
                                         self.CMD_STAGER_GET_HISTORY,self.CMD_HELP,self.CMD_STAGER_LOAD_PS,self.CMD_STAGER_CON,self.CMD_STAGER_PFW,self.CMD_STAGER_BUILDIN,
-                                        self.CMD_STAGER_VERBOSE,self.CMD_STAGER_PFW_SP]
+                                        self.CMD_STAGER_VERBOSE,self.CMD_STAGER_PFW_SP,self.CMD_STAGER_FWC,self.CMD_STAGER_PFW_STOP]
 
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
         self.CMD_STAGER_TOOLS_IF64BIT = "if64"
@@ -83,7 +85,7 @@ class myconstant():
         self.CMD_STAGER_TOOLS_DOWNLOAD = "download"
         self.CMD_STAGER_TOOLS_PSREMOTE = "psremote"
 
-        
+
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
                                             self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
                                             self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,

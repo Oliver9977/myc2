@@ -12,3 +12,6 @@ def b64_decode(s):
 
 def b64_encode(s):
     return base64.b64encode(s.encode("utf-8","ignore")).decode("utf-8","ignore")
+
+def powershell_encode(s):
+    return base64.b64encode(s.encode('UTF-16LE')).decode("utf-8","ignore")

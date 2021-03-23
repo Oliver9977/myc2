@@ -46,7 +46,7 @@ This is my version of c2, intended for penetration testing, but also useful for 
 ![alt text](img/gtojs.png)
 
 # extra hta template
-* depends on target stystem config, the hta -> powershell sequence might be useful in somecase. 
+* hta -> powershell
  
 ![alt text](img/hta.png)
 
@@ -65,6 +65,17 @@ This is my version of c2, intended for penetration testing, but also useful for 
 
 ![alt text](img/psremote1.png)
 ![alt text](img/psremote2.png)
+
+# spawnps
+* start a new stager using powershell. 
+
+![alt text](img/spawnps.png)
+
+# psjump
+* jump using remote powershell. 
+
+![alt text](img/psjump1.png)
+
 
 # Interesting findings
 * With .Net 4.8 on 17763 (ie. KB4486153), process injection using the technique available in GadgetToJSscript template will fail to load `System.Management.Automation.dll` on the targeted process. It only happens with 32bit and possible workaround with inject to `powershell.exe` instead. 

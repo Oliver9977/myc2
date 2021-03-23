@@ -73,28 +73,35 @@ class myconstant():
         self.CMD_STAGER_TOOLS_GETAL = "getal"
         self.CMD_STAGER_TOOLS_GETCLM = "getclm"
         self.CMD_STAGER_TOOLS_MAKETOKEN = "maketoken"
-        self.CMD_STAGER_TOOLS_PSRESET = "psreset"
+        
         self.CMD_STAGER_TOOLS_INJECT = "inject"
         self.CMD_STAGER_TOOLS_GETPID = "getpid"
         self.CMD_STAGER_TOOLS_GETPSTREE = "getps"
         self.CMD_STAGER_TOOLS_GETPSTREE2 = "getps2"
-        self.CMD_STAGER_TOOLS_SHARPHOUND3 = "sharphound3"
+        
         self.CMD_STAGER_TOOLS_GETDOMAIN = "getdomain"
+        self.CMD_STAGER_TOOLS_WHOAMI = "whoami"
+        self.CMD_STAGER_TOOLS_HOSTNAME = "hostname"
         self.CMD_STAGER_TOOLS_CD = "cd"
         self.CMD_STAGER_TOOLS_LS = "ls"
         self.CMD_STAGER_TOOLS_DOWNLOAD = "download"
+
+        self.CMD_STAGER_TOOLS_SHARPHOUND3 = "sharphound3"
+        
         self.CMD_STAGER_TOOLS_SPAWN_PS = "spawnps"
+        self.CMD_STAGER_TOOLS_PSRESET = "psreset"
         self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
         self.CMD_STAGER_TOOLS_PSREMOTE = "psremote"
         self.CMD_STAGER_TOOLS_PSJUMP = "psjump"
+        self.CMD_STAGER_TOOLS_PSJUMP_EXE = "psjump-exe"
 
-
-        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK,self.CMD_STAGER_TOOLS_PSEXEC,self.CMD_STAGER_TOOLS_IF64BIT,
-                                            self.CMD_STAGER_TOOLS_GETNETVERSION,self.CMD_STAGER_TOOLS_GETAV,self.CMD_STAGER_TOOLS_GETAL,
-                                            self.CMD_STAGER_TOOLS_GETCLM,self.CMD_STAGER_TOOLS_MAKETOKEN,self.CMD_STAGER_TOOLS_PSRESET,self.CMD_STAGER_TOOLS_INJECT,
-                                            self.CMD_STAGER_TOOLS_GETNETVERSION2,self.CMD_STAGER_TOOLS_GETPID,self.CMD_STAGER_TOOLS_GETPSTREE,self.CMD_STAGER_TOOLS_GETPSTREE2,
-                                            self.CMD_STAGER_TOOLS_SHARPHOUND3,self.CMD_STAGER_GET_HISTORY,self.CMD_STAGER_TOOLS_GETDOMAIN,self.CMD_STAGER_TOOLS_CD,self.CMD_STAGER_TOOLS_LS,
-                                            self.CMD_STAGER_TOOLS_DOWNLOAD,self.CMD_STAGER_TOOLS_PSREMOTE,self.CMD_STAGER_TOOLS_PSJUMP,self.CMD_STAGER_TOOLS_SPAWN_PS]
+        self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK, self.CMD_STAGER_GET_HISTORY, self.CMD_STAGER_TOOLS_IF64BIT, self.CMD_STAGER_TOOLS_GETNETVERSION, self.CMD_STAGER_TOOLS_GETNETVERSION2, 
+                                            self.CMD_STAGER_TOOLS_GETAV, self.CMD_STAGER_TOOLS_GETAL, self.CMD_STAGER_TOOLS_GETCLM, self.CMD_STAGER_TOOLS_MAKETOKEN, 
+                                            self.CMD_STAGER_TOOLS_INJECT, self.CMD_STAGER_TOOLS_GETPID, self.CMD_STAGER_TOOLS_GETPSTREE, self.CMD_STAGER_TOOLS_GETPSTREE2,
+                                            self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
+                                            self.CMD_STAGER_TOOLS_LS, self.CMD_STAGER_TOOLS_DOWNLOAD, self.CMD_STAGER_TOOLS_SHARPHOUND3, self.CMD_STAGER_TOOLS_SPAWN_PS, 
+                                            self.CMD_STAGER_TOOLS_PSRESET, self.CMD_STAGER_TOOLS_PSEXEC, self.CMD_STAGER_TOOLS_PSREMOTE, self.CMD_STAGER_TOOLS_PSJUMP, 
+                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -163,6 +170,9 @@ class mybuildin_cmd():
         self.PSREMOTE = "http://{}:5985/WSMAN"
 
         self.PSJOB = "Start-Job -ScriptBlock ${{function:{}}}"
+        self.HOSTNAME = "hostname"
+        self.WHOAMI = "whoami"
+
 
 if __name__ == "__main__":
     __t_mybuildin = mybuildin_cmd()

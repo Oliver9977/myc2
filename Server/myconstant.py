@@ -97,13 +97,16 @@ class myconstant():
         self.CMD_STAGER_TOOLS_PSJUMP = "psjump"
         self.CMD_STAGER_TOOLS_PSJUMP_EXE = "psjump-exe"
 
+        self.CMD_STAGER_TOOLS_KERBER = "kerberoast"
+        self.CMD_STAGER_TOOLS_ASREP = "asreproast"
+
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK, self.CMD_STAGER_GET_HISTORY, self.CMD_STAGER_TOOLS_IF64BIT, self.CMD_STAGER_TOOLS_GETNETVERSION, self.CMD_STAGER_TOOLS_GETNETVERSION2, 
                                             self.CMD_STAGER_TOOLS_GETAV, self.CMD_STAGER_TOOLS_GETAL, self.CMD_STAGER_TOOLS_GETCLM, self.CMD_STAGER_TOOLS_MAKETOKEN, 
                                             self.CMD_STAGER_TOOLS_INJECT, self.CMD_STAGER_TOOLS_GETPID, self.CMD_STAGER_TOOLS_GETPSTREE, self.CMD_STAGER_TOOLS_GETPSTREE2,
                                             self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
                                             self.CMD_STAGER_TOOLS_LS, self.CMD_STAGER_TOOLS_DOWNLOAD, self.CMD_STAGER_TOOLS_SHARPHOUND3, self.CMD_STAGER_TOOLS_SPAWN_PS, 
                                             self.CMD_STAGER_TOOLS_PSRESET, self.CMD_STAGER_TOOLS_PSEXEC, self.CMD_STAGER_TOOLS_PSREMOTE, self.CMD_STAGER_TOOLS_PSJUMP, 
-                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE]
+                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_KERBER,self.CMD_STAGER_TOOLS_ASREP]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -176,6 +179,8 @@ class mybuildin_cmd():
         self.WHOAMI = "whoami"
 
         self.B64_SAVE = "echo {} | out-file {}\\{}.txt"
+
+        self.KERBER = "Invoke-Rubeus kerberoast"
 
 
 if __name__ == "__main__":

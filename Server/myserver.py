@@ -120,6 +120,7 @@ class myserver():
         self.__mydata_list = dict() #Que to runner
         self.__myaddr_list = dict() #this is port + ip
         self.__mymsg_list = dict() #history message
+        self.__mymsg_list_start_index = dict()
         self.__mypsloader_list = dict() #loaded ps module
         self.__myuuid_list = list()
         self.__mystart_list = dict() #bool
@@ -145,7 +146,7 @@ class myserver():
         self.__port = 4444
 
         self.__pipename = "namedpipeshell"
-        self.__ifverbose = False
+        self.__ifverbose = True
 
         self.__t_myconstant = myconstant()
         self.__t_myconstant_networking = myconstant_networking()
@@ -249,6 +250,7 @@ class myserver():
             item_que = self.__mydata_list[myuuid]
             mysocket = self.__mysocket_list[myuuid]
             myhistory = self.__mymsg_list[myuuid]
+            myhistory_index = self.__mymsg_list_start_index[myuuid]
             # make a handler class
             t_mysockethandler = mysocket_handler(mysocket,False)
             
@@ -262,7 +264,8 @@ class myserver():
 
             
             try:
-                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++") if cmd_struct_to_send[0] != "fwq" and cmd_struct_to_send[0] != "pfw-update" else None
+                myhistory_index.append(len(myhistory)) if cmd_struct_to_send[0] != "fwq" and cmd_struct_to_send[0] != "pfw-update" else None
+                myhistory.append("+++++++++++++++++++++++++++ History {} ++++++++++++++++++++++++++++++++++".format(len(myhistory_index))) if cmd_struct_to_send[0] != "fwq" and cmd_struct_to_send[0] != "pfw-update" else None
                 if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
                     cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
 
@@ -340,7 +343,7 @@ class myserver():
                 if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset": #fw init and psreset
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
-                    myhistory.append("[Stager] Run Command result: {}".format(recv_result))
+                    myhistory.append("[Result] Run Command result: {}".format(recv_result))
                     myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     continue
                 
@@ -350,13 +353,13 @@ class myserver():
                     if decoder.isBase64(recv_result):
                         data_array = decoder.b64_decode(recv_result)
                         fileanme = os.path.basename(cmd_struct_to_send[1]) # platform dependent
-                        myhistory.append("[Stager] Writing to {}".format(fileanme))
+                        myhistory.append("[Result] Writing to {}".format(fileanme))
                         with open(os.path.join("DLDB\\",fileanme),mode = "wb") as f:
                             f.write(data_array)
 
                     else:
-                        myhistory.append("[Stager] Something wrong with download data ... ")
-                        myhistory.append("[Stager] Error: {}".format(recv_result))
+                        myhistory.append("[Result] Something wrong with download data ... ")
+                        myhistory.append("[Result] Error: {}".format(recv_result))
                     
                     #ack in all cases
                     encode_cmd = t_mysockethandler.msf_encode(self.__t_myconstant_networking.DL_SUCCESS).encode("utf8", "ignore")
@@ -367,14 +370,14 @@ class myserver():
                 if cmd_struct_to_send[0] == "psremote":
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
-                    myhistory.append("[Stager] Run Command result: {}".format(recv_result))
+                    myhistory.append("[Result] Run Command result: {}".format(recv_result))
                     myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     continue
 
 
                 # try get cmd result if any
                 recv_result = t_mysockethandler.get_nextmsg()
-                myhistory.append("[Stager] Run Command result: {}".format(recv_result))
+                myhistory.append("[Result] Run Command result: {}".format(recv_result))
                 # ack for success
                 encode_cmd = t_mysockethandler.msf_encode(self.__t_myconstant_networking.PSRUN_SUCCESS).encode("utf8", "ignore")
                 send_result = mysocket.send(encode_cmd)
@@ -390,7 +393,7 @@ class myserver():
                 self.__mysocket_list.pop(myuuid, None)
                 self.__myaddr_list.pop(myuuid, None)
                 self.__mystart_list[myuuid] = False
-                myhistory.append("[Stager] {} is stoped ...".format(myuuid))
+                myhistory.append("[Result] {} is stoped ...".format(myuuid))
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
 
@@ -472,6 +475,7 @@ class myserver():
         self.__mydata_list[myuuid] = queue.Queue()
         #create history
         self.__mymsg_list[myuuid] = list()
+        self.__mymsg_list_start_index[myuuid] = list()
         #push uuid
         self.__myuuid_list.append(myuuid)
         #set start
@@ -548,6 +552,7 @@ class myserver():
                 self.__mydata_list[myuuid] = queue.Queue()
                 #create history
                 self.__mymsg_list[myuuid] = list()
+                self.__mymsg_list_start_index[myuuid] = list()
                 #push uuid
                 self.__myuuid_list.append(myuuid)
                 #set start
@@ -691,8 +696,20 @@ class myserver():
     def print_pipe_stager_running(self):
         print("List of running pipe stager: {}".format(self.get_running_pipe_stager()))
 
-    def get_history(self):
-        return self.__mymsg_list
+    def print_history(self,myuuid,verbose):
+        msg_data = self.__mymsg_list[myuuid]
+        for start_index in self.__mymsg_list_start_index[myuuid]:
+            if start_index == None:
+                continue
+
+            line_number = 0
+            for next_msg in msg_data[start_index:]:
+                if (not verbose and (line_number < 2 or "[Stager]" not in next_msg)) or verbose:
+                    line_number = line_number + 1
+                    print(next_msg)
+                if next_msg == "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++":
+                    break
+
     
     def get_pipe_history(self):
         return self.__mypipe_mymsg_list

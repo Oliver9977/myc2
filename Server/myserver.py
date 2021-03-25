@@ -121,6 +121,7 @@ class myserver():
         self.__myaddr_list = dict() #this is port + ip
         self.__mymsg_list = dict() #history message
         self.__mymsg_list_start_index = dict()
+        self.__mymsg_list_start_index_active = dict()
         self.__mypsloader_list = dict() #loaded ps module
         self.__myuuid_list = list()
         self.__mystart_list = dict() #bool
@@ -251,6 +252,7 @@ class myserver():
             mysocket = self.__mysocket_list[myuuid]
             myhistory = self.__mymsg_list[myuuid]
             myhistory_index = self.__mymsg_list_start_index[myuuid]
+            myhistory_index_active = self.__mymsg_list_start_index_active[myuuid]
             # make a handler class
             t_mysockethandler = mysocket_handler(mysocket,False)
             
@@ -265,6 +267,7 @@ class myserver():
             
             try:
                 myhistory_index.append(len(myhistory)) if cmd_struct_to_send[0] != "fwq" and cmd_struct_to_send[0] != "pfw-update" else None
+                myhistory_index_active.append(len(myhistory)) if cmd_struct_to_send[0] != "fwq" and cmd_struct_to_send[0] != "pfw-update" else None
                 myhistory.append("+++++++++++++++++++++++++++ History {} ++++++++++++++++++++++++++++++++++".format(len(myhistory_index))) if cmd_struct_to_send[0] != "fwq" and cmd_struct_to_send[0] != "pfw-update" else None
                 if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
                     cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
@@ -476,6 +479,7 @@ class myserver():
         #create history
         self.__mymsg_list[myuuid] = list()
         self.__mymsg_list_start_index[myuuid] = list()
+        self.__mymsg_list_start_index_active[myuuid] = list()
         #push uuid
         self.__myuuid_list.append(myuuid)
         #set start
@@ -553,6 +557,7 @@ class myserver():
                 #create history
                 self.__mymsg_list[myuuid] = list()
                 self.__mymsg_list_start_index[myuuid] = list()
+                self.__mymsg_list_start_index_active[myuuid] = list()
                 #push uuid
                 self.__myuuid_list.append(myuuid)
                 #set start
@@ -698,7 +703,7 @@ class myserver():
 
     def print_history(self,myuuid,verbose):
         msg_data = self.__mymsg_list[myuuid]
-        for start_index in self.__mymsg_list_start_index[myuuid]:
+        for start_index in self.__mymsg_list_start_index_active[myuuid]:
             if start_index == None:
                 continue
 
@@ -710,6 +715,17 @@ class myserver():
                 if next_msg == "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++":
                     break
 
+    def clean_history(self,myuuid,index):
+        if index > len(self.__mymsg_list_start_index_active[myuuid]):
+            print("[Error] Invalid index.")
+            return
+        self.__mymsg_list_start_index_active[myuuid][index-1] = None
+    
+    def restore_history(self,myuuid,index):
+        if index > len(self.__mymsg_list_start_index_active[myuuid]):
+            print("[Error] Invalid index.")
+            return
+        self.__mymsg_list_start_index_active[myuuid][index-1] = self.__mymsg_list_start_index[myuuid][index-1]
     
     def get_pipe_history(self):
         return self.__mypipe_mymsg_list

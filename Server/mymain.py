@@ -397,7 +397,35 @@ class mymainclass():
 
                     self.__t_myserver.create_command(user_input_stager,"fwc","{}:{}:{}".format(rhuuid,user_input_con_host,user_input_con_port))
                     threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
+                    continue
 
+                if command_id == self.__t_myconstant.CMD_STAGER_CLEAN_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+
+                    user_input_id = input("Please enter the history id to clean: ")
+                    self.__t_myserver.clean_history(user_input_stager,int(user_input_id))
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_RESTORE_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+
+                    user_input_id = input("Please enter the history id to restore: ")
+                    self.__t_myserver.restore_history(user_input_stager,int(user_input_id))
+                    continue
 
 
             if cmd_tag == self.__t_myconstant.TAG_STAGER_TOOLS:

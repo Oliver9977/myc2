@@ -21,6 +21,11 @@ This is my version of c2, intended for penetration testing, but also useful for 
   sudo iptables -t nat -A POSTROUTING -s [LOCAL WINDOWS] -j SNAT --to-source [VPN IP]
   ```
 
+* If want to share connection
+  ```
+  sudo iptables -t nat -A PREROUTING -d [VPN IP] -p tcp --dport [DPORT] -j DNAT --to-destination [LOCAL WINDOWS]:[LOCAL PORT]
+  ```
+
 
 # psload + maketoken
 * psload can be used to load any ps script in the database to the stager runspace

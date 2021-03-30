@@ -10,7 +10,7 @@ using System.IO;
 
 namespace hidden_test
 {
-    class Program
+    public class Program
     {
 
 
@@ -102,7 +102,7 @@ namespace hidden_test
         }
 
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
 
             byte[] startcode = Properties.Resources.temp;

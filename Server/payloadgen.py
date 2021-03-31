@@ -73,7 +73,7 @@ class mypayloadgen():
         self.__msf_port_tag = r"%%PORT%%"
         self.__msf_toexe = "tools\\hidden-test.exe"
 
-        self.__mystd = None
+        self.__mystd = subprocess.DEVNULL
 
     def debug_mode(self,inbool):
         if inbool:

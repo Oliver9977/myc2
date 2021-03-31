@@ -37,7 +37,10 @@ function Get-ProcessTree
         $id = $process.ProcessId
         $processCommandLine = $process.CommandLine
 		$parentProcessId = $process.ParentProcessId
-        $user = $process.getowner().user
+        try{
+            $user = $process.getowner().user
+        }
+        catch{}
         $process = Get-Process -Id $id -ComputerName $computerName
 		$hash	= ($process | gi -ea SilentlyContinue|filehash -ea 0).hash
 		$signingstatus	= ($process | gi -ea SilentlyContinue|authenticodesignature -ea 0).status

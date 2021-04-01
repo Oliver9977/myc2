@@ -353,16 +353,19 @@ class myserver():
                 if cmd_struct_to_send[0] == "download":
                     #next message is either data or error code
                     recv_result = t_mysockethandler.get_nextmsg()
-                    if decoder.isBase64(recv_result):
-                        data_array = decoder.b64_decode(recv_result)
-                        fileanme = os.path.basename(cmd_struct_to_send[1]) # platform dependent
-                        myhistory.append("[Result] Writing to {}".format(fileanme))
-                        with open(os.path.join("DLDB\\",fileanme),mode = "wb") as f:
-                            f.write(data_array)
+                    while (recv_result != self.__t_myconstant_networking.DL_SUCCESS):
+                        if decoder.isBase64(recv_result):
+                            data_array = decoder.b64_decode(recv_result)
+                            fileanme = os.path.basename(cmd_struct_to_send[1]) # platform dependent
+                            myhistory.append("[Result] Writing to {}".format(fileanme))
+                            with open(os.path.join("DLDB\\",fileanme),mode = "ab") as f:
+                                f.write(data_array)
 
-                    else:
-                        myhistory.append("[Result] Something wrong with download data ... ")
-                        myhistory.append("[Result] Error: {}".format(recv_result))
+                        else:
+                            myhistory.append("[Result] Something wrong with download data ... ")
+                            myhistory.append("[Result] Error: {}".format(recv_result))
+                        
+                        recv_result = t_mysockethandler.get_nextmsg()
                     
                     #ack in all cases
                     encode_cmd = t_mysockethandler.msf_encode(self.__t_myconstant_networking.DL_SUCCESS).encode("utf8", "ignore")

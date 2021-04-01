@@ -2136,21 +2136,44 @@ PowerUp.ModifiablePath
         $ServicePath = $_.pathname
         $ServiceStartName = $_.startname
 
-        $ServicePath | Get-ModifiablePath | ForEach-Object {
-            $CanRestart = Test-ServiceDaclPermission -PermissionSet 'Restart' -Name $ServiceName
-            $Out = New-Object PSObject
-            $Out | Add-Member Noteproperty 'ServiceName' $ServiceName
-            $Out | Add-Member Noteproperty 'Path' $ServicePath
-            $Out | Add-Member Noteproperty 'ModifiableFile' $_.ModifiablePath
-            $Out | Add-Member Noteproperty 'ModifiableFilePermissions' $_.Permissions
-            $Out | Add-Member Noteproperty 'ModifiableFileIdentityReference' $_.IdentityReference
-            $Out | Add-Member Noteproperty 'StartName' $ServiceStartName
-            $Out | Add-Member Noteproperty 'AbuseFunction' "Install-ServiceBinary -Name '$ServiceName'"
-            $Out | Add-Member Noteproperty 'CanRestart' ([Bool]$CanRestart)
-            $Out | Add-Member Aliasproperty Name ServiceName
-            $Out.PSObject.TypeNames.Insert(0, 'PowerUp.ModifiableServiceFile')
-            $Out
+        $ServicePath | ForEach-Object {
+            try {
+                $_ | Get-ModifiablePath | ForEach-Object {
+                $CanRestart = Test-ServiceDaclPermission -PermissionSet 'Restart' -Name $ServiceName
+                $Out = New-Object PSObject
+                $Out | Add-Member Noteproperty 'ServiceName' $ServiceName
+                $Out | Add-Member Noteproperty 'Path' $ServicePath
+                $Out | Add-Member Noteproperty 'ModifiableFile' $_.ModifiablePath
+                $Out | Add-Member Noteproperty 'ModifiableFilePermissions' $_.Permissions
+                $Out | Add-Member Noteproperty 'ModifiableFileIdentityReference' $_.IdentityReference
+                $Out | Add-Member Noteproperty 'StartName' $ServiceStartName
+                $Out | Add-Member Noteproperty 'AbuseFunction' "Install-ServiceBinary -Name '$ServiceName'"
+                $Out | Add-Member Noteproperty 'CanRestart' ([Bool]$CanRestart)
+                $Out | Add-Member Aliasproperty Name ServiceName
+                $Out.PSObject.TypeNames.Insert(0, 'PowerUp.ModifiableServiceFile')
+                $Out
+                }
+
+            }catch{
+                
+            }
         }
+
+        # $ServicePath | Get-ModifiablePath | ForEach-Object {
+        #     $CanRestart = Test-ServiceDaclPermission -PermissionSet 'Restart' -Name $ServiceName
+        #     $Out = New-Object PSObject
+        #     $Out | Add-Member Noteproperty 'ServiceName' $ServiceName
+        #     $Out | Add-Member Noteproperty 'Path' $ServicePath
+        #     $Out | Add-Member Noteproperty 'ModifiableFile' $_.ModifiablePath
+        #     $Out | Add-Member Noteproperty 'ModifiableFilePermissions' $_.Permissions
+        #     $Out | Add-Member Noteproperty 'ModifiableFileIdentityReference' $_.IdentityReference
+        #     $Out | Add-Member Noteproperty 'StartName' $ServiceStartName
+        #     $Out | Add-Member Noteproperty 'AbuseFunction' "Install-ServiceBinary -Name '$ServiceName'"
+        #     $Out | Add-Member Noteproperty 'CanRestart' ([Bool]$CanRestart)
+        #     $Out | Add-Member Aliasproperty Name ServiceName
+        #     $Out.PSObject.TypeNames.Insert(0, 'PowerUp.ModifiableServiceFile')
+        #     $Out
+        # }
     }
 }
 

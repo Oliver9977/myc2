@@ -628,13 +628,13 @@ class myserver():
             except Exception as e:
                 if (e.args[0] == 536): #notstarted or busy
                     pass
-                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
+                    #print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 elif (e.args[0] == 231):
                     pass
-                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
+                    #print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 else:
                     pass
-                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
+                    #print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 time.sleep(5)
 
         #end of while loop

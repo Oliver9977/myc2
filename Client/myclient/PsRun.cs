@@ -30,16 +30,23 @@ namespace myclient
             rs.ThreadOptions = PSThreadOptions.UseCurrentThread;
             rs.Open();
         }
-        public void remoteInit(string connect)
+        public string remoteInit(string connect)
         {
-            Uri RemoteComputerUri = new Uri(connect);
-            WSManConnectionInfo connectionInfo = new WSManConnectionInfo(RemoteComputerUri);
-            remoteRunspace = RunspaceFactory.CreateRunspace(connectionInfo);
-            remoteRunspace.ApartmentState = System.Threading.ApartmentState.MTA;
-            remoteRunspace.ThreadOptions = PSThreadOptions.UseCurrentThread;
-            remoteRunspace.Open();
-
-            rs = remoteRunspace; //override
+            try
+            {
+                Uri RemoteComputerUri = new Uri(connect);
+                WSManConnectionInfo connectionInfo = new WSManConnectionInfo(RemoteComputerUri);
+                remoteRunspace = RunspaceFactory.CreateRunspace(connectionInfo);
+                remoteRunspace.ApartmentState = System.Threading.ApartmentState.MTA;
+                remoteRunspace.ThreadOptions = PSThreadOptions.UseCurrentThread;
+                remoteRunspace.Open();
+                rs = remoteRunspace; //override
+                return "PSREMOTE_SUCCESS";
+            }
+            catch (Exception se)
+            {
+                return se.ToString();
+            }
 
         }
 

@@ -399,9 +399,19 @@ namespace myclient
 
                     if (command_tag.ToLower() == "psremote")
                     {
-                        myPsRun.remoteInit(command);
-                        Console.WriteLine("[DEBUG] psremote executed ...");
-                        msg = Encoding.UTF8.GetBytes(MsgPack("PSREMOTE_SUCCESS"));
+                        string reStr = myPsRun.remoteInit(command);
+                        if (reStr == "PSREMOTE_SUCCESS")
+                        {
+                            Console.WriteLine("[DEBUG] psremote executed ...");
+                            msg = Encoding.UTF8.GetBytes(MsgPack("PSREMOTE_SUCCESS"));
+                        }
+                        else
+                        {
+                            Console.WriteLine("[DEBUG] psremote executed with error ...");
+                            msg = Encoding.UTF8.GetBytes(MsgPack(reStr));
+                        }
+
+                        
                         bytesSent = sender.Send(msg);
                         if (bytesSent != msg.Length)
                         {
@@ -860,6 +870,8 @@ namespace myclient
 
 
                 }//end of if ps
+
+
 
                 if (command_tag.ToLower() == "exit")
                 {

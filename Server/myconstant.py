@@ -109,7 +109,8 @@ class myconstant():
                                             self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
                                             self.CMD_STAGER_TOOLS_LS, self.CMD_STAGER_TOOLS_DOWNLOAD, self.CMD_STAGER_TOOLS_SHARPHOUND3, self.CMD_STAGER_TOOLS_SPAWN_PS, 
                                             self.CMD_STAGER_TOOLS_PSRESET, self.CMD_STAGER_TOOLS_PSEXEC, self.CMD_STAGER_TOOLS_PSREMOTE, self.CMD_STAGER_TOOLS_PSJUMP, 
-                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_KERBER,self.CMD_STAGER_TOOLS_ASREP,self.CMD_STAGER_TOOLS_MSF]
+                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_KERBER,self.CMD_STAGER_TOOLS_ASREP,self.CMD_STAGER_TOOLS_MSF,
+                                            self.CMD_STAGER_VERBOSE]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"

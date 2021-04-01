@@ -34,6 +34,21 @@ namespace myclient
         public string namepipehost = ".";
         public int localSocketTimeout = 500;
 
+        public static IEnumerable<string> SplitByLength(string str, int maxLength)
+        {
+            int index = 0;
+            while (true)
+            {
+                if (index + maxLength >= str.Length)
+                {
+                    yield return str.Substring(index);
+                    yield break;
+                }
+                yield return str.Substring(index, maxLength);
+                index += maxLength;
+            }
+        }
+
 
         bool SocketConnected(Socket s)
         {
@@ -401,19 +416,39 @@ namespace myclient
                         byte[] t_file;
                         try
                         {
-                            t_file = Encoding.UTF8.GetBytes(MsgPack(Convert.ToBase64String(File.ReadAllBytes(command))));
+                            string toSend = Convert.ToBase64String(File.ReadAllBytes(command));
+                            string toSendPack = "";
+                            foreach (string subToSend in SplitByLength(toSend, 1024 * 1024))
+                            {
+                                toSendPack = toSendPack + MsgPack(subToSend);
+                            }
+
+                            toSendPack = toSendPack + MsgPack("DL_SUCCESS"); //ack
+
+                            t_file = Encoding.UTF8.GetBytes(toSendPack);
                         }catch(Exception e)
                         {
-                            t_file = Encoding.UTF8.GetBytes(MsgPack(e.Message)); //maybe need to ensure its not a "single word"
+                            t_file = Encoding.UTF8.GetBytes(MsgPack(e.Message) + MsgPack("DL_SUCCESS")); //maybe need to ensure its not a "single word"
                         }
                         
                         //send bytes
-                        bytesSent = sender.Send(t_file);
-                        if (bytesSent != t_file.Length)
+                        //its possible for this to timeout ...
+                        var bytpeSentTotal = 0;
+                        var packSize = 0;
+                        while (bytpeSentTotal < t_file.Length)
                         {
-                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                            if (t_file.Length - bytpeSentTotal > 10240)
+                            {
+                                packSize = 10240;
+                            }
+                            else
+                            {
+                                packSize = t_file.Length - bytpeSentTotal;
+                            }
+                            bytesSent = sender.Send(t_file, bytpeSentTotal, packSize, 0);
+                            bytpeSentTotal = bytpeSentTotal + bytesSent;
+                            //Thread.Sleep(50);
                         }
-                        
 
                         //ack
                         string psAck = doRecive(sender);

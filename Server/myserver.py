@@ -423,6 +423,9 @@ class myserver():
             
             try:
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
+                    cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
+                
                 if (cmd_struct_to_send[0] == "psload"):
                     cmd_struct_to_send[0] = "ps"
                     myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0]))

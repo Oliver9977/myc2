@@ -8493,7 +8493,10 @@ function Get-DomainGPOComputerLocalGroupMapping {
                     $GPOMembers | ForEach-Object {
                         $Object = Get-DomainObject @CommonArguments -Identity $_
                         $IsGroup = @('268435456','268435457','536870912','536870913') -contains $Object.samaccounttype
-
+                        Write-Verbose "Domain Object: "
+                        $Object
+                        Write-Verbose "GPO Group: "
+                        $GPOGroup
                         $GPOComputerLocalGroupMember = New-Object PSObject
                         $GPOComputerLocalGroupMember | Add-Member Noteproperty 'ComputerName' $Computer.dnshostname
                         $GPOComputerLocalGroupMember | Add-Member Noteproperty 'ObjectName' $Object.samaccountname

@@ -103,6 +103,7 @@ class myconstant():
 
         self.CMD_STAGER_TOOLS_MSF = "msf"
 
+        self.CMD_STAGER_TOOLS_PORTSCAN = "portscan"
 
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK, self.CMD_STAGER_GET_HISTORY, self.CMD_STAGER_VERBOSE, self.CMD_STAGER_TOOLS_IF64BIT, self.CMD_STAGER_TOOLS_GETNETVERSION, self.CMD_STAGER_TOOLS_GETNETVERSION2, 
                                             self.CMD_STAGER_TOOLS_GETAV, self.CMD_STAGER_TOOLS_GETAL, self.CMD_STAGER_TOOLS_GETCLM, self.CMD_STAGER_TOOLS_MAKETOKEN, 
@@ -110,7 +111,7 @@ class myconstant():
                                             self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
                                             self.CMD_STAGER_TOOLS_LS, self.CMD_STAGER_TOOLS_DOWNLOAD, self.CMD_STAGER_TOOLS_SHARPHOUND3, self.CMD_STAGER_TOOLS_SPAWN_PS, 
                                             self.CMD_STAGER_TOOLS_PSRESET, self.CMD_STAGER_TOOLS_PSEXEC, self.CMD_STAGER_TOOLS_PSREMOTE, self.CMD_STAGER_TOOLS_PSJUMP, 
-                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_KERBER,self.CMD_STAGER_TOOLS_ASREP,self.CMD_STAGER_TOOLS_MSF]
+                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_KERBER,self.CMD_STAGER_TOOLS_ASREP,self.CMD_STAGER_TOOLS_MSF,self.CMD_STAGER_TOOLS_PORTSCAN]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -232,7 +233,9 @@ class mybuildin_cmd():
         self.ARSREP_HC = "Invoke-Rubeus \"asreproast /format:hashcat\""
         self.ARSREP = "Invoke-Rubeus asreproast"
 
+        self.PORTSCAN = "80,8080,445,139,135,3389,1433,5985,47001 | % {{if ((new-object Net.Sockets.TcpClient).ConnectAsync(\"{}\",$_).Wait({})){{\"Port $_ is open!\"}}else{{\"Port $_ is Closed\"}}}} 2>$null"
+
 
 if __name__ == "__main__":
     __t_mybuildin = mybuildin_cmd()
-    print(__t_mybuildin.GETNETVERSION2)
+    print(__t_mybuildin.PORTSCAN.format("thisistheip","thisisthetimeout"))

@@ -723,8 +723,7 @@ class mymainclass():
                         continue
                     self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
                     continue
-                
-                
+
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_GETDOMAIN:
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
@@ -1051,18 +1050,33 @@ class mymainclass():
                     print("3: process hollowing")
 
                     user_input_tech = input("Please enter tech id: ")
-                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
-
-                    
-                    continue
-
-                if command_id == self.__t_myconstant.CMD_STAGER_VERBOSE:
-                    print("Current verbose setting is {}".format(self.__t_myserver.get_verbose()))
-                    user_input_confirm = input("y to toggle: ")
+                    user_input_confirm = input("y to continue: ")
                     if user_input_confirm != "y":
                         continue
-                    self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
+
+                    self.__t_myserver.create_command(user_input_stager,"ps","Invoke-msf {}".format(user_input_tech))
                     continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PORTSCAN:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    removecomplete()
+                    user_input_host = input("Please enter target ip: ")
+                    user_input_timeout = input("Please enter timeout: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PORTSCAN.format(user_input_host,user_input_timeout))
+                    continue
+
+
 
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_LISTENER:

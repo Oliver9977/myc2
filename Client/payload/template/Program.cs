@@ -55,7 +55,7 @@ namespace myclient
             bool part1 = s.Poll(1000, SelectMode.SelectRead);
             bool part2 = (s.Available == 0);
             Console.WriteLine("Poll: " + part1.ToString());
-            Console.WriteLine("Available: " + part2.ToString());
+            Console.WriteLine("Available: " + (!part2).ToString());
 
             if (part1 && part2)
                 return false;
@@ -137,7 +137,7 @@ namespace myclient
             //var socket_alive = fwSocket_alive[myuuid];
             byte[] fwq_bytes_toresv = new byte[1024];
             string ret_str = "";
-            Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
+            //Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
             Console.WriteLine("blocking: " + socket.Blocking.ToString());
 
             while (true)
@@ -145,25 +145,52 @@ namespace myclient
                 try
                 {
                     int length_toresv = socket.Receive(fwq_bytes_toresv);
-                    if (length_toresv == 0 && !SocketConnected(socket))
+                    if (length_toresv == 0)
                     {
+                        //var ifconnected = SocketConnected(socket); //1s delay
+                        //this can only be fined
                         //FINED
                         fwSocket_alive[myuuid] = false;
                         return ret_str;
+
                     }
                     ret_str = ret_str + Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv);
                 }
                 catch (SocketException se)
                 {
                     Console.WriteLine("SocketException: " + se.ToString());
-                    //assume all received in 5s
-                    if (se.SocketErrorCode == SocketError.TimedOut)
-                    {
-                        return ret_str;
-                    }
                     
-                }
-            }
+                    if (se.SocketErrorCode == SocketError.WouldBlock) //no data this time
+                    {
+                        if (socket.Available == 1) //still some more, keep getting it
+                        {
+                            continue;
+                        }
+
+                        var ifconnected = SocketConnected(socket); //1s delay
+
+                        if (!ifconnected)
+                        {
+                            //FINED
+                            fwSocket_alive[myuuid] = false;
+                            return ret_str;
+                        }
+                        else
+                        {
+                            //check Available again after the delay
+                            if (socket.Available == 1)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                return ret_str; //still connected but no data, return what we have now
+                            }
+                        }
+                    }
+
+                }//end of catch
+            }//end of while
         }
         
         private static byte[] ReadPipMessage(PipeStream pipe)
@@ -203,8 +230,8 @@ namespace myclient
                     Console.WriteLine("Waiting for a connection...");
                     target.Connect(remoteEP);
                     Guid myuuid = Guid.NewGuid();
-                    target.Blocking = true;
-                    target.ReceiveTimeout = localSocketTimeout;
+                    target.Blocking = false;
+                    //target.ReceiveTimeout = localSocketTimeout;
                     fwSocket.Add(myuuid, target);
                     fwSocket_alive.Add(myuuid, true);
 
@@ -259,8 +286,8 @@ namespace myclient
                         Console.WriteLine("Waiting for a connection...");
                         var t_fwSocket = listener.Accept();
                         Guid myuuid = Guid.NewGuid();
-                        t_fwSocket.Blocking = true;
-                        t_fwSocket.ReceiveTimeout = localSocketTimeout;
+                        t_fwSocket.Blocking = false;
+                        //t_fwSocket.ReceiveTimeout = localSocketTimeout;
                         fwSocket.Add(myuuid,t_fwSocket);
                         fwSocket_alive.Add(myuuid, true);
 

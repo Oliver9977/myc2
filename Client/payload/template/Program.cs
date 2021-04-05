@@ -54,10 +54,12 @@ namespace myclient
         {
             bool part1 = s.Poll(1000, SelectMode.SelectRead);
             bool part2 = (s.Available == 0);
-            Console.WriteLine("Poll: " + part1.ToString());
+            bool part3 = s.Poll(1000, SelectMode.SelectWrite);
+            Console.WriteLine("Poll Read: " + part1.ToString());
+            Console.WriteLine("Poll Write: " + part3.ToString());
             Console.WriteLine("Available: " + (!part2).ToString());
 
-            if (part1 && part2)
+            if (part1 && part2 && !part3)
                 return false;
             else
                 return true;
@@ -147,8 +149,6 @@ namespace myclient
                     int length_toresv = socket.Receive(fwq_bytes_toresv);
                     if (length_toresv == 0)
                     {
-                        //var ifconnected = SocketConnected(socket); //1s delay
-                        //this can only be fined
                         //FINED
                         fwSocket_alive[myuuid] = false;
                         return ret_str;
@@ -184,7 +184,12 @@ namespace myclient
                             }
                             else
                             {
-                                return ret_str; //still connected but no data, return what we have now
+                                //FIN if dummy response
+                                if (ret_str.Length == 0)
+                                {
+                                    fwSocket_alive[myuuid] = false;
+                                }
+                                return ret_str; //return what we have now
                             }
                         }
                     }

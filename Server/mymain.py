@@ -338,6 +338,9 @@ class mymainclass():
                     user_input_listener_port = input("Please enter remote listener port: ")
                     user_input_con_host = input("Please enter local connect ip: ")
                     user_input_con_port = input("Please enter local connect port: ")
+                    user_input_confirm = input("y to confirm: ")
+                    if user_input_confirm != "y":
+                        continue
                     # wait local resource handler return true
                     #threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,user_input_con_host,int(user_input_con_port),)).start()
                     #pull the response
@@ -1913,12 +1916,15 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_BACK:
                     cmd_tag = self.__t_myconstant.TAG_MYCS
                     continue
+
                 if command_id == self.__t_myconstant.CMD_LOCALSERVER_LIST:
                     self.__t_localhttpserver.print_running_list()
                     continue
+
                 if command_id == self.__t_myconstant.CMD_LOCALSERVER_GETINFO:
                     self.__t_localhttpserver.print_server_config()
                     continue
+
                 if command_id == self.__t_myconstant.CMD_LOCALSERVER_SETCONFIG:
                     print("============Empty inputs will be ignored=============")
                     user_input_ip = input("Please enter the listener ip: ")
@@ -1929,8 +1935,10 @@ class mymainclass():
                         continue
                     self.__t_localhttpserver.set_server_config(user_input_ip,user_input_port,user_input_path)
                     continue
+
                 if command_id == self.__t_myconstant.CMD_LOCALSERVER_START:
                     self.__t_localhttpserver.start_resource_handler_http_server()
+                
                 if command_id == self.__t_myconstant.CMD_LOCALSERVER_STOP:
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_localhttpserver.get_running_list())

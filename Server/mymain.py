@@ -1169,6 +1169,14 @@ class mymainclass():
                     self.__t_myserver.start_pipe_client(user_input_host,user_input_pipename)
                     continue
 
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_VERBOSE:
+                    print("Current verbose setting is {}".format(self.__t_myserver.get_verbose()))
+                    user_input_confirm = input("y to toggle: ")
+                    if user_input_confirm != "y":
+                        continue
+                    self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
+                    continue
+
 
             if cmd_tag == self.__t_myconstant.TAG_PIPE_STAGER_TOOLS:
                 if command_id == self.__t_myconstant.CMD_BACK:
@@ -1796,13 +1804,13 @@ class mymainclass():
                     
                 #     continue
 
-                # if command_id == self.__t_myconstant.CMD_STAGER_VERBOSE:
-                #     print("Current verbose setting is {}".format(self.__t_myserver.get_verbose()))
-                #     user_input_confirm = input("y to toggle: ")
-                #     if user_input_confirm != "y":
-                #         continue
-                #     self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
-                #     continue
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_VERBOSE:
+                    print("Current verbose setting is {}".format(self.__t_myserver.get_verbose()))
+                    user_input_confirm = input("y to toggle: ")
+                    if user_input_confirm != "y":
+                        continue
+                    self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
+                    continue
 
 
 

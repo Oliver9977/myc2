@@ -184,10 +184,12 @@ class myserver():
             print("[Local] Error connecting to client: {}...".format(str(e)))
             local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
             return
+        
+        t_mysocket_handler = mysocket_handler(client,True)
 
         #try to get cmd first then send resouces
         while True: #for socket
-            t_mysocket_handler = mysocket_handler(client,True)
+
             if t_mysocket_handler.ifalive():
                 while True: #for queue
                     try:

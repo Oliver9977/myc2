@@ -98,7 +98,9 @@ class mysocket_handler():
                         raise SocketShutdown("Client side shutdown ...")
                 except socket.timeout:
                     pass
+    
     def get_native_all(self):
+        native_msg = ""        
         while True:
             try:
                 #print("[DEBUG] get_native_all, trying to read something")
@@ -106,10 +108,10 @@ class mysocket_handler():
                 new_msg = t_indata.decode("utf8", "ignore")
                 if len(new_msg) == 0: #got FIN
                     self.__mysocket_alive = False
-                    return self.__msg_buf
-                self.__msg_buf = self.__msg_buf + new_msg
+                    return native_msg
+                native_msg = native_msg + new_msg
             except socket.timeout: #assmue no connection error
-                return self.__msg_buf
+                return native_msg
 
 
 
@@ -166,6 +168,8 @@ class myserver():
 
         self.__mypipe_mypsloader_list = dict() #loaded ps module
 
+        self.__debug_disable_pfw_update = False
+
     def __start_resource_channel(self,myuuid,chuuid,rhuuid): # ch
 
         local_item_que_fromch = self.__myfwdata_list_fromch[chuuid]
@@ -216,25 +220,31 @@ class myserver():
                 if msg_item != self.__t_myconstant_networking.FW_CH_NODATA: #no need to send back if no data
                     encode_cmd = msg_item.encode("utf8", "ignore")
                     send_result = client.send(encode_cmd)
-                    #print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
+                    print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
                 
+                #print("[DEBUG] into get_native_all ... ")
                 #get response if any, better put a timeout here
                 decode_msg = t_mysocket_handler.get_native_all()
-                
+                #print("[DEBUG] outof get_native_all ... ")
+
                 local_item_que_fromch.put(decode_msg)
 
-                # triger update for chuuid
-                #print("[Local] trigering fwq ... ")
-                self.create_command(myuuid,"fwq",chuuid)
+                if t_mysocket_handler.ifalive():
+                    # triger update for chuuid
+                    #print("[Local] trigering fwq ... ")
+                    self.create_command(myuuid,"fwq",chuuid)
 
             else:
                 print("[Local] Server FINed Channle {} ... ".format(chuuid))
+                self.create_command(myuuid,"pfw-close",chuuid)
+
                 client.close()
                 self.__myfwdata_list_fromch.pop(chuuid, None)
                 self.__myfwdata_list_toch.pop(chuuid, None)
                 self.__myfw_rh_ch_mapping_list[rhuuid].remove(chuuid)
                 break
             
+            #print("[DEBUG] ch uuid {} into time sleep of {}s".format(chuuid,self.__t_myconstant.PFW_ACK_SPEED))
             time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
         print("[Local] Channel ch uuid {} exit ... ".format(chuuid))
 
@@ -242,7 +252,8 @@ class myserver():
         while (self.__myfw_rh_running[rhuuid]): 
             #this is to task for channel info update
             time.sleep(self.__t_myconstant.PFW_UPDATE_SPEED)
-            self.create_command(myuuid,"pfw-update",rhuuid)
+            if (not self.__debug_disable_pfw_update):
+                self.create_command(myuuid,"pfw-update",rhuuid)
     
     def stop_resource_handler(self,rhuuid): #stop update
         self.__myfw_rh_running[rhuuid] = False
@@ -313,6 +324,7 @@ class myserver():
                         continue
                     if chtag_result not in self.__myfw_rh_ch_mapping_list[rhtag_result]:
                         #myhistory.append("[PFW] new channel ... ")
+                        #self.__debug_disable_pfw_update = True
                         #init 
                         self.__myfwdata_list_fromch[chtag_result] = queue.Queue()
                         self.__myfwdata_list_toch[chtag_result] = queue.Queue()
@@ -347,7 +359,7 @@ class myserver():
                     
                     continue
                 
-                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset": #fw init and psreset
+                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "pfw-close": #fw init and psreset
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
                     myhistory.append("[Result] Run Command result: {}".format(recv_result))

@@ -200,6 +200,7 @@ class myconstant_networking(): #applicaiton layer tag
         self.DL_SUCCESS = "DL_SUCCESS"
         self.PSREMOTE_SUCCESS = "PSREMOTE_SUCCESS"
         self.FW_CH_NODATA = "FW_CH_NODATA"
+        self.FW_CH_CLOSE_SUCCESS = "FW_CH_CLOSE_SUCCESS" #for server side fin
 
 
 class mybuildin_cmd():

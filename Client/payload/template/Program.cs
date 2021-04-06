@@ -185,10 +185,12 @@ namespace myclient
                             else
                             {
                                 //FIN if dummy response
-                                if (ret_str.Length == 0)
-                                {
-                                    fwSocket_alive[myuuid] = false;
-                                }
+                                //if (ret_str.Length == 0)
+                                //{
+                                //    fwSocket_alive[myuuid] = false;
+                                //}
+                                //this is not follow spec but needed for stager
+                                //allowing dummy response
                                 return ret_str; //return what we have now
                             }
                         }
@@ -288,7 +290,7 @@ namespace myclient
                     try
                     {
 
-                        Console.WriteLine("Waiting for a connection...");
+                        //Console.WriteLine("Waiting for a connection...");
                         var t_fwSocket = listener.Accept();
                         Guid myuuid = Guid.NewGuid();
                         t_fwSocket.Blocking = false;
@@ -304,7 +306,7 @@ namespace myclient
 
 
                     }//inner try
-                    catch (SocketException e)
+                    catch (SocketException)
                     {
                         //Console.WriteLine("SocketException : {0}", e.ToString());
                         if (!rh_running[rhuuid])
@@ -691,6 +693,40 @@ namespace myclient
 
                     }
 
+                    if (command_tag.ToLower() == "pfw-close")
+                    {
+                        //server FINed 
+                        //convert string to uuid
+                        Guid chuuid = new Guid(command);
+
+                        if (fwSocket_alive[chuuid] == true)
+                        {
+                            Console.WriteLine("Clean up ...");
+                            //might need locks
+                            try
+                            {
+                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                fwSocket[chuuid].Close();
+                            }
+                            catch
+                            {
+
+                            }
+                            
+                        }
+                        
+                        //FW_CH_CLOSE_SUCCESS
+                        msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_CLOSE_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+
+                        Console.WriteLine("Clean up finished");
+
+                    }
+
                     if (command_tag.ToLower() == "fwq") //should always ready
                     {
 
@@ -817,7 +853,7 @@ namespace myclient
                                 break;
                             }
                         }
-                        catch (SocketException se_inner)
+                        catch //(SocketException se_inner)
                         {
                             Console.WriteLine("Keep trying ...");
                         }

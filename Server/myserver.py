@@ -98,7 +98,9 @@ class mysocket_handler():
                         raise SocketShutdown("Client side shutdown ...")
                 except socket.timeout:
                     pass
+    
     def get_native_all(self):
+        native_msg = ""        
         while True:
             try:
                 #print("[DEBUG] get_native_all, trying to read something")
@@ -106,10 +108,10 @@ class mysocket_handler():
                 new_msg = t_indata.decode("utf8", "ignore")
                 if len(new_msg) == 0: #got FIN
                     self.__mysocket_alive = False
-                    return self.__msg_buf
-                self.__msg_buf = self.__msg_buf + new_msg
+                    return native_msg
+                native_msg = native_msg + new_msg
             except socket.timeout: #assmue no connection error
-                return self.__msg_buf
+                return native_msg
 
 
 
@@ -164,6 +166,10 @@ class myserver():
         self.__mypipe_myuuid_list = list()
         self.__mypipe_mystart_list = dict() #bool
 
+        self.__mypipe_mypsloader_list = dict() #loaded ps module
+
+        self.__debug_disable_pfw_update = False
+
     def __start_resource_channel(self,myuuid,chuuid,rhuuid): # ch
 
         local_item_que_fromch = self.__myfwdata_list_fromch[chuuid]
@@ -182,10 +188,12 @@ class myserver():
             print("[Local] Error connecting to client: {}...".format(str(e)))
             local_item_que_fromch.put(self.__t_myconstant_networking.FW_LOCAL_ERROR)
             return
+        
+        t_mysocket_handler = mysocket_handler(client,True)
 
         #try to get cmd first then send resouces
         while True: #for socket
-            t_mysocket_handler = mysocket_handler(client,True)
+
             if t_mysocket_handler.ifalive():
                 while True: #for queue
                     try:
@@ -212,25 +220,31 @@ class myserver():
                 if msg_item != self.__t_myconstant_networking.FW_CH_NODATA: #no need to send back if no data
                     encode_cmd = msg_item.encode("utf8", "ignore")
                     send_result = client.send(encode_cmd)
-                    #print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
+                    print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
                 
+                #print("[DEBUG] into get_native_all ... ")
                 #get response if any, better put a timeout here
                 decode_msg = t_mysocket_handler.get_native_all()
-                
+                #print("[DEBUG] outof get_native_all ... ")
+
                 local_item_que_fromch.put(decode_msg)
 
-                # triger update for chuuid
-                #print("[Local] trigering fwq ... ")
-                self.create_command(myuuid,"fwq",chuuid)
+                if t_mysocket_handler.ifalive():
+                    # triger update for chuuid
+                    #print("[Local] trigering fwq ... ")
+                    self.create_command(myuuid,"fwq",chuuid)
 
             else:
                 print("[Local] Server FINed Channle {} ... ".format(chuuid))
+                self.create_command(myuuid,"pfw-close",chuuid)
+
                 client.close()
                 self.__myfwdata_list_fromch.pop(chuuid, None)
                 self.__myfwdata_list_toch.pop(chuuid, None)
                 self.__myfw_rh_ch_mapping_list[rhuuid].remove(chuuid)
                 break
             
+            #print("[DEBUG] ch uuid {} into time sleep of {}s".format(chuuid,self.__t_myconstant.PFW_ACK_SPEED))
             time.sleep(self.__t_myconstant.PFW_ACK_SPEED)
         print("[Local] Channel ch uuid {} exit ... ".format(chuuid))
 
@@ -238,7 +252,8 @@ class myserver():
         while (self.__myfw_rh_running[rhuuid]): 
             #this is to task for channel info update
             time.sleep(self.__t_myconstant.PFW_UPDATE_SPEED)
-            self.create_command(myuuid,"pfw-update",rhuuid)
+            if (not self.__debug_disable_pfw_update):
+                self.create_command(myuuid,"pfw-update",rhuuid)
     
     def stop_resource_handler(self,rhuuid): #stop update
         self.__myfw_rh_running[rhuuid] = False
@@ -309,6 +324,7 @@ class myserver():
                         continue
                     if chtag_result not in self.__myfw_rh_ch_mapping_list[rhtag_result]:
                         #myhistory.append("[PFW] new channel ... ")
+                        #self.__debug_disable_pfw_update = True
                         #init 
                         self.__myfwdata_list_fromch[chtag_result] = queue.Queue()
                         self.__myfwdata_list_toch[chtag_result] = queue.Queue()
@@ -343,12 +359,37 @@ class myserver():
                     
                     continue
                 
-                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset": #fw init and psreset
+                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "pfw-close":
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
                     myhistory.append("[Result] Run Command result: {}".format(recv_result))
                     myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     continue
+                
+                
+                if cmd_struct_to_send[0] == "exit":
+                    #init exit
+                    recv_result = t_mysockethandler.get_nextmsg()
+                    myhistory.append("[Result] Run Command result: {}".format(recv_result))
+                    #myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+                    #ack
+                    encode_cmd = t_mysockethandler.msf_encode("EXIT_SUCCESS").encode("utf8", "ignore")
+                    send_result = mysocket.send(encode_cmd)
+                    
+                    #shutdown
+                    mysocket.shutdown(socket.SHUT_WR)
+                    time.sleep(5) #it can be close with a long timeout, this is just to release the sources ... 
+                    mysocket.close()
+                    #remove from worker list
+                    self.__mydata_list.pop(myuuid, None)
+                    self.__mysocket_list.pop(myuuid, None)
+                    self.__myaddr_list.pop(myuuid, None)
+                    self.__mystart_list[myuuid] = False
+                    myhistory.append("[Result] {} is stoped ...".format(myuuid))
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    break
+
                 
                 if cmd_struct_to_send[0] == "download":
                     #next message is either data or error code
@@ -421,6 +462,9 @@ class myserver():
             
             try:
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
+                    cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
+                
                 if (cmd_struct_to_send[0] == "psload"):
                     cmd_struct_to_send[0] = "ps"
                     myhistory.append("[Stager] Command_tag: {}".format(cmd_struct_to_send[0]))
@@ -487,7 +531,6 @@ class myserver():
         self.__myuuid_list.append(myuuid)
         #set start
         self.__mystart_list[myuuid] = True
-
         #init psloader
         self.__mypsloader_list[myuuid] = list()
 
@@ -523,6 +566,8 @@ class myserver():
             self.__mypipe_mypipename_list[myuuid] = pipename
             #push pipe handle
             self.__mypipe_myhandle_list[myuuid] = handle
+            #init psloader
+            self.__mypipe_mypsloader_list[myuuid] = list()
             
             print("[Client] myuuid is {}".format(myuuid))
             threading.Thread(target=self.start_pipworker,args=(myuuid,)).start()
@@ -583,7 +628,6 @@ class myserver():
         self.__mylistener_uuid_list.remove(listeneruuid)
         print("[Listener] {} is stoped ...".format(listeneruuid))
 
-
     def start_pipe_listener(self):
         print("[Listener] pipe server started on namepipe {}".format(self.__pipename))
         mypipeuuid = uuid.uuid4().hex[:6].upper() #listener
@@ -613,6 +657,8 @@ class myserver():
                 self.__mypipe_mypipename_list[myuuid] =self.__mypipelistener_pipename_list[mypipeuuid]
                 #push pipe handle
                 self.__mypipe_myhandle_list[myuuid] = self.__mypipelistener_pipe_list[mypipeuuid]
+                #init psloader
+                self.__mypipe_mypsloader_list[myuuid] = list()
                 
                 
                 print("[Listener] myuuid is {}".format(myuuid))
@@ -628,13 +674,13 @@ class myserver():
             except Exception as e:
                 if (e.args[0] == 536): #notstarted or busy
                     pass
-                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
+                    #print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 elif (e.args[0] == 231):
                     pass
-                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
+                    #print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 else:
                     pass
-                    print("e Error: {}:{}".format(mypipeuuid,str(e)))
+                    #print("e Error: {}:{}".format(mypipeuuid,str(e)))
                 time.sleep(5)
 
         #end of while loop
@@ -650,12 +696,14 @@ class myserver():
     
     def create_pipe_command(self,stager,tag,command):
         self.__mypipe_mydata_list[stager].put([tag,command])
-    
+
+
     def stop_listener(self,listener):
         self.__mylistener_start_list[listener] = False
 
     def stop_pipe_listener(self,listener):
         self.__mypipelistener_start_list[listener] = False
+
 
     def print_info(self):
         print("++++++++++++++++++++++++Listener Info++++++++++++++++++++++++")
@@ -682,16 +730,20 @@ class myserver():
     def print_pipe_listener(self):
         print("List of avaliable pipe listener: {}".format(self.__mypipelistener_uuid_list))
 
+
     def get_stager(self):
         return self.__myuuid_list
     
     def get_pipe_stager(self):
         return self.__mypipe_myuuid_list
 
+
     def get_running_stager(self):
         return [a for a in self.__myuuid_list if self.__mystart_list[a]]
+    
     def get_running_pipe_stager(self):
         return [a for a in self.__mypipe_myuuid_list if self.__mypipe_mystart_list[a]]
+
 
     def get_listener(self):
         return self.__mylistener_uuid_list
@@ -699,11 +751,14 @@ class myserver():
     def get_pipe_listener(self):
         return self.__mypipelistener_uuid_list
 
+
     def print_stager_running(self):
         print("List of running pipe stager: {}".format(self.get_running_stager()))
+    
     def print_pipe_stager_running(self):
         print("List of running pipe stager: {}".format(self.get_running_pipe_stager()))
 
+    #socket history
     def print_history(self,myuuid,verbose):
         msg_data = self.__mymsg_list[myuuid]
         for start_index in self.__mymsg_list_start_index_active[myuuid]:
@@ -733,6 +788,7 @@ class myserver():
     def get_pipe_history(self):
         return self.__mypipe_mymsg_list
 
+
     def set_hostname(self,hostname):
         assert(type(hostname) is str)
         self.__hostname = hostname
@@ -749,15 +805,31 @@ class myserver():
     def add_psloadlist(self,myuuid,filename): #push the filename to list
         self.__mypsloader_list[myuuid].append(filename)
     
+    def add_pipe_psloadlist(self,myuuid,filename):
+        self.__mypipe_mypsloader_list[myuuid].append(filename)
+    
+
     def get_psloadlist(self,myuuid):
         return self.__mypsloader_list[myuuid]
     
+    def get_pipe_psloadlist(self,myuuid):
+        return self.__mypipe_mypsloader_list[myuuid]
+
+
     def print_psloadlist(self,myuuid):
         print("List of loaded script: {}".format(self.__mypsloader_list[myuuid]))
+    
+    def print_pipe_psloadlist(self,myuuid):
+        print("List of loaded script: {}".format(self.__mypipe_mypsloader_list[myuuid]))
+
 
     def clean_psloadlist(self,myuuid):
         self.__mypsloader_list[myuuid] = list()
     
+    def clean_pipe_psloadlist(self,myuuid):
+        self.__mypipe_mypsloader_list[myuuid] = list()
+
+
     def set_verbose(self,uinput):
         self.__ifverbose = uinput
 

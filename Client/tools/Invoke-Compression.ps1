@@ -17,9 +17,9 @@ function Get-CompressedByteArray {
     }
 }
 
-$filename = "tools\csexec.exe"
+$filename = "payload\myclient.exe"
 $old_bytes = [IO.File]::ReadAllBytes($filename)
 $new_bytes = Get-CompressedByteArray -byteArray $old_bytes
-[system.Convert]::toBase64string($new_bytes) | Clip
+#[system.Convert]::toBase64string($new_bytes) | Clip
 [system.Convert]::toBase64string($new_bytes)
 

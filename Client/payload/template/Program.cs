@@ -640,7 +640,10 @@ namespace myclient
                                         Console.WriteLine("Got reponse: " + fwq_string_tosend);
                                         if (fwSocket_alive[chuuid] && fwq_string_tosend.Length !=0)
                                         {
+                                            //send will block
+                                            fwSocket[chuuid].Blocking = true;
                                             int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                            fwSocket[chuuid].Blocking = false;
                                             Console.WriteLine("Response sent");
                                         }
                                         else if(fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
@@ -653,7 +656,10 @@ namespace myclient
                                             if (SocketConnected(fwSocket[chuuid]))
                                             {
                                                 Console.WriteLine("fwSocket still connected ... ");
+                                                //send will block
+                                                fwSocket[chuuid].Blocking = true;
                                                 int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                                fwSocket[chuuid].Blocking = false;
                                                 Console.WriteLine("Response sent");
                                             }
                                             else
@@ -827,7 +833,10 @@ namespace myclient
                             Console.WriteLine("Got reponse: " + fwq_string_tosend);
                             if (fwSocket_alive[chuuid] && fwq_string_tosend.Length != 0)
                             {
+                                //send will block
+                                fwSocket[chuuid].Blocking = true;
                                 int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                fwSocket[chuuid].Blocking = false;
                                 Console.WriteLine("Response sent");
                             }
                             else if (fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
@@ -840,7 +849,10 @@ namespace myclient
                                 if (SocketConnected(fwSocket[chuuid]))
                                 {
                                     Console.WriteLine("fwSocket still connected ... ");
+                                    //send will block
+                                    fwSocket[chuuid].Blocking = true;
                                     int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                    fwSocket[chuuid].Blocking = false;
                                     Console.WriteLine("Response sent");
                                 }
                                 else

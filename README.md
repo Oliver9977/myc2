@@ -92,6 +92,11 @@ This is my version of c2, intended for penetration testing, but also useful for 
 ![alt text](img/pfw2.png)
 ![alt text](img/pfw3.png)
 
+# forward connect
+* this will allow connecting to the target from a running stager
+
+![alt text](img/fwc.png)
+
 # Interesting findings
 * With .Net 4.8 on 17763 (ie. KB4486153), process injection using the technique available in GadgetToJSscript template will fail to load `System.Management.Automation.dll` on the targeted process. It only happens with 32bit and possible workaround with inject to `powershell.exe` instead. 
 

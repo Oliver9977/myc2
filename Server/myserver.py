@@ -359,12 +359,37 @@ class myserver():
                     
                     continue
                 
-                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "pfw-close" or cmd_struct_to_send[0] == "exit":
+                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "pfw-close":
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
                     myhistory.append("[Result] Run Command result: {}".format(recv_result))
                     myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                     continue
+                
+                
+                if cmd_struct_to_send[0] == "exit":
+                    #init exit
+                    recv_result = t_mysockethandler.get_nextmsg()
+                    myhistory.append("[Result] Run Command result: {}".format(recv_result))
+                    #myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+                    #ack
+                    encode_cmd = t_mysockethandler.msf_encode("EXIT_SUCCESS").encode("utf8", "ignore")
+                    send_result = mysocket.send(encode_cmd)
+                    
+                    #shutdown
+                    mysocket.shutdown(socket.SHUT_WR)
+                    time.sleep(5) #it can be close with a long timeout, this is just to release the sources ... 
+                    mysocket.close()
+                    #remove from worker list
+                    self.__mydata_list.pop(myuuid, None)
+                    self.__mysocket_list.pop(myuuid, None)
+                    self.__myaddr_list.pop(myuuid, None)
+                    self.__mystart_list[myuuid] = False
+                    myhistory.append("[Result] {} is stoped ...".format(myuuid))
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    break
+
                 
                 if cmd_struct_to_send[0] == "download":
                     #next message is either data or error code

@@ -359,7 +359,7 @@ class myserver():
                     
                     continue
                 
-                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "pfw-close": #fw init and psreset
+                if cmd_struct_to_send[0] == "fw" or cmd_struct_to_send[0] == "fwc" or cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "pfw-close" or cmd_struct_to_send[0] == "exit":
                     #get ack, no send
                     recv_result = t_mysockethandler.get_nextmsg()
                     myhistory.append("[Result] Run Command result: {}".format(recv_result))

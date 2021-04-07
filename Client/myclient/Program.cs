@@ -159,6 +159,7 @@ namespace myclient
                 catch (SocketException se)
                 {
                     Console.WriteLine("SocketException: " + se.ToString());
+                    Console.WriteLine("SocketErrorcode: " + se.SocketErrorCode.ToString());
                     
                     if (se.SocketErrorCode == SocketError.WouldBlock) //no data this time
                     {
@@ -194,7 +195,20 @@ namespace myclient
                                 return ret_str; //return what we have now
                             }
                         }
+                    }//end of would block
+
+                    if (se.SocketErrorCode == SocketError.ConnectionReset)
+                    {
+                        //CLOSED
+                        fwSocket_alive[myuuid] = false;
+                        if (ret_str.Length == 0)
+                        {
+                            //if no message, set it to exit success ... 
+
+                        }
+                        return ret_str; //return what we have now
                     }
+
 
                 }//end of catch
             }//end of while
@@ -827,6 +841,13 @@ namespace myclient
 
                     if (command_tag.ToLower() == "exit")
                     {
+                        msg = Encoding.UTF8.GetBytes(MsgPack("EXIT_SUCCESS"));
+                        bytesSent = sender.Send(msg);
+                        if (bytesSent != msg.Length)
+                        {
+                            Console.WriteLine("[DEBUG] Something wrong with send");
+                        }
+                        
                         break;
                     }
                 }
@@ -1091,9 +1112,9 @@ namespace myclient
         {
             MyApp t_app = new MyApp();
             
-            t_app.ipstring = "192.168.182.131:4444";
+            t_app.ipstring = "192.168.182.131:8888";
             
-            t_app.StartClient();
+            t_app.StartServer();
             //t_app.ipstring = "";
             //t_app.namepipehost = "";
             //t_app.namepipestring = "";

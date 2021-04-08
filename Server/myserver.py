@@ -66,7 +66,7 @@ class mysocket_handler():
         #less likely need this
         self.__enc_tag_st = "[MYENST]"
         self.__enc_tag_ed = "[MYENED]"
-        self.__mysocket.settimeout(self.__t_myconstant.SOCKET_TIMEOUT) if not if_native else self.__mysocket.settimeout(self.__t_myconstant.PFW_NATIVE_SOCKET_TIMEOUT)
+        self.__mysocket.settimeout(self.__t_myconstant.SOCKET_TIMEOUT) if not if_native else self.__mysocket.setblocking(False)
         self.__mysocket_alive = True
 
     def msf_encode(self,msg):
@@ -110,9 +110,20 @@ class mysocket_handler():
                     self.__mysocket_alive = False
                     return native_msg
                 native_msg = native_msg + new_msg
-            except socket.timeout: #assmue no connection error
+            except socket.error: #assmue no connection error
                 return native_msg
 
+    def put_native_all(self,tosend):
+        while True:
+            try:
+                i_start = 0
+                tosend_encode = tosend[i_start:].encode("utf8", "ignore")
+                t_outdata = self.__mysocket.send(tosend_encode)
+                i_start = i_start + t_outdata
+                if i_start == len(tosend):
+                    break 
+            except socket.error: #cannot send ...
+                print("[DEBUG] put_native_all: socket.error")
 
 
 class myserver():
@@ -218,9 +229,10 @@ class myserver():
                     break
 
                 if msg_item != self.__t_myconstant_networking.FW_CH_NODATA: #no need to send back if no data
-                    encode_cmd = msg_item.encode("utf8", "ignore")
-                    send_result = client.send(encode_cmd)
-                    print("[Local] Trying to send {}, sent {}".format(len(encode_cmd),send_result))
+                    #encode_cmd = msg_item.encode("utf8", "ignore")
+                    #send_result = client.send(encode_cmd)
+                    t_mysocket_handler.put_native_all(msg_item)
+                    #print("[Local] Trying to send {}, sent {}".format(len(msg_item),send_result))
                 
                 #print("[DEBUG] into get_native_all ... ")
                 #get response if any, better put a timeout here

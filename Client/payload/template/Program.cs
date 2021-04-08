@@ -1043,6 +1043,63 @@ namespace myclient
 
                 }
 
+                if (command_tag.ToLower() == "psremote")
+                {
+                    string reStr = myPsRun.remoteInit(command);
+                    if (reStr == "PSREMOTE_SUCCESS")
+                    {
+                        Console.WriteLine("[DEBUG] psremote executed ...");
+                        msg = Encoding.UTF8.GetBytes(MsgPack("PSREMOTE_SUCCESS"));
+                    }
+                    else
+                    {
+                        Console.WriteLine("[DEBUG] psremote executed with error ...");
+                        msg = Encoding.UTF8.GetBytes(MsgPack(reStr));
+                    }
+
+                    pipe.Write(msg, 0, msg.Length);
+                    Console.WriteLine("Send result finished");
+
+                }
+
+                if (command_tag.ToLower() == "download")
+                {
+                    byte[] t_file;
+                    try
+                    {
+                        string toSend = Convert.ToBase64String(File.ReadAllBytes(command));
+                        string toSendPack = "";
+                        foreach (string subToSend in SplitByLength(toSend, 1024 * 1024))
+                        {
+                            toSendPack = toSendPack + MsgPack(subToSend);
+                        }
+
+                        toSendPack = toSendPack + MsgPack("DL_SUCCESS"); //ack
+
+                        t_file = Encoding.UTF8.GetBytes(toSendPack);
+                    }
+                    catch (Exception e)
+                    {
+                        t_file = Encoding.UTF8.GetBytes(MsgPack(e.Message) + MsgPack("DL_SUCCESS")); //maybe need to ensure its not a "single word"
+                    }
+
+                    //can push a chunk with pipe
+                    pipe.Write(t_file, 0, t_file.Length);
+
+                    //ack
+                    string psAck = ReadPipMessage(pipe);
+                    Console.WriteLine("[DEBUG] ACK msg: " + psAck);
+                    if (psAck == "DL_SUCCESS")
+                    {
+                        Console.WriteLine("[Down] Success");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[Down] Failed ...");
+                    }
+
+                }
+
 
 
                 if (command_tag.ToLower() == "exit")

@@ -170,8 +170,8 @@ class myconstant():
         self.CMD_PIPE_STAGER_TOOLS_SHARPHOUND3 = "sharphound3"
         
         self.CMD_PIPE_STAGER_TOOLS_SPAWN_PS = "spawnps"
-        #self.CMD_STAGER_TOOLS_PSRESET = "psreset"
-        #self.CMD_STAGER_TOOLS_PSEXEC = "psexec"
+        self.CMD_PIPE_STAGER_TOOLS_PSRESET = "psreset"
+        self.CMD_PIPE_STAGER_TOOLS_PSEXEC = "psexec"
         #self.CMD_STAGER_TOOLS_PSREMOTE = "psremote"
         #self.CMD_STAGER_TOOLS_PSJUMP = "psjump"
         #self.CMD_STAGER_TOOLS_PSJUMP_EXE = "psjump-exe"
@@ -185,7 +185,9 @@ class myconstant():
                                                 self.CMD_PIPE_STAGER_TOOLS_GETAV,self.CMD_PIPE_STAGER_TOOLS_GETAL,self.CMD_PIPE_STAGER_TOOLS_GETCLM,self.CMD_PIPE_STAGER_TOOLS_MAKETOKEN,
                                                 self.CMD_PIPE_STAGER_TOOLS_INJECT,self.CMD_PIPE_STAGER_TOOLS_GETPID,self.CMD_PIPE_STAGER_TOOLS_GETPSTREE,self.CMD_PIPE_STAGER_TOOLS_GETPSTREE2,
                                                 self.CMD_PIPE_STAGER_TOOLS_GETDOMAIN,self.CMD_PIPE_STAGER_TOOLS_WHOAMI,self.CMD_PIPE_STAGER_TOOLS_HOSTNAME,self.CMD_PIPE_STAGER_TOOLS_CD,
-                                                self.CMD_PIPE_STAGER_TOOLS_LS,self.CMD_PIPE_STAGER_TOOLS_SHARPHOUND3,self.CMD_PIPE_STAGER_TOOLS_SPAWN_PS,self.CMD_PIPE_STAGER_TOOLS_KERBER,self.CMD_PIPE_STAGER_TOOLS_ASREP]
+                                                self.CMD_PIPE_STAGER_TOOLS_LS,self.CMD_PIPE_STAGER_TOOLS_SHARPHOUND3,self.CMD_PIPE_STAGER_TOOLS_SPAWN_PS,self.CMD_PIPE_STAGER_TOOLS_PSRESET,
+                                                self.CMD_PIPE_STAGER_TOOLS_PSEXEC,
+                                                self.CMD_PIPE_STAGER_TOOLS_KERBER,self.CMD_PIPE_STAGER_TOOLS_ASREP]
 
 
         self.CMD_PAYLOAD_SETCONFIG = "set"

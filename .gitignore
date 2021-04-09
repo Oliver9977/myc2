@@ -1,2 +1,5 @@
 
 Client/external/CSExec/csexec/Resources/test.exe
+Client/myclient/Program.cs
+Client/payload/myclient.exe
+Server/PSDB/Invoke-myclient.ps1

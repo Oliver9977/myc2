@@ -893,6 +893,9 @@ class mypayload():
         self.host = "127.0.0.1"
         self.port = 4444
         self.payloadtype = "socket"
+        self.username = "dummyname"
+        self.password = "dummypassword"
+        self.domain = "dummydomain"
     
     def printinfo(self):
         print("+++++++++++++++++++++Payload Info++++++++++++++++++++++")
@@ -902,6 +905,9 @@ class mypayload():
         print("port: {}".format(self.port))
         print("namepipehost: {}".format(self.namepipehost))
         print("namepipe: {}".format(self.namepipe))
+        print("username: {}".format(self.username))
+        print("password: {}".format(self.password))
+        print("domain: {}".format(self.domain))
         
 
 

@@ -462,9 +462,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     t_mypayloadgen.gen_psexec()
 
@@ -672,9 +672,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     t_mypayloadgen.gen_inject()
 
@@ -851,9 +851,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     
                     #set auto compete to stager uuid
@@ -890,9 +890,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     
                     #set auto compete to stager uuid
@@ -947,9 +947,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     tosend = t_mypayloadgen.gen_b64()
                     
                     #set auto compete to stager uuid
@@ -1336,9 +1336,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     t_mypayloadgen.gen_psexec()
 
@@ -1546,9 +1546,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     t_mypayloadgen.gen_inject()
 
@@ -1729,9 +1729,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     
                     #set auto compete to stager uuid
@@ -1767,9 +1767,9 @@ class mymainclass():
                     #re-generate payload 
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                     
                     #set auto compete to stager uuid
@@ -1824,9 +1824,9 @@ class mymainclass():
                 #     #re-generate payload 
                 #     t_mypayloadgen = payloadgen.mypayloadgen()
                 #     if self.__t_mypayload.payloadtype == "socket":
-                #         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                #         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                 #     else:
-                #         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                #         t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                 #     tosend = t_mypayloadgen.gen_b64()
                     
                 #     #set auto compete to stager uuid
@@ -2006,6 +2006,18 @@ class mymainclass():
                         user_input = input("Please enter namepipehost: ")
                         if (len(user_input) != 0):
                             self.__t_mypayload.namepipehost = user_input
+                        
+                        user_input = input("Please enter username: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.username = user_input
+                        
+                        user_input = input("Please enter password: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.password = user_input
+
+                        user_input = input("Please enter domain: ")
+                        if (len(user_input) != 0):
+                            self.__t_mypayload.domain = user_input
                     
                     else:                        
                         user_input = input("Please enter host: ")
@@ -2021,9 +2033,9 @@ class mymainclass():
                 if command_id == self.__t_myconstant.CMD_PAYLOAD_GEN:
                     t_mypayloadgen = payloadgen.mypayloadgen()
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_ps1()
                 
                 if command_id == self.__t_myconstant.CMD_PAYLOAD_GTOJS:
@@ -2038,9 +2050,9 @@ class mymainclass():
 
                     #config default payload
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     t_mypayloadgen.gen_gtojs()
                 
                 if command_id == self.__t_myconstant.CMD_PAYLOAD_PHTA:
@@ -2056,9 +2068,9 @@ class mymainclass():
                     
                     #config default payload
                     if self.__t_mypayload.payloadtype == "socket":
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.host,self.__t_mypayload.port,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
                     else:
-                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe)
+                        t_mypayloadgen.set_config(self.__t_mypayload.payloadtype,self.__t_mypayload.ifreverse,self.__t_mypayload.namepipehost,self.__t_mypayload.namepipe,self.__t_mypayload.username,self.__t_mypayload.password,self.__t_mypayload.domain)
 
                     t_mypayloadgen.gen_pexec_hta()
 

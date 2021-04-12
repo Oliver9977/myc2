@@ -1109,6 +1109,22 @@ namespace myclient
 
                 if (command_tag.ToLower() == "exit")
                 {
+                    msg = Encoding.UTF8.GetBytes(MsgPack("EXIT_SUCCESS"));
+                    pipe.Write(msg, 0, msg.Length);
+                    pipe.WaitForPipeDrain();
+
+                    string ack = ReadPipMessage(pipe);
+                    if (ack == "EXIT_SUCCESS")
+                    {
+                        Console.WriteLine("[EXIT] Success ... ");
+                    }
+                    else
+                    {
+                        Console.WriteLine("[DEBUG] Something wrong with exit");
+                    }
+
+                    pipe.Dispose();
+                    Console.WriteLine("Closed ... ");
                     break;
                 }
 

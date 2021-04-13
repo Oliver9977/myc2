@@ -426,10 +426,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_CLEAN_HISTORY:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_running_stager())
+                    setautocomplete(self.__t_myserver.get_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                    if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
                     removecomplete()
@@ -440,10 +440,10 @@ class mymainclass():
 
                 if command_id == self.__t_myconstant.CMD_STAGER_RESTORE_HISTORY:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_running_stager())
+                    setautocomplete(self.__t_myserver.get_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_running_stager():
+                    if user_input_stager not in self.__t_myserver.get_stager():
                         print("Please input a valid stager uuid")
                         continue
                     removecomplete()
@@ -1301,8 +1301,7 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_pipe_stager():
                         print("Please input a valid stager uuid")
                         continue
-                    for each_msg in self.__t_myserver.get_pipe_history()[user_input_stager]:
-                        print(each_msg)
+                    self.__t_myserver.print_pipe_history(user_input_stager,False)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_RUNNING_LIST:
@@ -1324,6 +1323,34 @@ class mymainclass():
                     if user_input_confirm != "y":
                         continue
                     self.__t_myserver.set_verbose(not self.__t_myserver.get_verbose())
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_CLEAN_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_pipe_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_pipe_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+
+                    user_input_id = input("Please enter the history id to clean: ")
+                    self.__t_myserver.clean_pipe_history(user_input_stager,int(user_input_id))
+                    continue
+
+                if command_id == self.__t_myconstant.CMD_PIPE_STAGER_RESTORE_HISTORY:
+                    #set auto compete to stager uuid
+                    setautocomplete(self.__t_myserver.get_pipe_stager())
+
+                    user_input_stager = input("Please enter the stager uuid: ")
+                    if user_input_stager not in self.__t_myserver.get_pipe_stager():
+                        print("Please input a valid stager uuid")
+                        continue
+                    removecomplete()
+
+                    user_input_id = input("Please enter the history id to restore: ")
+                    self.__t_myserver.restore_pipe_history(user_input_stager,int(user_input_id))
                     continue
 
 
@@ -1604,17 +1631,6 @@ class mymainclass():
                     self.__t_myserver.create_pipe_command(user_input_stager,"ps",self.__t_mybuildin.SHARPHOUND3.format(user_input_domain))
                     continue
                 
-                # if command_id == self.__t_myconstant.CMD_STAGER_GET_HISTORY:
-                #     #set auto compete to stager uuid
-                #     setautocomplete(self.__t_myserver.get_stager())
-
-                #     user_input_stager = input("Please enter the stager uuid: ")
-                #     if user_input_stager not in self.__t_myserver.get_stager():
-                #         print("Please input a valid stager uuid")
-                #         continue
-                #     self.__t_myserver.print_history(user_input_stager,False)
-                #     continue
-
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_GET_HISTORY:
                     #set auto compete to stager uuid
                     setautocomplete(self.__t_myserver.get_pipe_stager())
@@ -1623,16 +1639,15 @@ class mymainclass():
                     if user_input_stager not in self.__t_myserver.get_pipe_stager():
                         print("Please input a valid stager uuid")
                         continue
-                    for each_msg in self.__t_myserver.get_pipe_history()[user_input_stager]:
-                        print(each_msg)
+                    self.__t_myserver.print_pipe_history(user_input_stager,False)
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_PIPE_STAGER_TOOLS_GETDOMAIN:
                     #set auto compete to stager uuid
-                    setautocomplete(self.__t_myserver.get_pipe_stager())
+                    setautocomplete(self.__t_myserver.get_running_pipe_stager())
 
                     user_input_stager = input("Please enter the stager uuid: ")
-                    if user_input_stager not in self.__t_myserver.get_pipe_stager():
+                    if user_input_stager not in self.__t_myserver.get_running_pipe_stager():
                         print("Please input a valid stager uuid")
                         continue
                     

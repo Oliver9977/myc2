@@ -139,10 +139,13 @@ class myconstant():
         self.CMD_PIPE_STAGER_CON = "connect"
         self.CMD_PIPE_STAGER_BUILDIN = "tools"
         self.CMD_PIPE_STAGER_VERBOSE = "verbose"
+        self.CMD_PIPE_STAGER_CLEAN_HISTORY = "history-clean"
+        self.CMD_PIPE_STAGER_RESTORE_HISTORY = "history-restore"
+
 
         self.CMD_PIPE_SAGER_AUTOLIST = [self.CMD_PIPE_STAGER_GET_LIST,self.CMD_PIPE_STAGER_GET_INTO,self.CMD_PIPE_STAGER_GET_HISTORY,
                                             self.CMD_BACK,self.CMD_PIPE_STAGER_GET_RUNNING_LIST,self.CMD_PIPE_STAGER_CON,self.CMD_PIPE_STAGER_BUILDIN,
-                                            self.CMD_PIPE_STAGER_VERBOSE]
+                                            self.CMD_PIPE_STAGER_VERBOSE,self.CMD_PIPE_STAGER_CLEAN_HISTORY,self.CMD_PIPE_STAGER_RESTORE_HISTORY]
         #self.CMD_PIPE_STAGER_LOAD_PS = "psload"
         #self.CMD_PIPE_STAGER_CON = "connect" 
 

@@ -191,6 +191,8 @@ class myserver():
         self.__mypipe_mystart_list = dict() #bool
 
         self.__mypipe_mypsloader_list = dict() #loaded ps module
+        self.__mypipe_mymsg_list_start_index = dict()
+        self.__mypipe_mymsg_list_start_index_active = dict()
 
         self.__debug_disable_pfw_update = False
 
@@ -476,6 +478,8 @@ class myserver():
             item_que = self.__mypipe_mydata_list[myuuid]
             mypipe = self.__mypipe_myhandle_list[myuuid]
             myhistory = self.__mypipe_mymsg_list[myuuid]
+            myhistory_index = self.__mypipe_mymsg_list_start_index[myuuid]
+            myhistory_index_active = self.__mypipe_mymsg_list_start_index_active[myuuid]
 
             t_mypipehandler = mypipe_handler(mypipe)
 
@@ -486,7 +490,9 @@ class myserver():
                 continue
             
             try:
-                myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                myhistory_index.append(len(myhistory))
+                myhistory_index_active.append(len(myhistory))
+                myhistory.append("+++++++++++++++++++++++++++ History {} ++++++++++++++++++++++++++++++++++".format(len(myhistory_index)))
                 if  cmd_struct_to_send[0] == "ps" and self.__ifverbose:
                     cmd_struct_to_send[1] = cmd_struct_to_send[1] + " | out-string"
                 
@@ -561,7 +567,7 @@ class myserver():
 
                 # try get cmd result if any
                 recv_result = t_mypipehandler.get_nextmsg()
-                myhistory.append("[Stager] Run Command result: {}".format(recv_result))
+                myhistory.append("[Result] Run Command result: {}".format(recv_result))
                 # ack for success
                 encode_cmd = t_mypipehandler.msf_encode(self.__t_myconstant_networking.PSRUN_SUCCESS).encode("utf8", "ignore")
                 win32file.WriteFile(mypipe, encode_cmd)
@@ -569,7 +575,7 @@ class myserver():
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
             except Exception as e:
-                print("Exception: " + str(e))
+                #print("Exception: " + str(e))
                 myhistory.append("Exception: " + str(e))
                 #remove from worker list
                 self.__mypipe_mydata_list.pop(myuuid, None)
@@ -577,7 +583,7 @@ class myserver():
                 self.__mypipe_mystart_list[myuuid] = False
                 win32file.CloseHandle(self.__mypipe_myhandle_list[myuuid])
                 self.__mypipe_myhandle_list.pop(myuuid, None)
-                myhistory.append("[Stager] {} is stoped ...".format(myuuid))
+                myhistory.append("[Result] {} is stoped ...".format(myuuid))
                 myhistory.append("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 break
 
@@ -636,6 +642,8 @@ class myserver():
             self.__mypipe_mydata_list[myuuid] = queue.Queue()
             #create history
             self.__mypipe_mymsg_list[myuuid] = list()
+            self.__mypipe_mymsg_list_start_index[myuuid] = list()
+            self.__mypipe_mymsg_list_start_index_active[myuuid] = list()
             #push uuid
             self.__mypipe_myuuid_list.append(myuuid)
             #set start
@@ -727,6 +735,8 @@ class myserver():
                 self.__mypipe_mydata_list[myuuid] = queue.Queue()
                 #create history
                 self.__mypipe_mymsg_list[myuuid] = list()
+                self.__mypipe_mymsg_list_start_index[myuuid] = list()
+                self.__mypipe_mymsg_list_start_index_active[myuuid] = list()
                 #push uuid
                 self.__mypipe_myuuid_list.append(myuuid)
                 #set start
@@ -863,8 +873,35 @@ class myserver():
             return
         self.__mymsg_list_start_index_active[myuuid][index-1] = self.__mymsg_list_start_index[myuuid][index-1]
     
-    def get_pipe_history(self):
-        return self.__mypipe_mymsg_list
+    #pipe history
+    def print_pipe_history(self,myuuid,verbose):
+        msg_data = self.__mypipe_mymsg_list[myuuid]
+        for start_index in self.__mypipe_mymsg_list_start_index_active[myuuid]:
+            if start_index == None:
+                continue
+
+            line_number = 0
+            for next_msg in msg_data[start_index:]:
+                if (not verbose and (line_number < 2 or "[Stager]" not in next_msg)) or verbose:
+                    line_number = line_number + 1
+                    print(next_msg)
+                if next_msg == "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++":
+                    break
+    
+    def clean_pipe_history(self,myuuid,index):
+        if index > len(self.__mypipe_mymsg_list_start_index_active[myuuid]):
+            print("[Error] Invalid index.")
+            return
+        self.__mypipe_mymsg_list_start_index_active[myuuid][index-1] = None
+    
+    def restore_pipe_history(self,myuuid,index):
+        if index > len(self.__mypipe_mymsg_list_start_index_active[myuuid]):
+            print("[Error] Invalid index.")
+            return
+        self.__mypipe_mymsg_list_start_index_active[myuuid][index-1] = self.__mypipe_mymsg_list_start_index[myuuid][index-1]
+    
+    # def get_pipe_history(self):
+    #     return self.__mypipe_mymsg_list
 
 
     def set_hostname(self,hostname):

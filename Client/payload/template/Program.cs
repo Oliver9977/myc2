@@ -647,6 +647,7 @@ namespace myclient
                         }
                         else
                         {
+                            fwEndPoint.Add(subs[1], subs[2]);
                             fwnamepipe = subs[2];
                             Thread t = new Thread(new ParameterizedThreadStart(StartNativePipServer));
                             t.Start(subs[1]);
@@ -870,7 +871,7 @@ namespace myclient
                                 }
                                 catch
                                 {
-
+                                    
                                 }
 
                             }
@@ -886,12 +887,15 @@ namespace myclient
                                     fwPipe[chuuid].Close();
                                     fwPipe[chuuid].Dispose();
                                     fwPipe_alive[chuuid] = false;
+
+                                    //StartNativePipServerRenew
+                                    Thread t = new Thread(new ParameterizedThreadStart(StartNativePipServerRenew));
+                                    t.Start(fwMapping_revs[chuuid]);
                                 }
                                 catch
                                 {
 
                                 }
-
                             }
                         }
 
@@ -1426,6 +1430,36 @@ namespace myclient
 
                 var pipe = new NamedPipeServerStream(fwnamepipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message);
                 
+                pipe.WaitForConnection();
+                Guid myuuid = Guid.NewGuid();
+                //t_fwSocket.ReceiveTimeout = localSocketTimeout;
+                fwPipe.Add(myuuid, pipe);
+                fwPipe_alive.Add(myuuid, true);
+
+                fwMapping[rhuuid].Add(myuuid);
+                fwMapping_revs.Add(myuuid, rhuuid);
+
+                ifAcked.Add(myuuid, false);
+
+
+            }//end of try
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        public void StartNativePipServerRenew(Object uuid)
+        {
+            string rhuuid = (string)uuid;
+            
+            try
+            {
+                //rh_running.Add(rhuuid, true);
+                //fwMapping.Add(rhuuid, new List<Guid>());
+
+                var pipe = new NamedPipeServerStream(fwEndPoint[rhuuid], PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message);
+
                 pipe.WaitForConnection();
                 Guid myuuid = Guid.NewGuid();
                 //t_fwSocket.ReceiveTimeout = localSocketTimeout;

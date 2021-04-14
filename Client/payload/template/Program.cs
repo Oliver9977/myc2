@@ -899,28 +899,6 @@ namespace myclient
                             Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
 
-                        if (fwSocket_alive[chuuid] == false)
-                        {
-                            //already FINed
-                            //send ch
-                            byte[] fin_ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
-                            bytesSent = sender.Send(fin_ch_msg);
-                            if (bytesSent != fin_ch_msg.Length)
-                            {
-                                Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
-                            }
-                            //send FW_CH_FINED
-                            byte[] fin_data_msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_FINED"));
-                            bytesSent = sender.Send(fin_data_msg);
-                            if (bytesSent != fin_data_msg.Length)
-                            {
-                                Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
-                            }
-
-                            continue;
-
-                        }
-
                         //send ch
                         byte[] ch_msg = Encoding.UTF8.GetBytes(MsgPack(chuuid.ToString()));
                         bytesSent = sender.Send(ch_msg);
@@ -929,17 +907,49 @@ namespace myclient
                             Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                         }
 
-                        //do single read and write
-                        Console.WriteLine("Doing read and write");
-                        string str_fwq_msg = doReciveNative(chuuid);
-                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
+                        string str_fwq_msg = "";
+                        if (fwSocket.ContainsKey(chuuid))
                         {
-                            str_fwq_msg = "FW_CH_FINED";
+                            //already FINed
+                            if (fwSocket_alive[chuuid] == false)
+                            {
+                                
+                                //send FW_CH_FINED
+                                byte[] fin_data_msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_FINED"));
+                                bytesSent = sender.Send(fin_data_msg);
+                                if (bytesSent != fin_data_msg.Length)
+                                {
+                                    Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
+                                }
+
+                                continue;
+
+                            }
+
+                            //do single read and write
+                            Console.WriteLine("Doing read and write");
+                            str_fwq_msg = doReciveNative(chuuid);
+                            if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
+                            {
+                                str_fwq_msg = "FW_CH_FINED";
+                            }
+                            if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                            {
+                                str_fwq_msg = "FW_CH_NODATA";
+                            }
                         }
-                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                        else
                         {
-                            str_fwq_msg = "FW_CH_NODATA";
+                            //pipe channel 
+                            Console.WriteLine("Doing read and write");
+                            str_fwq_msg = ReadPipMessageNative(chuuid);
+                            if (str_fwq_msg.Length == 0)
+                            {
+                                str_fwq_msg = "FW_CH_NODATA";
+                            }
                         }
+
+                        Console.WriteLine("read and writed Finished ...");
 
                         byte[] fwq_msg = Encoding.UTF8.GetBytes(MsgPack(str_fwq_msg));
 
@@ -952,49 +962,69 @@ namespace myclient
 
                         Console.WriteLine("Send success ...");
 
-                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                        if (fwSocket.ContainsKey(chuuid))
                         {
-                            string fwq_string_tosend = doRecive(sender);
-                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
-                            if (fwSocket_alive[chuuid] && fwq_string_tosend.Length != 0)
+                            if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
                             {
-                                //send will block
-                                fwSocket[chuuid].Blocking = true;
-                                int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                                fwSocket[chuuid].Blocking = false;
-                                Console.WriteLine("Response sent");
-                            }
-                            else if (fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
-                            {
-                                Console.WriteLine("Dummy Response ...");
-                            }
-                            else
-                            {
-                                Console.WriteLine("fwSocket may still receiving ... ");
-                                if (SocketConnected(fwSocket[chuuid]))
+                                string fwq_string_tosend = doRecive(sender);
+                                Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                                if (fwSocket_alive[chuuid] && fwq_string_tosend.Length != 0)
                                 {
-                                    Console.WriteLine("fwSocket still connected ... ");
                                     //send will block
                                     fwSocket[chuuid].Blocking = true;
                                     int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
                                     fwSocket[chuuid].Blocking = false;
                                     Console.WriteLine("Response sent");
                                 }
+                                else if (fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
+                                {
+                                    Console.WriteLine("Dummy Response ...");
+                                }
                                 else
                                 {
-                                    Console.WriteLine("fwSocket does not want response ... ");
+                                    Console.WriteLine("fwSocket may still receiving ... ");
+                                    if (SocketConnected(fwSocket[chuuid]))
+                                    {
+                                        Console.WriteLine("fwSocket still connected ... ");
+                                        //send will block
+                                        fwSocket[chuuid].Blocking = true;
+                                        int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                        fwSocket[chuuid].Blocking = false;
+                                        Console.WriteLine("Response sent");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("fwSocket does not want response ... ");
+                                    }
+
+                                    fwSocket[chuuid].Shutdown(SocketShutdown.Send);
+                                    fwSocket[chuuid].Close(1000);
                                 }
 
-                                fwSocket[chuuid].Shutdown(SocketShutdown.Send);
-                                fwSocket[chuuid].Close(1000);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Clean up ...");
+                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                fwSocket[chuuid].Close();
+                            }
+                        }
+                        else //pipe
+                        {
+                            string fwq_string_tosend = doRecive(sender);
+                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
+
+                            if (fwq_string_tosend.Length != 0)
+                            {
+                                msg = Encoding.UTF8.GetBytes(fwq_string_tosend);
+                                fwPipe[chuuid].Write(msg, 0, msg.Length);
+                                Console.WriteLine("Response sent");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Dummy Response ...");
                             }
 
-                        }
-                        else
-                        {
-                            Console.WriteLine("Clean up ...");
-                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                            fwSocket[chuuid].Close();
                         }
 
                     }

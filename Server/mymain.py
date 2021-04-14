@@ -350,24 +350,34 @@ class mymainclass():
 
                     #unset auto complete
                     removecomplete()
-                    #get host and port
-                    user_input_listener_host = input("Please enter remote listener ip: ")
-                    user_input_listener_port = input("Please enter remote listener port: ")
-                    user_input_con_host = input("Please enter local connect ip: ")
-                    user_input_con_port = input("Please enter local connect port: ")
-                    user_input_confirm = input("y to confirm: ")
-                    if user_input_confirm != "y":
-                        continue
-                    # wait local resource handler return true
-                    #threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,user_input_con_host,int(user_input_con_port),)).start()
-                    #pull the response
-                    #t_response = self.__t_myserver.get_resource_handler_result(user_input_stager)
-                    #if t_response == self.__t_net_constant.FW_LOCAL_SUCCESS:
-                    rhuuid = self.__t_myserver.add_rh_info(user_input_con_host,user_input_con_port)
-
-                    self.__t_myserver.create_command(user_input_stager,"fw","{}:{}:{}".format(rhuuid,user_input_listener_host,user_input_listener_port))
-                    threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
                     
+                    user_input_type = input("Please enter type: ")
+                    if (user_input_type == "socket"):
+                        #get host and port
+                        user_input_listener_host = input("Please enter remote listener ip: ")
+                        user_input_listener_port = input("Please enter remote listener port: ")
+                        user_input_con_host = input("Please enter local connect ip: ")
+                        user_input_con_port = input("Please enter local connect port: ")
+                        user_input_confirm = input("y to confirm: ")
+                        if user_input_confirm != "y":
+                            continue
+                        
+                        rhuuid = self.__t_myserver.add_rh_info(user_input_con_host,user_input_con_port)
+                        self.__t_myserver.create_command(user_input_stager,"fw","{}:{}:{}:{}".format("socket",rhuuid,user_input_listener_host,user_input_listener_port))
+                        threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
+
+                    else:
+                        user_input_listener_pipe = input("Please enter remote listener pipe: ")
+                        user_input_con_host = input("Please enter local connect ip: ")
+                        user_input_con_port = input("Please enter local connect port: ")
+                        user_input_confirm = input("y to confirm: ")
+                        if user_input_confirm != "y":
+                            continue
+                        
+                        rhuuid = self.__t_myserver.add_rh_info(user_input_con_host,user_input_con_port)
+                        self.__t_myserver.create_command(user_input_stager,"fw","{}:{}:{}".format("pipe",rhuuid,user_input_listener_pipe))
+                        threading.Thread(target=self.__t_myserver.start_resource_handler,args=(user_input_stager,rhuuid)).start()
+
                     continue
                 
                 if command_id == self.__t_myconstant.CMD_STAGER_PFW_STOP:

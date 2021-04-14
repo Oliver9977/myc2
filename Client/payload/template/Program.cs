@@ -44,7 +44,7 @@ namespace myclient
         public string ipstring = "127.0.0.1:4444";
         public string namepipestring = "namedpipeshell";
         public string namepipehost = ".";
-        public int localSocketTimeout = 500;
+        //public int localSocketTimeout = 500;
         public string username = "";
         public string password = "";
         public string domain = "";
@@ -856,22 +856,46 @@ namespace myclient
                         //server FINed 
                         //convert string to uuid
                         Guid chuuid = new Guid(command);
-
-                        if (fwSocket_alive[chuuid] == true)
+                        if (fwSocket.ContainsKey(chuuid))
                         {
-                            Console.WriteLine("Clean up ...");
-                            //might need locks
-                            try
+                            if (fwSocket_alive[chuuid] == true)
                             {
-                                fwSocket[chuuid].Shutdown(SocketShutdown.Both);
-                                fwSocket[chuuid].Close();
-                            }
-                            catch
-                            {
+                                Console.WriteLine("Clean up ...");
+                                //might need locks
+                                try
+                                {
+                                    fwSocket[chuuid].Shutdown(SocketShutdown.Both);
+                                    fwSocket[chuuid].Close();
+                                    fwSocket_alive[chuuid] = false;
+                                }
+                                catch
+                                {
+
+                                }
 
                             }
-                            
                         }
+                        else //pipe
+                        {
+                            if (fwPipe_alive[chuuid] == true)
+                            {
+                                Console.WriteLine("Clean up ...");
+                                //might need locks
+                                try
+                                {
+                                    fwPipe[chuuid].Close();
+                                    fwPipe[chuuid].Dispose();
+                                    fwPipe_alive[chuuid] = false;
+                                }
+                                catch
+                                {
+
+                                }
+
+                            }
+                        }
+
+                        
                         
                         //FW_CH_CLOSE_SUCCESS
                         msg = Encoding.UTF8.GetBytes(MsgPack("FW_CH_CLOSE_SUCCESS"));

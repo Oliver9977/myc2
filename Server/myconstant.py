@@ -84,6 +84,7 @@ class myconstant():
         
         self.CMD_STAGER_TOOLS_GETDOMAIN = "getdomain"
         self.CMD_STAGER_TOOLS_WHOAMI = "whoami"
+        self.CMD_STAGER_TOOLS_WHOAMI_TOKEN = "whoami-token"
         self.CMD_STAGER_TOOLS_HOSTNAME = "hostname"
         self.CMD_STAGER_TOOLS_CD = "cd"
         self.CMD_STAGER_TOOLS_LS = "ls"
@@ -116,7 +117,7 @@ class myconstant():
         self.CMD_STAGER_TOOLS_AUTOLIST = [self.CMD_BACK, self.CMD_STAGER_GET_HISTORY, self.CMD_STAGER_VERBOSE, self.CMD_STAGER_TOOLS_IF64BIT, self.CMD_STAGER_TOOLS_GETNETVERSION, self.CMD_STAGER_TOOLS_GETNETVERSION2, 
                                             self.CMD_STAGER_TOOLS_GETAV, self.CMD_STAGER_TOOLS_GETAL, self.CMD_STAGER_TOOLS_GETCLM, self.CMD_STAGER_TOOLS_MAKETOKEN, 
                                             self.CMD_STAGER_TOOLS_INJECT, self.CMD_STAGER_TOOLS_GETPID, self.CMD_STAGER_TOOLS_GETPSTREE, self.CMD_STAGER_TOOLS_GETPSTREE2,
-                                            self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
+                                            self.CMD_STAGER_TOOLS_GETDOMAIN, self.CMD_STAGER_TOOLS_WHOAMI, self.CMD_STAGER_TOOLS_WHOAMI_TOKEN, self.CMD_STAGER_TOOLS_HOSTNAME, self.CMD_STAGER_TOOLS_CD, 
                                             self.CMD_STAGER_TOOLS_LS, self.CMD_STAGER_TOOLS_DOWNLOAD, self.CMD_STAGER_TOOLS_SHARPHOUND3, self.CMD_STAGER_TOOLS_SPAWN_PS, 
                                             self.CMD_STAGER_TOOLS_PSRESET, self.CMD_STAGER_TOOLS_PSEXEC, self.CMD_STAGER_TOOLS_PSREMOTE, self.CMD_STAGER_TOOLS_PSJUMP, 
                                             self.CMD_STAGER_TOOLS_PSJUMP_EXE,self.CMD_STAGER_TOOLS_RUBEUS_KERBER,self.CMD_STAGER_TOOLS_RUBEUS_ASREP,self.CMD_STAGER_TOOLS_RUBEUS_ASKTGT,
@@ -245,6 +246,7 @@ class mybuildin_cmd():
         self.PSJOB = "Start-Job -ScriptBlock ${{function:{}}}"
         self.HOSTNAME = "hostname"
         self.WHOAMI = "whoami"
+        self.WHOAMI_TOKEN = "[System.Security.Principal.WindowsIdentity]::GetCurrent() | select name"
 
         self.B64_SAVE = "echo {} | out-file {}\\{}.txt"
 
